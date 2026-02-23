@@ -42,9 +42,10 @@ fi.pomeranssi.bookline
 │   └── model             #   Book, Shelf, ReadingStatus, etc.
 ├── ui                    # Presentation layer
 │   ├── theme             #   Material 3 theme (Color, Type, Theme)
-│   ├── navigation        #   NavHost & route definitions
+│   ├── navigation        #   NavHost, route definitions, BooklineApp scaffold
 │   ├── timeline          #   Timeline screen (main screen)
-│   ├── shelves           #   Shelf browser screen
+│   ├── shelves           #   Shelf browser / To Read screen
+│   ├── goodreads         #   Embedded Goodreads WebView screen
 │   ├── bookdetail        #   Book detail screen
 │   └── settings          #   Settings screen (RSS URL config)
 └── MainActivity.kt       # Single Activity entry point
@@ -71,9 +72,10 @@ Goodreads RSS feed (XML/HTTP)
 ## Key Screens
 
 1. **Timeline** — chronological view of books read (main screen)
-2. **Shelves** — browse by shelf (read / currently-reading / to-read / custom)
-3. **Book detail** — cover, metadata, rating, review
-4. **Settings** — configure Goodreads RSS feed URL, theme prefs
+2. **To Read** — books on the to-read shelf
+3. **Goodreads** — embedded WebView showing goodreads.com (with in-WebView back navigation)
+4. **Book detail** — cover, metadata, rating, review
+5. **Settings** — configure Goodreads RSS feed URL, theme prefs
 
 ## Design Decisions
 
