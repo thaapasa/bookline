@@ -29,14 +29,23 @@ _Coming soon._
 
 ## 🏗️ Tech Stack
 
-| Layer            | Technology                               |
-|------------------|------------------------------------------|
-| **Language**     | Kotlin                                   |
-| **UI**           | Jetpack Compose with Material 3          |
-| **Minimum SDK**  | 28 (Android 9 Pie)                       |
-| **Target SDK**   | 36                                       |
-| **Build system** | Gradle (Kotlin DSL) with version catalog |
-| **Architecture** | Single-module (for now)                  |
+| Layer             | Technology                                     |
+|-------------------|------------------------------------------------|
+| **Language**      | Kotlin 2.0+                                    |
+| **UI**            | Jetpack Compose with Material 3 / Material You |
+| **Async**         | Kotlin Coroutines + Flow                       |
+| **Networking**    | Ktor Client                                    |
+| **Image loading** | Coil (Compose)                                 |
+| **Local storage** | Room                                           |
+| **Navigation**    | Compose Navigation                             |
+| **Minimum SDK**   | 28 (Android 9 Pie)                             |
+| **Target SDK**    | 36                                             |
+| **Build system**  | Gradle 9 (Kotlin DSL) with version catalog     |
+| **Architecture**  | Single-activity MVVM, single module            |
+| **DI**            | Manual constructor injection (no Hilt/Dagger)  |
+
+> For a deeper dive into the architecture, data flow, and package layout see
+> [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## 🚀 Getting Started
 
