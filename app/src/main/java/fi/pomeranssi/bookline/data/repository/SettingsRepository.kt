@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package fi.pomeranssi.bookline.data.repository
 
 import android.content.Context
@@ -13,6 +15,10 @@ import kotlinx.coroutines.flow.asStateFlow
  * Stores app settings (including the Goodreads RSS feed URL that contains an
  * access key) in [EncryptedSharedPreferences] so that sensitive values are
  * encrypted at rest.
+ *
+ * The EncryptedSharedPreferences / MasterKey classes are marked deprecated in
+ * security-crypto 1.1.0 but remain functional; suppress until the replacement
+ * API stabilises.
  */
 class SettingsRepository(context: Context) {
 
