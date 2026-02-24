@@ -37,11 +37,13 @@ Single `:app` module — no multi-module split planned unless complexity grows.
 fi.pomeranssi.bookline
 ├── data                  # Data layer
 │   ├── db                #   Room database, DAOs, entities
-│   ├── network           #   RSS feed fetching
+│   ├── network           #   RSS feed fetching & parsing
+│   │   └── GoodreadsRssParser  # XmlPullParser-based RSS → Book parser
 │   └── repository        #   Repository implementations
 │       └── SettingsRepository  # Keystore-encrypted SharedPreferences for feed URL
 ├── domain                # Domain layer (models, use cases if needed)
-│   └── model             #   Book, Shelf, ReadingStatus, etc.
+│   └── model
+│       └── Book          #   Book data class + ReadingStatus sealed interface
 ├── ui                    # Presentation layer
 │   ├── theme             #   Material 3 theme (Color, Type, Theme)
 │   ├── navigation        #   NavHost, route definitions, BooklineApp scaffold
@@ -63,16 +65,16 @@ fi.pomeranssi.bookline
 Goodreads RSS feed (XML/HTTP)
         │
         ▼
-   NetworkDataSource  ──  fetches & parses RSS XML
+   GoodreadsRssParser  ──  XmlPullParser streaming parse → List<Book>
         │
         ▼
-   BookRepository     ──  caches parsed books in Room
+   BookRepository      ──  caches parsed books in Room (TBD)
         │
         ▼
-   ViewModel          ──  exposes StateFlow<UiState>
+   ViewModel           ──  exposes StateFlow<UiState>
         │
         ▼
-   Compose Screen     ──  observes state, renders UI
+   Compose Screen      ──  observes state, renders UI
 ```
 
 ## Key Screens
