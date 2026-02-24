@@ -1,40 +1,30 @@
-@file:Suppress("DEPRECATION")
-
 package fi.pomeranssi.bookline.data.repository
 
 import android.content.Context
-import android.content.SharedPreferences
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.util.Base64
 import androidx.core.content.edit
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.security.KeyStore
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 
 /**
- * Stores app settings (including the Goodreads RSS feed URL that contains an
- * access key) in [EncryptedSharedPreferences] so that sensitive values are
- * encrypted at rest.
- *
- * The EncryptedSharedPreferences / MasterKey classes are marked deprecated in
- * security-crypto 1.1.0 but remain functional; suppress until the replacement
- * API stabilises.
+ * Stores app settings in SharedPreferences with values encrypted via an
+ * AES-256-GCM key held in the Android Keystore. The Keystore key never
+ * leaves the TEE/Strongbox, so the feed URL (which contains a private
+ * Goodreads access key) is protected at rest.
  */
 class SettingsRepository(context: Context) {
 
-    private val masterKey = MasterKey.Builder(context)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
+    private val prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
 
-    private val prefs: SharedPreferences = EncryptedSharedPreferences.create(
-        context,
-        FILE_NAME,
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-    )
-
-    private val _feedUrl = MutableStateFlow(prefs.getString(KEY_FEED_URL, null).orEmpty())
+    private val _feedUrl = MutableStateFlow(getDecrypted(KEY_FEED_URL))
 
     /** Observable feed URL — empty string means "not configured". */
     val feedUrl: StateFlow<String> = _feedUrl.asStateFlow()
@@ -44,13 +34,75 @@ class SettingsRepository(context: Context) {
         get() = _feedUrl.value.isNotBlank()
 
     fun saveFeedUrl(url: String) {
-        prefs.edit { putString(KEY_FEED_URL, url.trim()) }
-        _feedUrl.value = url.trim()
+        val trimmed = url.trim()
+        putEncrypted(KEY_FEED_URL, trimmed)
+        _feedUrl.value = trimmed
+    }
+
+    // ---- encryption helpers ------------------------------------------------
+
+    private fun getOrCreateKey(): SecretKey {
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        keyStore.getEntry(KEYSTORE_ALIAS, null)?.let { entry ->
+            return (entry as KeyStore.SecretKeyEntry).secretKey
+        }
+        val keyGen = KeyGenerator.getInstance(
+            KeyProperties.KEY_ALGORITHM_AES,
+            ANDROID_KEYSTORE,
+        )
+        keyGen.init(
+            KeyGenParameterSpec.Builder(
+                KEYSTORE_ALIAS,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+            )
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setKeySize(AES_KEY_SIZE)
+                .build(),
+        )
+        return keyGen.generateKey()
+    }
+
+    private fun putEncrypted(key: String, plaintext: String) {
+        if (plaintext.isEmpty()) {
+            prefs.edit { remove(key) }
+            return
+        }
+        val cipher = Cipher.getInstance(AES_GCM_TRANSFORMATION)
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
+        val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
+        val iv = cipher.iv
+        // Store as "base64(iv):base64(ciphertext)"
+        val encoded = Base64.encodeToString(iv, Base64.NO_WRAP) +
+                ":" +
+                Base64.encodeToString(ciphertext, Base64.NO_WRAP)
+        prefs.edit { putString(key, encoded) }
+    }
+
+    private fun getDecrypted(key: String): String {
+        val encoded = prefs.getString(key, null) ?: return ""
+        return try {
+            val parts = encoded.split(":")
+            if (parts.size != 2) return ""
+            val iv = Base64.decode(parts[0], Base64.NO_WRAP)
+            val ciphertext = Base64.decode(parts[1], Base64.NO_WRAP)
+            val cipher = Cipher.getInstance(AES_GCM_TRANSFORMATION)
+            cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(GCM_TAG_LENGTH, iv))
+            String(cipher.doFinal(ciphertext), Charsets.UTF_8)
+        } catch (_: Exception) {
+            // If decryption fails (e.g. key was wiped), treat as empty.
+            ""
+        }
     }
 
     companion object {
-        private const val FILE_NAME = "bookline_secure_prefs"
+        private const val PREFS_FILE = "bookline_settings"
         private const val KEY_FEED_URL = "goodreads_feed_url"
+        private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+        private const val KEYSTORE_ALIAS = "bookline_settings_key"
+        private const val AES_KEY_SIZE = 256
+        private const val GCM_TAG_LENGTH = 128
+        private const val AES_GCM_TRANSFORMATION = "AES/GCM/NoPadding"
     }
 }
 

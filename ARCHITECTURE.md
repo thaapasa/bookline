@@ -24,7 +24,7 @@ project — the emphasis is on clean code, not enterprise process.
 | Local storage | Room (SQLite)                                                          |
 | Navigation    | Compose Navigation                                                     |
 | DI            | Manual / simple constructor injection (no Hilt/Dagger — keep it light) |
-| Secrets       | AndroidX Security (EncryptedSharedPreferences) for feed URL / keys     |
+| Secrets       | Android Keystore (AES-256-GCM) + plain SharedPreferences               |
 | Architecture  | Single-activity, MVVM with UiState pattern                             |
 
 ## Module Structure
@@ -39,7 +39,7 @@ fi.pomeranssi.bookline
 │   ├── db                #   Room database, DAOs, entities
 │   ├── network           #   RSS feed fetching
 │   └── repository        #   Repository implementations
-│       └── SettingsRepository  # EncryptedSharedPreferences for feed URL
+│       └── SettingsRepository  # Keystore-encrypted SharedPreferences for feed URL
 ├── domain                # Domain layer (models, use cases if needed)
 │   └── model             #   Book, Shelf, ReadingStatus, etc.
 ├── ui                    # Presentation layer
