@@ -20,7 +20,7 @@ project — the emphasis is on clean code, not enterprise process.
 | Async         | Kotlin Coroutines + Flow                                               |
 | Networking    | Ktor Client (or Retrofit — TBD)                                        |
 | XML parsing   | Kotlin XML / XmlPullParser for RSS                                     |
-| Image loading | Coil (Compose)                                                         |
+| Image loading | Coil 3 (Compose)                                                       |
 | Local storage | Room (SQLite)                                                          |
 | Navigation    | Compose Navigation                                                     |
 | DI            | Manual / simple constructor injection (no Hilt/Dagger — keep it light) |
@@ -35,28 +35,32 @@ Single `:app` module — no multi-module split planned unless complexity grows.
 
 ```
 fi.pomeranssi.bookline
-├── data                  # Data layer
-│   ├── db                #   Room database, DAOs, entities
-│   ├── network           #   RSS feed fetching & parsing
-│   │   └── GoodreadsRssParser  # XmlPullParser-based RSS → Book parser
-│   └── repository        #   Repository implementations
-│       └── SettingsRepository  # Keystore-encrypted SharedPreferences for feed URL
-├── domain                # Domain layer (models, use cases if needed)
+├── data                          # Data layer
+│   ├── db                        # Room database, DAOs, entities
+│   ├── network                   # RSS feed fetching & parsing
+│   │   ├── GoodreadsFeedService  # HTTP GET for RSS feed (HttpURLConnection)
+│   │   └── GoodreadsRssParser    # XmlPullParser-based RSS → Book parser
+│   └── repository                # Repository implementations
+│       ├── BookRepository        # Fetches + parses books from feed URL
+│       └── SettingsRepository    # Keystore-encrypted SharedPreferences for feed URL
+├── domain                        # Domain layer (models, use cases if needed)
 │   └── model
-│       └── Book          #   Book data class + ReadingStatus sealed interface
-├── ui                    # Presentation layer
-│   ├── theme             #   Material 3 theme (Color, Type, Theme)
-│   ├── navigation        #   NavHost, route definitions, BooklineApp scaffold
-│   │   ├── BooklineApp   #   Top-level scaffold with TopAppBar + BottomNavBar
-│   │   └── TopLevelRoute #   Enum of bottom-nav destinations
-│   ├── timeline          #   Timeline screen (main screen)
-│   ├── shelves           #   Shelf browser / To Read screen
-│   ├── goodreads         #   Embedded Goodreads WebView screen
-│   ├── bookdetail        #   Book detail screen
-│   └── settings          #   Settings screen (RSS URL config)
-│       ├── SettingsScreen      # Compose UI for settings
-│       └── SettingsViewModel   # ViewModel for settings state
-└── MainActivity.kt       # Single Activity entry point
+│       └── Book                  # Book data class + ReadingStatus sealed interface
+├── ui                            # Presentation layer
+│   ├── theme                     # Material 3 theme (Color, Type, Theme)
+│   ├── navigation                # NavHost, route definitions, BooklineApp scaffold
+│   │   ├── BooklineApp           # Top-level scaffold with TopAppBar + BottomNavBar
+│   │   └── TopLevelRoute         # Enum of bottom-nav destinations
+│   ├── timeline                  # Timeline screen (main screen)
+│   │   ├── TimelineScreen        # LazyColumn of book cards with covers
+│   │   └── TimelineViewModel     # Loads feed, exposes TimelineUiState
+│   ├── shelves                   # Shelf browser / To Read screen
+│   ├── goodreads                 # Embedded Goodreads WebView screen
+│   ├── bookdetail                # Book detail screen
+│   └── settings                  # Settings screen (RSS URL config)
+│       ├── SettingsScreen        # Compose UI for settings
+│       └── SettingsViewModel     # ViewModel for settings state
+└── MainActivity.kt               # Single Activity entry point
 ```
 
 ## Data Flow

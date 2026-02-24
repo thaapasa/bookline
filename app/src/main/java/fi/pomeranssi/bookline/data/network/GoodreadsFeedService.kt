@@ -1,0 +1,45 @@
+package fi.pomeranssi.bookline.data.network
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URI
+
+/**
+ * Fetches the raw RSS feed from a Goodreads URL.
+ *
+ * Uses plain [HttpURLConnection] to avoid pulling in an HTTP library for
+ * a single GET request. Can be swapped for Ktor/OkHttp later if needed.
+ */
+class GoodreadsFeedService {
+
+    /**
+     * Download the RSS feed and return its [InputStream].
+     * Caller is responsible for closing the stream.
+     *
+     * @throws java.io.IOException on network errors.
+     */
+    suspend fun fetch(feedUrl: String): InputStream = withContext(Dispatchers.IO) {
+        val connection = URI(feedUrl).toURL().openConnection() as HttpURLConnection
+        connection.connectTimeout = TIMEOUT_MS
+        connection.readTimeout = TIMEOUT_MS
+        connection.requestMethod = "GET"
+        connection.connect()
+
+        if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+            throw GoodreadsFeedException(
+                "Feed returned HTTP ${connection.responseCode}: ${connection.responseMessage}",
+            )
+        }
+
+        connection.inputStream
+    }
+
+    companion object {
+        private const val TIMEOUT_MS = 15_000
+    }
+}
+
+class GoodreadsFeedException(message: String) : Exception(message)
+

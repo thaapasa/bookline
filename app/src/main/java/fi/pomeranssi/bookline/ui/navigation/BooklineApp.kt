@@ -27,12 +27,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.ui.goodreads.GoodreadsScreen
 import fi.pomeranssi.bookline.ui.settings.SettingsScreen
 import fi.pomeranssi.bookline.ui.settings.SettingsViewModel
 import fi.pomeranssi.bookline.ui.shelves.ToReadScreen
 import fi.pomeranssi.bookline.ui.timeline.TimelineScreen
+import fi.pomeranssi.bookline.ui.timeline.TimelineViewModel
 
 private const val SETTINGS_ROUTE = "settings"
 
@@ -45,6 +47,8 @@ fun BooklineApp() {
 
     val context = LocalContext.current
     val settingsRepository = remember { SettingsRepository(context.applicationContext) }
+    val bookRepository = remember { BookRepository() }
+    val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
 
     // Determine whether we are on a top-level tab (show bottom bar + top bar)
     val isTopLevel = TopLevelRoute.entries.any { it.route == currentDestination?.route }
@@ -99,7 +103,7 @@ fun BooklineApp() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(TopLevelRoute.Timeline.route) {
-                TimelineScreen()
+                TimelineScreen(viewModel = timelineViewModel)
             }
             composable(TopLevelRoute.ToRead.route) {
                 ToReadScreen()
