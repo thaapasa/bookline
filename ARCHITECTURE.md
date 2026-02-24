@@ -1,6 +1,6 @@
 # Bookline — Architecture
 
-> **Last updated:** 2026-02-23
+> **Last updated:** 2026-02-24
 
 ## Overview
 
@@ -24,6 +24,7 @@ project — the emphasis is on clean code, not enterprise process.
 | Local storage | Room (SQLite)                                                          |
 | Navigation    | Compose Navigation                                                     |
 | DI            | Manual / simple constructor injection (no Hilt/Dagger — keep it light) |
+| Secrets       | AndroidX Security (EncryptedSharedPreferences) for feed URL / keys     |
 | Architecture  | Single-activity, MVVM with UiState pattern                             |
 
 ## Module Structure
@@ -38,16 +39,21 @@ fi.pomeranssi.bookline
 │   ├── db                #   Room database, DAOs, entities
 │   ├── network           #   RSS feed fetching
 │   └── repository        #   Repository implementations
+│       └── SettingsRepository  # EncryptedSharedPreferences for feed URL
 ├── domain                # Domain layer (models, use cases if needed)
 │   └── model             #   Book, Shelf, ReadingStatus, etc.
 ├── ui                    # Presentation layer
 │   ├── theme             #   Material 3 theme (Color, Type, Theme)
 │   ├── navigation        #   NavHost, route definitions, BooklineApp scaffold
+│   │   ├── BooklineApp   #   Top-level scaffold with TopAppBar + BottomNavBar
+│   │   └── TopLevelRoute #   Enum of bottom-nav destinations
 │   ├── timeline          #   Timeline screen (main screen)
 │   ├── shelves           #   Shelf browser / To Read screen
 │   ├── goodreads         #   Embedded Goodreads WebView screen
 │   ├── bookdetail        #   Book detail screen
 │   └── settings          #   Settings screen (RSS URL config)
+│       ├── SettingsScreen      # Compose UI for settings
+│       └── SettingsViewModel   # ViewModel for settings state
 └── MainActivity.kt       # Single Activity entry point
 ```
 
