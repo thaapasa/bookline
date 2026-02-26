@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 /**
  * Provides access to the user's book list.
  *
- * Currently fetches directly from the Goodreads RSS feed and parses in-memory.
+ * Fetches all pages of the Goodreads RSS feed and parses them in-memory.
  * A Room cache can be layered in later for offline-first support.
  */
 class BookRepository(
@@ -18,12 +18,23 @@ class BookRepository(
 ) {
 
     /**
-     * Fetch and parse all books from the given RSS [feedUrl].
+     * Fetch and parse **all** books from the given RSS [feedUrl],
+     * paginating automatically until an empty page is returned.
      */
     suspend fun getBooks(feedUrl: String): List<Book> = withContext(Dispatchers.IO) {
-        feedService.fetch(feedUrl).use { stream ->
-            rssParser.parse(stream)
+        val allBooks = mutableListOf<Book>()
+        var page = 1
+
+        while (true) {
+            val books = feedService.fetch(feedUrl, page).use { stream ->
+                rssParser.parse(stream)
+            }
+            if (books.isEmpty()) break
+            allBooks.addAll(books)
+            page++
         }
+
+        allBooks
     }
 }
 
