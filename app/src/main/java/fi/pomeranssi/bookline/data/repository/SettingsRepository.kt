@@ -39,6 +39,15 @@ class SettingsRepository(context: Context) {
         _feedUrl.value = trimmed
     }
 
+    /** Epoch millis of the last successful book sync, or 0 if never synced. */
+    var lastSyncEpochMs: Long
+        get() = prefs.getLong(KEY_LAST_SYNC, 0L)
+        set(value) = prefs.edit { putLong(KEY_LAST_SYNC, value) }
+
+    /** Returns `true` when the cached data is older than [maxAgeMs]. */
+    fun isSyncStale(maxAgeMs: Long = SYNC_MAX_AGE_MS): Boolean =
+        System.currentTimeMillis() - lastSyncEpochMs > maxAgeMs
+
     // ---- encryption helpers ------------------------------------------------
 
     private fun getOrCreateKey(): SecretKey {
@@ -98,6 +107,8 @@ class SettingsRepository(context: Context) {
     companion object {
         private const val PREFS_FILE = "bookline_settings"
         private const val KEY_FEED_URL = "goodreads_feed_url"
+        private const val KEY_LAST_SYNC = "last_sync_epoch_ms"
+        private const val SYNC_MAX_AGE_MS = 24 * 60 * 60 * 1000L // 24 hours
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
         private const val KEYSTORE_ALIAS = "bookline_settings_key"
         private const val AES_KEY_SIZE = 256

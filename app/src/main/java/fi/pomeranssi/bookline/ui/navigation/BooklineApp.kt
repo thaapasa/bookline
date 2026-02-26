@@ -27,6 +27,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import fi.pomeranssi.bookline.data.db.BooklineDatabase
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.ui.goodreads.GoodreadsScreen
@@ -47,7 +48,8 @@ fun BooklineApp() {
 
     val context = LocalContext.current
     val settingsRepository = remember { SettingsRepository(context.applicationContext) }
-    val bookRepository = remember { BookRepository() }
+    val database = remember { BooklineDatabase.getInstance(context.applicationContext) }
+    val bookRepository = remember { BookRepository(database.bookDao(), settingsRepository) }
     val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
 
     // Determine whether we are on a top-level tab (show bottom bar + top bar)

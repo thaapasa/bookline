@@ -37,12 +37,15 @@ Single `:app` module — no multi-module split planned unless complexity grows.
 fi.pomeranssi.bookline
 ├── data                          # Data layer
 │   ├── db                        # Room database, DAOs, entities
+│   │   ├── BookEntity            # Room entity for books (maps to/from domain Book)
+│   │   ├── BookDao               # DAO with Flow queries and transactional replaceAll
+│   │   └── BooklineDatabase      # Room database singleton
 │   ├── network                   # RSS feed fetching & parsing
 │   │   ├── GoodreadsFeedService  # HTTP GET for RSS feed (HttpURLConnection)
 │   │   └── GoodreadsRssParser    # XmlPullParser-based RSS → Book parser
 │   └── repository                # Repository implementations
-│       ├── BookRepository        # Fetches + parses books from feed URL
-│       └── SettingsRepository    # Keystore-encrypted SharedPreferences for feed URL
+│       ├── BookRepository        # Offline-first: Room as source of truth, sync from RSS feed
+│       └── SettingsRepository    # Keystore-encrypted SharedPreferences for feed URL + sync timestamp
 ├── domain                        # Domain layer (models, use cases if needed)
 │   └── model
 │       └── Book                  # Book data class + ReadingStatus sealed interface
@@ -67,19 +70,22 @@ fi.pomeranssi.bookline
 ## Data Flow
 
 ```
-Goodreads RSS feed (XML/HTTP)
+Goodreads RSS feed (XML/HTTP, paginated)
         │
         ▼
    GoodreadsRssParser  ──  XmlPullParser streaming parse → List<Book>
         │
         ▼
-   BookRepository      ──  caches parsed books in Room (TBD)
+   BookRepository      ──  sync(): fetches all pages, replaceAll in Room
         │
         ▼
-   ViewModel           ──  exposes StateFlow<UiState>
+   Room (BookDao)       ──  single source of truth, emits Flow<List<Book>>
         │
         ▼
-   Compose Screen      ──  observes state, renders UI
+   ViewModel           ──  observes Flow, exposes StateFlow<UiState> + isRefreshing
+        │
+        ▼
+   Compose Screen      ──  observes state, pull-to-refresh triggers sync
 ```
 
 ## Key Screens
