@@ -36,6 +36,10 @@ class BookRepository(
     fun observeTimelineBooks(): Flow<List<Book>> =
         bookDao.observeTimeline().map { entities -> entities.map { it.toDomain() } }
 
+    /** Observe books on the to-read shelf. */
+    fun observeToReadBooks(): Flow<List<Book>> =
+        bookDao.observeToRead().map { entities -> entities.map { it.toDomain() } }
+
     /** Returns true when the cached data is stale or absent. */
     fun isSyncNeeded(): Boolean = settingsRepository.isSyncStale()
 

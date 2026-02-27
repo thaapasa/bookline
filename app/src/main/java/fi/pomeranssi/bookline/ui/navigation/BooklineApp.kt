@@ -39,6 +39,7 @@ import fi.pomeranssi.bookline.ui.goodreads.GoodreadsScreen
 import fi.pomeranssi.bookline.ui.settings.SettingsScreen
 import fi.pomeranssi.bookline.ui.settings.SettingsViewModel
 import fi.pomeranssi.bookline.ui.shelves.ToReadScreen
+import fi.pomeranssi.bookline.ui.shelves.ToReadViewModel
 import fi.pomeranssi.bookline.ui.timeline.TimelineScreen
 import fi.pomeranssi.bookline.ui.timeline.TimelineViewModel
 
@@ -57,6 +58,7 @@ fun BooklineApp() {
     val database = remember { BooklineDatabase.getInstance(context.applicationContext) }
     val bookRepository = remember { BookRepository(database.bookDao(), settingsRepository) }
     val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
+    val toReadViewModel = remember { ToReadViewModel(bookRepository) }
 
     // URL override for navigating to a specific Goodreads page from book details
     var goodreadsUrlOverride by remember { mutableStateOf<String?>(null) }
@@ -124,7 +126,15 @@ fun BooklineApp() {
                 )
             }
             composable(TopLevelRoute.ToRead.route) {
-                ToReadScreen(modifier = Modifier.padding(innerPadding))
+                ToReadScreen(
+                    viewModel = toReadViewModel,
+                    onBookClick = { bookId ->
+                        navController.navigate("book/$bookId") {
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.padding(innerPadding),
+                )
             }
             composable(TopLevelRoute.Goodreads.route) {
                 val urlOverride = goodreadsUrlOverride

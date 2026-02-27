@@ -27,6 +27,15 @@ interface BookDao {
     )
     fun observeTimeline(): Flow<List<BookEntity>>
 
+    @Query(
+        """
+        SELECT * FROM books
+        WHERE userShelves LIKE '%|to-read|%'
+        ORDER BY userDateAdded DESC
+        """
+    )
+    fun observeToRead(): Flow<List<BookEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(books: List<BookEntity>)
 
