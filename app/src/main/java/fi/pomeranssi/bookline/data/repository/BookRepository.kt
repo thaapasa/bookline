@@ -14,8 +14,8 @@ import kotlinx.coroutines.withContext
  * Offline-first book repository.
  *
  * Room is the single source of truth — the UI observes [observeBooks].
- * [sync] fetches all pages from the RSS feed, then replaces all rows
- * in a single transaction so removals are handled automatically.
+ * [sync] fetches all pages from the RSS feed, then upserts rows by bookId
+ * and removes any entries that are no longer in the feed.
  */
 class BookRepository(
     private val bookDao: BookDao,
@@ -28,23 +28,23 @@ class BookRepository(
     fun observeBooks(): Flow<List<Book>> =
         bookDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
+    /** Observe books for the timeline, filtered and sorted at the DB level. */
+    fun observeTimelineBooks(): Flow<List<Book>> =
+        bookDao.observeTimeline().map { entities -> entities.map { it.toDomain() } }
+
     /** Returns true when the cached data is stale or absent. */
     fun isSyncNeeded(): Boolean = settingsRepository.isSyncStale()
 
     /**
-     * Fetch all pages of the RSS feed and replace the local cache.
+     * Fetch all pages of the RSS feed and sync to the local cache.
+     * Each page is upserted as soon as it is fetched so books appear
+     * in the UI incrementally. After all pages are loaded, any books
+     * not touched during this sync are deleted.
      * Returns the total number of books synced.
      */
     suspend fun sync(feedUrl: String): Int = withContext(Dispatchers.IO) {
-        val allBooks = fetchAllPages(feedUrl)
-        val entities = allBooks.map { BookEntity.fromDomain(it) }
-        bookDao.replaceAll(entities)
-        settingsRepository.lastSyncEpochMs = System.currentTimeMillis()
-        allBooks.size
-    }
-
-    private suspend fun fetchAllPages(feedUrl: String): List<Book> {
-        val allBooks = mutableListOf<Book>()
+        val syncTimestamp = System.currentTimeMillis()
+        var totalBooks = 0
         var page = 1
 
         while (true) {
@@ -52,11 +52,15 @@ class BookRepository(
                 rssParser.parse(stream)
             }
             if (books.isEmpty()) break
-            allBooks.addAll(books)
+            val entities = books.map { BookEntity.fromDomain(it, lastSyncedMs = syncTimestamp) }
+            bookDao.upsertAll(entities)
+            totalBooks += books.size
             page++
         }
 
-        return allBooks
+        bookDao.deleteNotSyncedSince(syncTimestamp)
+        settingsRepository.lastSyncEpochMs = syncTimestamp
+        totalBooks
     }
 }
 

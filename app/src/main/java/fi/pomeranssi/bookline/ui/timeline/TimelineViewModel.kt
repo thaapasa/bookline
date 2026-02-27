@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.Book
-import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,20 +22,22 @@ class TimelineViewModel(
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     /** Books from Room, filtered and sorted for the timeline. */
-    val uiState: StateFlow<TimelineUiState> = bookRepository.observeBooks()
-        .map { allBooks ->
+    val uiState: StateFlow<TimelineUiState> = bookRepository.observeTimelineBooks()
+        .map { books ->
             if (settingsRepository.feedUrl.value.isBlank()) {
                 TimelineUiState.NoFeedConfigured
             } else {
-                val timelineBooks = allBooks
-                    .filter { it.readingStatus != ReadingStatus.ToRead }
-                    .sortedByDescending { it.userReadAt }
-                TimelineUiState.Success(books = timelineBooks)
+                TimelineUiState.Success(books = books)
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TimelineUiState.Loading)
 
     init {
+        syncIfNeeded()
+    }
+
+    /** Re-check whether a sync is needed (e.g. after returning from settings). */
+    fun checkSync() {
         syncIfNeeded()
     }
 

@@ -26,6 +26,7 @@ data class BookEntity(
     val userShelves: String,
     val userReview: String?,
     val goodreadsUrl: String?,
+    val lastSyncedMs: Long = 0,
 ) {
     fun toDomain(): Book = Book(
         bookId = bookId,
@@ -44,13 +45,13 @@ data class BookEntity(
         userReadAt = userReadAt?.let { LocalDate.ofEpochDay(it) },
         userDateAdded = userDateAdded?.let { LocalDate.ofEpochDay(it) },
         userDateCreated = userDateCreated?.let { LocalDate.ofEpochDay(it) },
-        userShelves = userShelves.split(",").filter { it.isNotEmpty() },
+        userShelves = userShelves.split("|").filter { it.isNotEmpty() },
         userReview = userReview,
         goodreadsUrl = goodreadsUrl,
     )
 
     companion object {
-        fun fromDomain(book: Book): BookEntity = BookEntity(
+        fun fromDomain(book: Book, lastSyncedMs: Long = 0): BookEntity = BookEntity(
             bookId = book.bookId,
             title = book.title,
             authorName = book.authorName,
@@ -67,9 +68,10 @@ data class BookEntity(
             userReadAt = book.userReadAt?.toEpochDay(),
             userDateAdded = book.userDateAdded?.toEpochDay(),
             userDateCreated = book.userDateCreated?.toEpochDay(),
-            userShelves = book.userShelves.joinToString(","),
+            userShelves = if (book.userShelves.isEmpty()) "" else "|${book.userShelves.joinToString("|")}|",
             userReview = book.userReview,
             goodreadsUrl = book.goodreadsUrl,
+            lastSyncedMs = lastSyncedMs,
         )
     }
 }
