@@ -28,6 +28,10 @@ class BookRepository(
     fun observeBooks(): Flow<List<Book>> =
         bookDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
+    /** Observe a single book by its ID. */
+    fun observeBook(bookId: String): Flow<Book?> =
+        bookDao.observeById(bookId).map { it?.toDomain() }
+
     /** Observe books for the timeline, filtered and sorted at the DB level. */
     fun observeTimelineBooks(): Flow<List<Book>> =
         bookDao.observeTimeline().map { entities -> entities.map { it.toDomain() } }

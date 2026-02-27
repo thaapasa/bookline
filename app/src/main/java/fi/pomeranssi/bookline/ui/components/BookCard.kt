@@ -39,8 +39,10 @@ import java.time.format.DateTimeFormatter
 fun BookCard(
     book: Book,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     Card(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
     ) {
         Row(

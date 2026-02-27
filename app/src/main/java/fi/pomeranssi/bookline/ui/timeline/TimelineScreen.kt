@@ -32,6 +32,7 @@ import fi.pomeranssi.bookline.ui.components.EmptyContent
 @Composable
 fun TimelineScreen(
     viewModel: TimelineViewModel,
+    onBookClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -83,7 +84,7 @@ fun TimelineScreen(
                     modifier = modifier,
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        BookList(books = books)
+                        BookList(books = books, onBookClick = onBookClick)
 
                         if (isRefreshing) {
                             LinearProgressIndicator(
@@ -102,6 +103,7 @@ fun TimelineScreen(
 @Composable
 private fun BookList(
     books: List<Book>,
+    onBookClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -112,7 +114,7 @@ private fun BookList(
     ) {
         item { Spacer(modifier = Modifier.height(4.dp)) }
         items(items = books, key = { it.bookId }) { book ->
-            BookCard(book = book)
+            BookCard(book = book, onClick = { onBookClick(book.bookId) })
         }
         item { Spacer(modifier = Modifier.height(4.dp)) }
     }

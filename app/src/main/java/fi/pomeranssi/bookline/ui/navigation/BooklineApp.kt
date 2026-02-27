@@ -23,13 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import fi.pomeranssi.bookline.data.db.BooklineDatabase
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
+import fi.pomeranssi.bookline.ui.components.EmptyContent
+import fi.pomeranssi.bookline.ui.detail.BookDetailScreen
+import fi.pomeranssi.bookline.ui.detail.BookDetailViewModel
 import fi.pomeranssi.bookline.ui.goodreads.GoodreadsScreen
 import fi.pomeranssi.bookline.ui.settings.SettingsScreen
 import fi.pomeranssi.bookline.ui.settings.SettingsViewModel
@@ -38,6 +43,7 @@ import fi.pomeranssi.bookline.ui.timeline.TimelineScreen
 import fi.pomeranssi.bookline.ui.timeline.TimelineViewModel
 
 private const val SETTINGS_ROUTE = "settings"
+private const val BOOK_DETAIL_ROUTE = "book/{bookId}"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +57,9 @@ fun BooklineApp() {
     val database = remember { BooklineDatabase.getInstance(context.applicationContext) }
     val bookRepository = remember { BookRepository(database.bookDao(), settingsRepository) }
     val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
+
+    // URL override for navigating to a specific Goodreads page from book details
+    var goodreadsUrlOverride by remember { mutableStateOf<String?>(null) }
 
     // Determine whether we are on a top-level tab (show bottom bar + top bar)
     val isTopLevel = TopLevelRoute.entries.any { it.route == currentDestination?.route }
@@ -102,22 +111,56 @@ fun BooklineApp() {
         NavHost(
             navController = navController,
             startDestination = TopLevelRoute.Timeline.route,
-            modifier = Modifier.padding(innerPadding),
         ) {
             composable(TopLevelRoute.Timeline.route) {
-                TimelineScreen(viewModel = timelineViewModel)
+                TimelineScreen(
+                    viewModel = timelineViewModel,
+                    onBookClick = { bookId ->
+                        navController.navigate("book/$bookId") {
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.padding(innerPadding),
+                )
             }
             composable(TopLevelRoute.ToRead.route) {
-                ToReadScreen()
+                ToReadScreen(modifier = Modifier.padding(innerPadding))
             }
             composable(TopLevelRoute.Goodreads.route) {
-                GoodreadsScreen()
+                val urlOverride = goodreadsUrlOverride
+                goodreadsUrlOverride = null
+                GoodreadsScreen(
+                    initialUrl = urlOverride ?: "https://www.goodreads.com",
+                    modifier = Modifier.padding(innerPadding),
+                )
             }
             composable(SETTINGS_ROUTE) {
                 val viewModel = remember { SettingsViewModel(settingsRepository) }
                 SettingsScreen(
                     viewModel = viewModel,
                     onNavigateBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = BOOK_DETAIL_ROUTE,
+                arguments = listOf(navArgument("bookId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val bookId = backStackEntry.arguments?.getString("bookId") ?: return@composable
+                val viewModel = remember(bookId) {
+                    BookDetailViewModel(bookRepository, bookId)
+                }
+                BookDetailScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onOpenGoodreads = { url ->
+                        goodreadsUrlOverride = url
+                        navController.navigate(TopLevelRoute.Goodreads.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
                 )
             }
         }

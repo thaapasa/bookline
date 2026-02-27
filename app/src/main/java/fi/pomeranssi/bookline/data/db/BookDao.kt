@@ -12,6 +12,9 @@ interface BookDao {
     @Query("SELECT * FROM books")
     fun observeAll(): Flow<List<BookEntity>>
 
+    @Query("SELECT * FROM books WHERE bookId = :bookId")
+    fun observeById(bookId: String): Flow<BookEntity?>
+
     @Query(
         """
         SELECT * FROM books

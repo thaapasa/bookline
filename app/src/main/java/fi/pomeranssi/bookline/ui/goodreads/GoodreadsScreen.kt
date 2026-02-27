@@ -21,7 +21,7 @@ private const val GOODREADS_URL = "https://www.goodreads.com"
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun GoodreadsScreen(modifier: Modifier = Modifier) {
+fun GoodreadsScreen(modifier: Modifier = Modifier, initialUrl: String = GOODREADS_URL) {
     var isLoading by remember { mutableStateOf(true) }
     var webView by remember { mutableStateOf<WebView?>(null) }
 
@@ -47,7 +47,7 @@ fun GoodreadsScreen(modifier: Modifier = Modifier) {
                         }
                     }
 
-                    loadUrl(GOODREADS_URL)
+                    loadUrl(initialUrl)
                     webView = this
                 }
             },
