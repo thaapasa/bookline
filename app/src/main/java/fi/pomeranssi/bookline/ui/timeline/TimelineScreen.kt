@@ -1,20 +1,26 @@
 package fi.pomeranssi.bookline.ui.timeline
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -22,9 +28,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 
@@ -60,8 +66,8 @@ fun TimelineScreen(
         is TimelineUiState.Loading,
         is TimelineUiState.Success,
             -> {
-            val books = (state as? TimelineUiState.Success)?.books.orEmpty()
-            if (books.isEmpty() && !isRefreshing) {
+            val sections = (state as? TimelineUiState.Success)?.sections.orEmpty()
+            if (sections.isEmpty() && !isRefreshing) {
                 EmptyContent(
                     message = "No books found in your feed.",
                     modifier = modifier,
@@ -84,7 +90,44 @@ fun TimelineScreen(
                     modifier = modifier,
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        BookList(books = books, onBookClick = onBookClick)
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            item { Spacer(modifier = Modifier.height(4.dp)) }
+                            items(
+                                items = sections,
+                                key = { section ->
+                                    when (section) {
+                                        is TimelineSection.Header -> section.key
+                                        is TimelineSection.BookItem -> section.book.bookId
+                                    }
+                                },
+                            ) { section ->
+                                when (section) {
+                                    is TimelineSection.Header -> SectionHeader(
+                                        header = section,
+                                        onToggle = {
+                                            if (section.level == SectionLevel.Year) {
+                                                viewModel.toggleYear(
+                                                    section.key,
+                                                    section.childKeys,
+                                                )
+                                            } else {
+                                                viewModel.toggleSection(section.key)
+                                            }
+                                        },
+                                    )
+                                    is TimelineSection.BookItem -> BookCard(
+                                        book = section.book,
+                                        onClick = { onBookClick(section.book.bookId) },
+                                    )
+                                }
+                            }
+                            item { Spacer(modifier = Modifier.height(4.dp)) }
+                        }
 
                         if (isRefreshing) {
                             LinearProgressIndicator(
@@ -101,22 +144,53 @@ fun TimelineScreen(
 }
 
 @Composable
-private fun BookList(
-    books: List<Book>,
-    onBookClick: (String) -> Unit,
+private fun SectionHeader(
+    header: TimelineSection.Header,
+    onToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
+    val rotation by animateFloatAsState(
+        targetValue = if (header.isCollapsed) -90f else 0f,
+        label = "chevron",
+    )
+
+    val style = when (header.level) {
+        SectionLevel.Top -> MaterialTheme.typography.titleLarge
+        SectionLevel.Year -> MaterialTheme.typography.titleLarge
+        SectionLevel.Month -> MaterialTheme.typography.titleMedium
+    }
+
+    val topPadding = when (header.level) {
+        SectionLevel.Top, SectionLevel.Year -> 12.dp
+        SectionLevel.Month -> 4.dp
+    }
+
+    Row(
         modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(top = topPadding, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        item { Spacer(modifier = Modifier.height(4.dp)) }
-        items(items = books, key = { it.bookId }) { book ->
-            BookCard(book = book, onClick = { onBookClick(book.bookId) })
-        }
-        item { Spacer(modifier = Modifier.height(4.dp)) }
+        Text(
+            text = header.title,
+            style = style,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = "${header.bookCount}",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(end = 4.dp),
+        )
+        Icon(
+            imageVector = Icons.Default.ExpandMore,
+            contentDescription = if (header.isCollapsed) "Expand" else "Collapse",
+            modifier = Modifier
+                .size(24.dp)
+                .rotate(rotation),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
