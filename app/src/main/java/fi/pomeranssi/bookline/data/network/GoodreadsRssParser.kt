@@ -44,6 +44,7 @@ class GoodreadsRssParser {
      */
     private fun parseItem(parser: XmlPullParser): Book? {
         var guid: String? = null
+        var link: String? = null
         var title: String? = null
         var bookId: String? = null
         var authorName: String? = null
@@ -62,6 +63,7 @@ class GoodreadsRssParser {
         var userDateCreated: LocalDate? = null
         var userShelves: List<String> = emptyList()
         var userReview: String? = null
+        var description: String? = null
 
         var depth = 1 // we're inside <item>
         var eventType = parser.next()
@@ -82,6 +84,7 @@ class GoodreadsRssParser {
                             val text = readText(parser)
                             when (tag) {
                                 "guid" -> guid = text
+                                "link" -> link = text.takeIfNotBlank()
                                 "title" -> title = text
                                 "book_id" -> bookId = text
                                 "book_image_url" -> imageUrl = text.takeIfNotBlank()
@@ -98,6 +101,7 @@ class GoodreadsRssParser {
                                 "user_date_created" -> userDateCreated = parseRssDate(text)
                                 "user_shelves" -> userShelves = parseShelves(text)
                                 "user_review" -> userReview = text.takeIfNotBlank()
+                                "description" -> description = text.takeIfNotBlank()
                                 "book_published" -> bookPublishedYear = text.toIntOrNull()
                             }
                         }
@@ -135,7 +139,7 @@ class GoodreadsRssParser {
             userDateCreated = userDateCreated,
             userShelves = userShelves,
             userReview = userReview,
-            goodreadsUrl = guid,
+            goodreadsUrl = parseBookUrl(description) ?: link ?: guid,
         )
     }
 
@@ -220,6 +224,19 @@ class GoodreadsRssParser {
 
         private fun String.takeIfNotBlank(): String? =
             ifBlank { null }
+
+        /** Regex to extract the first `<a href="...">` URL from the description HTML. */
+        private val BOOK_URL_REGEX = Regex("""<a\s+href="([^"]+goodreads\.com/book/show/[^"]+)"""")
+
+        /**
+         * Extract the book URL from the item's `<description>` HTML.
+         * The description contains an `<a href="...goodreads.com/book/show/...">` link.
+         */
+        internal fun parseBookUrl(description: String?): String? {
+            if (description.isNullOrBlank()) return null
+            return BOOK_URL_REGEX.find(description)?.groupValues?.get(1)
+                ?.replace("&amp;", "&")
+        }
     }
 }
 

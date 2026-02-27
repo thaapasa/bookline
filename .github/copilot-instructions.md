@@ -70,6 +70,10 @@ is needed, update `ARCHITECTURE.md` to reflect the change.
 - Always keep `ARCHITECTURE.md` up to date when adding significant new
   components.
 
+## RSS Feed
+
+The local file `example-feed.rss` at project root contains example Goodreads RSS feed data for testing and development. When implementing the feed fetching and parsing logic, use this file as a reference for the expected structure and content of the RSS feed. If the file is missing, ask the user to load it from Goodreads.
+
 ## Things to Avoid
 
 - Do **not** generate XML layout files — Compose only.

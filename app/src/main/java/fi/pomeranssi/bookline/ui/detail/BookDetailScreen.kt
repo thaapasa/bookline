@@ -40,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -178,6 +177,7 @@ private fun BookDetailContent(
                             )
                         }
                     }
+
                     ReadingStatus.Read -> {
                         book.userReadAt?.let { date ->
                             Text(
@@ -187,6 +187,7 @@ private fun BookDetailContent(
                             )
                         }
                     }
+
                     ReadingStatus.ToRead -> {
                         Text(
                             text = "To read",
@@ -227,7 +228,7 @@ private fun BookDetailContent(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
             TextButton(
-                onClick = { onOpenGoodreads(book.goodreadsUrl!!) },
+                onClick = { onOpenGoodreads(book.goodreadsUrl) },
             ) {
                 Icon(
                     imageVector = Icons.Default.OpenInBrowser,
@@ -257,6 +258,7 @@ private fun MetaSection(book: Book) {
         book.numPages?.let { add("Pages" to it.toString()) }
         book.bookPublishedYear?.let { add("Published" to it.toString()) }
         book.averageRating?.let { add("Average rating" to String.format("%.2f", it)) }
+        book.userReadAt?.let { add("Last read" to it.format(DATE_FORMATTER)) }
         book.userDateAdded?.let { add("Date added" to it.format(DATE_FORMATTER)) }
         book.userDateCreated?.let { add("Date created" to it.format(DATE_FORMATTER)) }
         if (book.userShelves.isNotEmpty()) {

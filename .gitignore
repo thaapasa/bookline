@@ -8,4 +8,4 @@
 .externalNativeBuild
 .cxx
 local.properties
-example-rss.xml
+example-feed.rss
