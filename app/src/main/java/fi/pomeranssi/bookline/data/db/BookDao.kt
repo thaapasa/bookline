@@ -21,6 +21,7 @@ interface BookDao {
         WHERE userShelves NOT LIKE '%|to-read|%'
         ORDER BY
             CASE WHEN userShelves LIKE '%|currently-reading|%' THEN 0 ELSE 1 END,
+            CASE WHEN userReadAt IS NULL THEN 1 ELSE 0 END,
             COALESCE(userReadAt, userDateAdded) DESC
         """
     )
