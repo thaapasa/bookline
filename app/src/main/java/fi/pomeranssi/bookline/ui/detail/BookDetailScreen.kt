@@ -46,6 +46,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
+import fi.pomeranssi.bookline.ui.components.HtmlText
 import fi.pomeranssi.bookline.ui.components.LoadingContent
 import java.time.format.DateTimeFormatter
 
@@ -216,8 +217,8 @@ private fun BookDetailContent(
                 style = MaterialTheme.typography.titleSmall,
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = book.bookDescription,
+            HtmlText(
+                html = book.bookDescription,
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
