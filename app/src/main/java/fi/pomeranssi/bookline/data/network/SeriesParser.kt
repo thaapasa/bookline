@@ -22,6 +22,8 @@ object SeriesParser {
      */
     private val ENTRY_REGEX = Regex("""([\w][^#;]*?),?\s*#(\d+(?:\.\d+)?)""")
 
+    private val WHITESPACE_REGEX = Regex("""\s+""")
+
     /**
      * Parse the series entries from a book title.
      * Returns a pair of (clean title without series suffix, list of series entries).
@@ -35,6 +37,7 @@ object SeriesParser {
 
         val entries = ENTRY_REGEX.findAll(seriesPart).map { entryMatch ->
             val seriesName = entryMatch.groupValues[1].trim().trimStart(',').trim()
+                .replace(WHITESPACE_REGEX, " ")
             val position = entryMatch.groupValues[2].toDoubleOrNull()
             if (seriesName.isNotEmpty() && position != null) {
                 SeriesEntry(seriesName = seriesName, position = position)
