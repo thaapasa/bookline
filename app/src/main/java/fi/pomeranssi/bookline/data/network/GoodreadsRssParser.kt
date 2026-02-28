@@ -126,8 +126,8 @@ class GoodreadsRssParser {
 
         return Book(
             bookId = bookId,
-            title = cleanTitle,
-            authorName = authorName.orEmpty(),
+            title = cleanTitle.normalizeWhitespace(),
+            authorName = authorName.orEmpty().normalizeWhitespace(),
             isbn = isbn,
             numPages = numPages,
             bookPublishedYear = bookPublishedYear,
@@ -229,6 +229,10 @@ class GoodreadsRssParser {
 
         private fun String.takeIfNotBlank(): String? =
             ifBlank { null }
+
+        /** Collapse any runs of whitespace into a single space and trim. */
+        private fun String.normalizeWhitespace(): String =
+            replace(Regex("""\s+"""), " ").trim()
 
         /** Regex to extract the first `<a href="...">` URL from the description HTML. */
         private val BOOK_URL_REGEX = Regex("""<a\s+href="([^"]+goodreads\.com/book/show/[^"]+)"""")
