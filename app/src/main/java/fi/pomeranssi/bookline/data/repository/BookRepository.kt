@@ -49,11 +49,33 @@ class BookRepository(
 
     /** Observe books for the timeline, filtered and sorted at the DB level. */
     fun observeTimelineBooks(): Flow<List<Book>> =
-        bookDao.observeTimeline().map { entities -> entities.map { it.toDomain() } }
+        combine(
+            bookDao.observeTimeline(),
+            bookSeriesDao.observeAll(),
+        ) { entities, allSeriesRows ->
+            val seriesByBookId = allSeriesRows.groupBy { it.bookId }
+            entities.map { entity ->
+                val entries = seriesByBookId[entity.bookId]
+                    ?.map { SeriesEntry(it.seriesName, it.position) }
+                    .orEmpty()
+                entity.toDomain(seriesEntries = entries)
+            }
+        }
 
     /** Observe books on the to-read shelf. */
     fun observeToReadBooks(): Flow<List<Book>> =
-        bookDao.observeToRead().map { entities -> entities.map { it.toDomain() } }
+        combine(
+            bookDao.observeToRead(),
+            bookSeriesDao.observeAll(),
+        ) { entities, allSeriesRows ->
+            val seriesByBookId = allSeriesRows.groupBy { it.bookId }
+            entities.map { entity ->
+                val entries = seriesByBookId[entity.bookId]
+                    ?.map { SeriesEntry(it.seriesName, it.position) }
+                    .orEmpty()
+                entity.toDomain(seriesEntries = entries)
+            }
+        }
 
     /**
      * Observe all book series, sorted by the most recent read date descending.

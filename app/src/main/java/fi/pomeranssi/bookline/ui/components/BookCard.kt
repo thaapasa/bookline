@@ -24,7 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import fi.pomeranssi.bookline.R
@@ -89,8 +91,28 @@ fun BookCard(
                     .height(120.dp)
                     .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
             ) {
+                // Title with optional series suffix
+                val firstSeries = book.seriesEntries.firstOrNull()
+                val titleText = if (firstSeries != null) {
+                    val posLabel = if (firstSeries.position == firstSeries.position.toLong().toDouble()) {
+                        "#${firstSeries.position.toLong()}"
+                    } else {
+                        "#${firstSeries.position}"
+                    }
+                    val seriesColor = MaterialTheme.colorScheme.primary
+                    val titleStyle = MaterialTheme.typography.titleSmall
+                    buildAnnotatedString {
+                        append(book.title)
+                        append(" ")
+                        withStyle(titleStyle.toSpanStyle().copy(color = seriesColor)) {
+                            append("(${firstSeries.seriesName} $posLabel)")
+                        }
+                    }
+                } else {
+                    buildAnnotatedString { append(book.title) }
+                }
                 Text(
-                    text = book.title,
+                    text = titleText,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
