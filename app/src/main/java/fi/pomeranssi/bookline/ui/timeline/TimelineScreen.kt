@@ -18,11 +18,8 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
+import fi.pomeranssi.bookline.ui.components.RefreshableContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,61 +79,48 @@ fun TimelineScreen(
                     },
                 )
             } else {
-                val pullToRefreshState = rememberPullToRefreshState()
-                PullToRefreshBox(
+                RefreshableContent(
                     isRefreshing = isRefreshing,
                     onRefresh = viewModel::refresh,
-                    state = pullToRefreshState,
-                    indicator = {},
                     modifier = modifier,
                 ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            item { Spacer(modifier = Modifier.height(4.dp)) }
-                            items(
-                                items = sections,
-                                key = { section ->
-                                    when (section) {
-                                        is TimelineSection.Header -> section.key
-                                        is TimelineSection.BookItem -> section.book.bookId
-                                    }
-                                },
-                            ) { section ->
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        item { Spacer(modifier = Modifier.height(4.dp)) }
+                        items(
+                            items = sections,
+                            key = { section ->
                                 when (section) {
-                                    is TimelineSection.Header -> SectionHeader(
-                                        header = section,
-                                        onToggle = {
-                                            if (section.level == SectionLevel.Year) {
-                                                viewModel.toggleYear(
-                                                    section.key,
-                                                    section.childKeys,
-                                                )
-                                            } else {
-                                                viewModel.toggleSection(section.key)
-                                            }
-                                        },
-                                    )
-                                    is TimelineSection.BookItem -> BookCard(
-                                        book = section.book,
-                                        onClick = { onBookClick(section.book.bookId) },
-                                    )
+                                    is TimelineSection.Header -> section.key
+                                    is TimelineSection.BookItem -> section.book.bookId
                                 }
+                            },
+                        ) { section ->
+                            when (section) {
+                                is TimelineSection.Header -> SectionHeader(
+                                    header = section,
+                                    onToggle = {
+                                        if (section.level == SectionLevel.Year) {
+                                            viewModel.toggleYear(
+                                                section.key,
+                                                section.childKeys,
+                                            )
+                                        } else {
+                                            viewModel.toggleSection(section.key)
+                                        }
+                                    },
+                                )
+                                is TimelineSection.BookItem -> BookCard(
+                                    book = section.book,
+                                    onClick = { onBookClick(section.book.bookId) },
+                                )
                             }
-                            item { Spacer(modifier = Modifier.height(4.dp)) }
                         }
-
-                        if (isRefreshing) {
-                            LinearProgressIndicator(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .align(Alignment.TopCenter),
-                            )
-                        }
+                        item { Spacer(modifier = Modifier.height(4.dp)) }
                     }
                 }
             }

@@ -2,6 +2,7 @@ package fi.pomeranssi.bookline.ui.series
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,14 +12,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,9 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import fi.pomeranssi.bookline.ui.components.EmptyContent
+import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SeriesCard
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeriesListScreen(
     viewModel: SeriesListViewModel,
@@ -58,7 +57,7 @@ fun SeriesListScreen(
                 contentAlignment = Alignment.TopCenter,
             ) {
                 LinearProgressIndicator(
-                    modifier = Modifier.padding(top = 2.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -81,12 +80,12 @@ fun SeriesListScreen(
                     modifier = modifier.fillMaxSize(),
                 )
             } else {
-                PullToRefreshBox(
+                RefreshableContent(
                     isRefreshing = isRefreshing,
                     onRefresh = { viewModel.refresh() },
                     modifier = modifier.fillMaxSize(),
                 ) {
-                    androidx.compose.foundation.layout.Column {
+                    Column {
                         OutlinedTextField(
                             value = filterText,
                             onValueChange = { viewModel.filterText.value = it },
