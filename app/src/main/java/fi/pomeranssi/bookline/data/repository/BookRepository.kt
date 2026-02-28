@@ -34,9 +34,18 @@ class BookRepository(
     fun observeBooks(): Flow<List<Book>> =
         bookDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
-    /** Observe a single book by its ID. */
+    /** Observe a single book by its ID, including its series entries. */
     fun observeBook(bookId: String): Flow<Book?> =
-        bookDao.observeById(bookId).map { it?.toDomain() }
+        combine(
+            bookDao.observeById(bookId),
+            bookSeriesDao.observeAll(),
+        ) { entity, allSeriesRows ->
+            if (entity == null) return@combine null
+            val entries = allSeriesRows
+                .filter { it.bookId == bookId }
+                .map { SeriesEntry(it.seriesName, it.position) }
+            entity.toDomain(seriesEntries = entries)
+        }
 
     /** Observe books for the timeline, filtered and sorted at the DB level. */
     fun observeTimelineBooks(): Flow<List<Book>> =

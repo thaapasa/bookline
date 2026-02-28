@@ -136,6 +136,23 @@ private fun BookDetailContent(
                     text = book.title,
                     style = MaterialTheme.typography.titleLarge,
                 )
+
+                // Series membership
+                if (book.seriesEntries.isNotEmpty()) {
+                    book.seriesEntries.forEach { entry ->
+                        val posLabel = if (entry.position == entry.position.toLong().toDouble()) {
+                            "#${entry.position.toLong()}"
+                        } else {
+                            "#${entry.position}"
+                        }
+                        Text(
+                            text = "${entry.seriesName} $posLabel",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = book.authorName,
