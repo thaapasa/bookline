@@ -3,6 +3,7 @@ package fi.pomeranssi.bookline.data.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import fi.pomeranssi.bookline.domain.model.Book
+import fi.pomeranssi.bookline.domain.model.SeriesEntry
 import java.time.LocalDate
 
 @Entity(tableName = "books")
@@ -28,7 +29,7 @@ data class BookEntity(
     val goodreadsUrl: String?,
     val lastSyncedMs: Long = 0,
 ) {
-    fun toDomain(): Book = Book(
+    fun toDomain(seriesEntries: List<SeriesEntry> = emptyList()): Book = Book(
         bookId = bookId,
         title = title,
         authorName = authorName,
@@ -48,6 +49,7 @@ data class BookEntity(
         userShelves = userShelves.split("|").filter { it.isNotEmpty() },
         userReview = userReview,
         goodreadsUrl = goodreadsUrl,
+        seriesEntries = seriesEntries,
     )
 
     companion object {

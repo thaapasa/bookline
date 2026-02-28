@@ -2,6 +2,7 @@ package fi.pomeranssi.bookline.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.CollectionsBookmark
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -15,6 +16,7 @@ enum class TopLevelRoute(
     val icon: ImageVector,
 ) {
     Timeline(route = "timeline", label = "Timeline", icon = Icons.Default.Timeline),
+    Series(route = "series", label = "Series", icon = Icons.Default.CollectionsBookmark),
     ToRead(route = "to_read", label = "To Read", icon = Icons.Default.Book),
     Goodreads(route = "goodreads", label = "Goodreads", icon = Icons.Default.Language),
 }

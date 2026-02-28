@@ -1,6 +1,7 @@
 package fi.pomeranssi.bookline.data.network
 
 import fi.pomeranssi.bookline.domain.model.Book
+import fi.pomeranssi.bookline.domain.model.SeriesEntry
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.InputStream
@@ -120,9 +121,12 @@ class GoodreadsRssParser {
         // bookId and title are required for a valid book
         if (bookId == null || title == null) return null
 
+        // Parse series info from the title suffix, e.g. "(The Dresden Files, #14)"
+        val (cleanTitle, seriesEntries) = SeriesParser.parseSeriesFromTitle(title)
+
         return Book(
             bookId = bookId,
-            title = title,
+            title = cleanTitle,
             authorName = authorName.orEmpty(),
             isbn = isbn,
             numPages = numPages,
@@ -140,6 +144,7 @@ class GoodreadsRssParser {
             userShelves = userShelves,
             userReview = userReview,
             goodreadsUrl = parseBookUrl(description) ?: link ?: guid,
+            seriesEntries = seriesEntries,
         )
     }
 

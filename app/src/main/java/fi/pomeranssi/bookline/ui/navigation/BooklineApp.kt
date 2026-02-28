@@ -40,11 +40,16 @@ import fi.pomeranssi.bookline.ui.settings.SettingsScreen
 import fi.pomeranssi.bookline.ui.settings.SettingsViewModel
 import fi.pomeranssi.bookline.ui.shelves.ToReadScreen
 import fi.pomeranssi.bookline.ui.shelves.ToReadViewModel
+import fi.pomeranssi.bookline.ui.series.SeriesDetailScreen
+import fi.pomeranssi.bookline.ui.series.SeriesDetailViewModel
+import fi.pomeranssi.bookline.ui.series.SeriesListScreen
+import fi.pomeranssi.bookline.ui.series.SeriesListViewModel
 import fi.pomeranssi.bookline.ui.timeline.TimelineScreen
 import fi.pomeranssi.bookline.ui.timeline.TimelineViewModel
 
 private const val SETTINGS_ROUTE = "settings"
 private const val BOOK_DETAIL_ROUTE = "book/{bookId}"
+private const val SERIES_DETAIL_ROUTE = "series_detail/{seriesName}"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,9 +61,10 @@ fun BooklineApp() {
     val context = LocalContext.current
     val settingsRepository = remember { SettingsRepository(context.applicationContext) }
     val database = remember { BooklineDatabase.getInstance(context.applicationContext) }
-    val bookRepository = remember { BookRepository(database.bookDao(), settingsRepository) }
+    val bookRepository = remember { BookRepository(database.bookDao(), database.bookSeriesDao(), settingsRepository) }
     val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
     val toReadViewModel = remember { ToReadViewModel(bookRepository) }
+    val seriesListViewModel = remember { SeriesListViewModel(settingsRepository, bookRepository) }
 
     // URL override for navigating to a specific Goodreads page from book details
     var goodreadsUrlOverride by remember { mutableStateOf<String?>(null) }
@@ -136,6 +142,17 @@ fun BooklineApp() {
                     modifier = Modifier.padding(innerPadding),
                 )
             }
+            composable(TopLevelRoute.Series.route) {
+                SeriesListScreen(
+                    viewModel = seriesListViewModel,
+                    onSeriesClick = { seriesName ->
+                        navController.navigate("series_detail/${java.net.URLEncoder.encode(seriesName, "UTF-8")}") {
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.padding(innerPadding),
+                )
+            }
             composable(TopLevelRoute.Goodreads.route) {
                 val urlOverride = goodreadsUrlOverride
                 goodreadsUrlOverride = null
@@ -168,6 +185,25 @@ fun BooklineApp() {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
+                            launchSingleTop = true
+                        }
+                    },
+                )
+            }
+            composable(
+                route = SERIES_DETAIL_ROUTE,
+                arguments = listOf(navArgument("seriesName") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val encodedName = backStackEntry.arguments?.getString("seriesName") ?: return@composable
+                val seriesName = java.net.URLDecoder.decode(encodedName, "UTF-8")
+                val viewModel = remember(seriesName) {
+                    SeriesDetailViewModel(bookRepository, seriesName)
+                }
+                SeriesDetailScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onBookClick = { bookId ->
+                        navController.navigate("book/$bookId") {
                             launchSingleTop = true
                         }
                     },

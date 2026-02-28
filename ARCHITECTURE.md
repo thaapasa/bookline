@@ -1,6 +1,6 @@
 # Bookline — Architecture
 
-> **Last updated:** 2026-02-24
+> **Last updated:** 2026-02-28
 
 ## Overview
 
@@ -39,26 +39,36 @@ fi.pomeranssi.bookline
 │   ├── db                        # Room database, DAOs, entities
 │   │   ├── BookEntity            # Room entity for books (maps to/from domain Book)
 │   │   ├── BookDao               # DAO with Flow queries and transactional replaceAll
+│   │   ├── BookSeriesEntity      # Room entity for book-series memberships (many-to-many)
+│   │   ├── BookSeriesDao         # DAO for series queries + orphan cleanup
 │   │   └── BooklineDatabase      # Room database singleton
 │   ├── network                   # RSS feed fetching & parsing
 │   │   ├── GoodreadsFeedService  # HTTP GET for RSS feed (HttpURLConnection)
-│   │   └── GoodreadsRssParser    # XmlPullParser-based RSS → Book parser
+│   │   ├── GoodreadsRssParser    # XmlPullParser-based RSS → Book parser
+│   │   └── SeriesParser          # Extracts series name + position from book titles
 │   └── repository                # Repository implementations
 │       ├── BookRepository        # Offline-first: Room as source of truth, sync from RSS feed
 │       └── SettingsRepository    # Keystore-encrypted SharedPreferences for feed URL + sync timestamp
 ├── domain                        # Domain layer (models, use cases if needed)
 │   └── model
-│       └── Book                  # Book data class + ReadingStatus sealed interface
+│       ├── Book                  # Book data class + ReadingStatus sealed interface
+│       ├── Series                # Series data class (name, books, coverUrls, authors)
+│       └── SeriesEntry           # Book's membership in a series (seriesName + position)
 ├── ui                            # Presentation layer
 │   ├── theme                     # Material 3 theme (Color, Type, Theme)
 │   ├── navigation                # NavHost, route definitions, BooklineApp scaffold
 │   │   ├── BooklineApp           # Top-level scaffold with TopAppBar + BottomNavBar
 │   │   └── TopLevelRoute         # Enum of bottom-nav destinations
-│   ├── components                # Shared UI components (BookCard, placeholders)
+│   ├── components                # Shared UI components (BookCard, SeriesCard, placeholders)
 │   ├── timeline                  # Timeline screen (main screen)
 │   │   ├── TimelineScreen        # LazyColumn of book cards with covers
 │   │   └── TimelineViewModel     # Loads feed, exposes TimelineUiState
 │   ├── shelves                   # Shelf browser / To Read screen
+│   ├── series                    # Book Series screens (list + detail)
+│   │   ├── SeriesListScreen      # LazyColumn of series cards, pull-to-refresh
+│   │   ├── SeriesListViewModel   # Observes all series, exposes SeriesListUiState
+│   │   ├── SeriesDetailScreen    # Books in a series ordered by position
+│   │   └── SeriesDetailViewModel # Loads single series by name
 │   ├── goodreads                 # Embedded Goodreads WebView screen
 │   ├── bookdetail                # Book detail screen
 │   └── settings                  # Settings screen (RSS URL config)
@@ -74,12 +84,13 @@ Goodreads RSS feed (XML/HTTP, paginated)
         │
         ▼
    GoodreadsRssParser  ──  XmlPullParser streaming parse → List<Book>
+        │                  SeriesParser extracts series info from titles
+        ▼
+   BookRepository      ──  sync(): fetches all pages, upserts books + book_series
         │
         ▼
-   BookRepository      ──  sync(): fetches all pages, replaceAll in Room
-        │
-        ▼
-   Room (BookDao)       ──  single source of truth, emits Flow<List<Book>>
+   Room (BookDao +      ──  single source of truth, emits Flow<List<Book>>
+    BookSeriesDao)          book_series table tracks many-to-many series memberships
         │
         ▼
    ViewModel           ──  observes Flow, exposes StateFlow<UiState> + isRefreshing
@@ -91,10 +102,12 @@ Goodreads RSS feed (XML/HTTP, paginated)
 ## Key Screens
 
 1. **Timeline** — chronological view of books read (main screen)
-2. **To Read** — books on the to-read shelf
-3. **Goodreads** — embedded WebView showing goodreads.com (with in-WebView back navigation)
-4. **Book detail** — cover, metadata, rating, review
-5. **Settings** — configure Goodreads RSS feed URL, theme prefs
+2. **Series** — browse book series with fan-style cover cards
+3. **To Read** — books on the to-read shelf
+4. **Goodreads** — embedded WebView showing goodreads.com (with in-WebView back navigation)
+5. **Book detail** — cover, metadata, rating, review
+6. **Series detail** — books in a series ordered by position
+7. **Settings** — configure Goodreads RSS feed URL, theme prefs
 
 ## Design Decisions
 

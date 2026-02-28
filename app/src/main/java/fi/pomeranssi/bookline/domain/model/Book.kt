@@ -37,6 +37,7 @@ data class Book(
     val userShelves: List<String>,
     val userReview: String?,
     val goodreadsUrl: String?,
+    val seriesEntries: List<SeriesEntry> = emptyList(),
 ) {
     /** Derived reading status based on shelf membership. */
     val readingStatus: ReadingStatus
