@@ -102,6 +102,7 @@ fun SeriesDetailScreen(
                             } else {
                                 book
                             },
+                            showSeriesInfo = false,
                             onClick = { onBookClick(book.bookId) },
                         )
                     }

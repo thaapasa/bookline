@@ -41,6 +41,7 @@ import java.time.format.DateTimeFormatter
 fun BookCard(
     book: Book,
     modifier: Modifier = Modifier,
+    showSeriesInfo: Boolean = true,
     onClick: () -> Unit = {},
 ) {
     Card(
@@ -93,7 +94,7 @@ fun BookCard(
             ) {
                 // Title with optional series suffix
                 val firstSeries = book.seriesEntries.firstOrNull()
-                val titleText = if (firstSeries != null) {
+                val titleText = if (showSeriesInfo && firstSeries != null) {
                     val posLabel = if (firstSeries.position == firstSeries.position.toLong().toDouble()) {
                         "#${firstSeries.position.toLong()}"
                     } else {
