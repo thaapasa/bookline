@@ -201,7 +201,7 @@ class GoodreadsRssParser {
          * `"Sat, 21 Feb 2026 12:32:05 -0800"`
          */
         private val RSS_DATE_FORMAT = DateTimeFormatter.ofPattern(
-            "EEE, dd MMM yyyy HH:mm:ss Z",
+            "EEE, d MMM yyyy HH:mm:ss Z",
             Locale.ENGLISH,
         )
 
