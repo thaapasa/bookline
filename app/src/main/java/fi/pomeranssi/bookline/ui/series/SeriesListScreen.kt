@@ -4,12 +4,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,6 +72,9 @@ fun SeriesListScreen(
         }
 
         is SeriesListUiState.Success -> {
+            val filteredSeries by viewModel.filteredSeries.collectAsState()
+            val filterText by viewModel.filterText.collectAsState()
+
             if (state.series.isEmpty() && !isRefreshing) {
                 EmptyContent(
                     message = "No series found.\nBooks with series info in their title will appear here.",
@@ -79,8 +90,33 @@ fun SeriesListScreen(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
+                        item(key = "_filter") {
+                            OutlinedTextField(
+                                value = filterText,
+                                onValueChange = { viewModel.filterText.value = it },
+                                placeholder = { Text("Filter series…") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = null,
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (filterText.isNotEmpty()) {
+                                        IconButton(onClick = { viewModel.filterText.value = "" }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Clear,
+                                                contentDescription = "Clear filter",
+                                            )
+                                        }
+                                    }
+                                },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                         items(
-                            items = state.series,
+                            items = filteredSeries,
                             key = { it.name },
                         ) { series ->
                             SeriesCard(
