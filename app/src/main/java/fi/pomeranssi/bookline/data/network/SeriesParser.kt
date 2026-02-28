@@ -14,7 +14,13 @@ import fi.pomeranssi.bookline.domain.model.SeriesEntry
 object SeriesParser {
 
     private val SERIES_SUFFIX_REGEX = Regex("""\s*\(([^)]*#[^)]*)\)\s*$""")
-    private val ENTRY_REGEX = Regex("""^\s*(.+?),?\s*#(\d+(?:\.\d+)?)\s*$""")
+
+    /**
+     * Matches individual series entries like "The Dresden Files, #14" or "Mountain Man #1".
+     * Uses #N as the anchor and captures everything before it as the series name,
+     * stopping at semicolons or previous #N entries.
+     */
+    private val ENTRY_REGEX = Regex("""([\w][^#;]*?),?\s*#(\d+(?:\.\d+)?)""")
 
     /**
      * Parse the series entries from a book title.
@@ -27,12 +33,15 @@ object SeriesParser {
         val cleanTitle = title.substring(0, match.range.first).trim()
         val seriesPart = match.groupValues[1]
 
-        val entries = seriesPart.split(";").mapNotNull { part ->
-            val entryMatch = ENTRY_REGEX.matchEntire(part) ?: return@mapNotNull null
-            val seriesName = entryMatch.groupValues[1].trim()
-            val position = entryMatch.groupValues[2].toDoubleOrNull() ?: return@mapNotNull null
-            SeriesEntry(seriesName = seriesName, position = position)
-        }
+        val entries = ENTRY_REGEX.findAll(seriesPart).map { entryMatch ->
+            val seriesName = entryMatch.groupValues[1].trim().trimStart(',').trim()
+            val position = entryMatch.groupValues[2].toDoubleOrNull()
+            if (seriesName.isNotEmpty() && position != null) {
+                SeriesEntry(seriesName = seriesName, position = position)
+            } else {
+                null
+            }
+        }.filterNotNull().toList()
 
         return cleanTitle to entries
     }
