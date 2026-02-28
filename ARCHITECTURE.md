@@ -41,6 +41,8 @@ fi.pomeranssi.bookline
 │   │   ├── BookDao               # DAO with Flow queries and transactional replaceAll
 │   │   ├── BookSeriesEntity      # Room entity for book-series memberships (many-to-many)
 │   │   ├── BookSeriesDao         # DAO for series queries + orphan cleanup
+│   │   ├── SeriesInfoEntity     # Room entity for series display name mapping
+│   │   ├── SeriesInfoDao        # DAO for series info (rename/merge lookups)
 │   │   └── BooklineDatabase      # Room database singleton
 │   ├── network                   # RSS feed fetching & parsing
 │   │   ├── GoodreadsFeedService  # HTTP GET for RSS feed (HttpURLConnection)
@@ -87,10 +89,13 @@ Goodreads RSS feed (XML/HTTP, paginated)
         │                  SeriesParser extracts series info from titles
         ▼
    BookRepository      ──  sync(): fetches all pages, upserts books + book_series
+        │                  applies series_info display name mappings
+        │                  renameSeries(): rename/merge via series_info table
         │
         ▼
    Room (BookDao +      ──  single source of truth, emits Flow<List<Book>>
-    BookSeriesDao)          book_series table tracks many-to-many series memberships
+    BookSeriesDao +         book_series table tracks many-to-many series memberships
+    SeriesInfoDao)          series_info table maps parsed names → display names
         │
         ▼
    ViewModel           ──  observes Flow, exposes StateFlow<UiState> + isRefreshing
@@ -106,7 +111,7 @@ Goodreads RSS feed (XML/HTTP, paginated)
 3. **To Read** — books on the to-read shelf
 4. **Goodreads** — embedded WebView showing goodreads.com (with in-WebView back navigation)
 5. **Book detail** — cover, metadata, rating, review
-6. **Series detail** — books in a series ordered by position
+6. **Series detail** — books in a series ordered by position, rename/merge via edit icon
 7. **Settings** — configure Goodreads RSS feed URL, theme prefs
 
 ## Design Decisions

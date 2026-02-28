@@ -6,14 +6,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [BookEntity::class, BookSeriesEntity::class],
-    version = 2,
+    entities = [BookEntity::class, BookSeriesEntity::class, SeriesInfoEntity::class],
+    version = 3,
     exportSchema = false,
 )
 abstract class BooklineDatabase : RoomDatabase() {
 
     abstract fun bookDao(): BookDao
     abstract fun bookSeriesDao(): BookSeriesDao
+    abstract fun seriesInfoDao(): SeriesInfoDao
 
     companion object {
         @Volatile

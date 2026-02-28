@@ -61,7 +61,7 @@ fun BooklineApp() {
     val context = LocalContext.current
     val settingsRepository = remember { SettingsRepository(context.applicationContext) }
     val database = remember { BooklineDatabase.getInstance(context.applicationContext) }
-    val bookRepository = remember { BookRepository(database.bookDao(), database.bookSeriesDao(), settingsRepository) }
+    val bookRepository = remember { BookRepository(database.bookDao(), database.bookSeriesDao(), database.seriesInfoDao(), settingsRepository) }
     val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
     val toReadViewModel = remember { ToReadViewModel(bookRepository) }
     val seriesListViewModel = remember { SeriesListViewModel(settingsRepository, bookRepository) }

@@ -4,6 +4,8 @@ import fi.pomeranssi.bookline.data.db.BookDao
 import fi.pomeranssi.bookline.data.db.BookEntity
 import fi.pomeranssi.bookline.data.db.BookSeriesDao
 import fi.pomeranssi.bookline.data.db.BookSeriesEntity
+import fi.pomeranssi.bookline.data.db.SeriesInfoDao
+import fi.pomeranssi.bookline.data.db.SeriesInfoEntity
 import fi.pomeranssi.bookline.data.network.GoodreadsFeedService
 import fi.pomeranssi.bookline.data.network.GoodreadsRssParser
 import fi.pomeranssi.bookline.domain.model.Book
@@ -25,6 +27,7 @@ import kotlinx.coroutines.withContext
 class BookRepository(
     private val bookDao: BookDao,
     private val bookSeriesDao: BookSeriesDao,
+    private val seriesInfoDao: SeriesInfoDao,
     private val settingsRepository: SettingsRepository,
     private val feedService: GoodreadsFeedService = GoodreadsFeedService(),
     private val rssParser: GoodreadsRssParser = GoodreadsRssParser(),
@@ -145,6 +148,9 @@ class BookRepository(
         var totalBooks = 0
         var page = 1
 
+        // Build parsedName → displayName map from existing series_info
+        val seriesInfoMap = buildSeriesInfoMap()
+
         while (true) {
             val books = feedService.fetch(feedUrl, page).use { stream ->
                 rssParser.parse(stream)
@@ -153,12 +159,13 @@ class BookRepository(
             val entities = books.map { BookEntity.fromDomain(it, lastSyncedMs = syncTimestamp) }
             bookDao.upsertAll(entities)
 
-            // Persist series entries for each book
+            // Persist series entries for each book, mapping parsed names to display names
             val seriesEntities = books.flatMap { book ->
                 book.seriesEntries.map { entry ->
+                    val displayName = resolveSeriesDisplayName(entry.seriesName, seriesInfoMap)
                     BookSeriesEntity(
                         bookId = book.bookId,
-                        seriesName = entry.seriesName,
+                        seriesName = displayName,
                         position = entry.position,
                         lastSyncedMs = syncTimestamp,
                     )
@@ -177,6 +184,80 @@ class BookRepository(
         bookSeriesDao.deleteOrphans()
         settingsRepository.lastSyncEpochMs = syncTimestamp
         totalBooks
+    }
+
+    /**
+     * Rename a series. If the new name matches an existing series (by
+     * displayName or parsedNames), the two are merged automatically.
+     */
+    suspend fun renameSeries(oldName: String, newName: String) = withContext(Dispatchers.IO) {
+        if (oldName == newName) return@withContext
+
+        val oldInfo = seriesInfoDao.getByDisplayName(oldName) ?: return@withContext
+        val oldParsedNames = oldInfo.parsedNameSet()
+
+        // Check if newName matches an existing series (by displayName or parsedNames)
+        val existingByDisplay = seriesInfoDao.getByDisplayName(newName)
+        val existingByParsed = if (existingByDisplay == null) {
+            seriesInfoDao.findByParsedName(newName)
+        } else null
+        val mergeTarget = existingByDisplay ?: existingByParsed
+
+        if (mergeTarget != null && mergeTarget.displayName != oldName) {
+            // Merge: combine parsed names, keep target's display name
+            val mergedParsedNames = mergeTarget.parsedNameSet() + oldParsedNames
+            seriesInfoDao.upsert(
+                mergeTarget.copy(
+                    parsedNames = SeriesInfoEntity.encodeParsedNames(mergedParsedNames),
+                ),
+            )
+            seriesInfoDao.delete(oldName)
+            bookSeriesDao.updateSeriesName(oldName, mergeTarget.displayName)
+        } else {
+            // Rename in place: delete old, insert new with updated display name
+            seriesInfoDao.delete(oldName)
+            seriesInfoDao.upsert(
+                SeriesInfoEntity(
+                    displayName = newName,
+                    parsedNames = SeriesInfoEntity.encodeParsedNames(oldParsedNames),
+                ),
+            )
+            bookSeriesDao.updateSeriesName(oldName, newName)
+        }
+    }
+
+    /**
+     * Builds a map from each parsedName → displayName from all series_info rows.
+     */
+    private suspend fun buildSeriesInfoMap(): MutableMap<String, String> {
+        val map = mutableMapOf<String, String>()
+        seriesInfoDao.getAll().forEach { info ->
+            info.parsedNameSet().forEach { parsed -> map[parsed] = info.displayName }
+        }
+        return map
+    }
+
+    /**
+     * Resolves a parsed series name to its display name.
+     * If the parsed name is unknown, creates a new series_info row for it.
+     */
+    private suspend fun resolveSeriesDisplayName(
+        parsedName: String,
+        map: MutableMap<String, String>,
+    ): String {
+        map[parsedName]?.let { return it }
+
+        // Check DB in case another sync page already created it
+        val existing = seriesInfoDao.findByParsedName(parsedName)
+        if (existing != null) {
+            map[parsedName] = existing.displayName
+            return existing.displayName
+        }
+
+        // New series — create series_info with parsedName as displayName
+        seriesInfoDao.upsert(SeriesInfoEntity.forNewSeries(parsedName))
+        map[parsedName] = parsedName
+        return parsedName
     }
 }
 

@@ -30,6 +30,10 @@ interface BookSeriesDao {
     )
     fun observeAll(): Flow<List<SeriesBookRow>>
 
+    /** Rename all book_series rows from one series name to another. */
+    @Query("UPDATE book_series SET seriesName = :newName WHERE seriesName = :oldName")
+    suspend fun updateSeriesName(oldName: String, newName: String)
+
     /** Observe series entries for a single series name. */
     @Query(
         """
