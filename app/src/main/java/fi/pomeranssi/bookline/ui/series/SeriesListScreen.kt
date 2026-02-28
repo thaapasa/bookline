@@ -86,43 +86,49 @@ fun SeriesListScreen(
                     onRefresh = { viewModel.refresh() },
                     modifier = modifier.fillMaxSize(),
                 ) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        item(key = "_filter") {
-                            OutlinedTextField(
-                                value = filterText,
-                                onValueChange = { viewModel.filterText.value = it },
-                                placeholder = { Text("Filter series…") },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = null,
-                                    )
-                                },
-                                trailingIcon = {
-                                    if (filterText.isNotEmpty()) {
-                                        IconButton(onClick = { viewModel.filterText.value = "" }) {
-                                            Icon(
-                                                imageVector = Icons.Default.Clear,
-                                                contentDescription = "Clear filter",
-                                            )
-                                        }
+                    androidx.compose.foundation.layout.Column {
+                        OutlinedTextField(
+                            value = filterText,
+                            onValueChange = { viewModel.filterText.value = it },
+                            placeholder = { Text("Filter series…") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                )
+                            },
+                            trailingIcon = {
+                                if (filterText.isNotEmpty()) {
+                                    IconButton(onClick = { viewModel.filterText.value = "" }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Clear filter",
+                                        )
                                     }
-                                },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
-                        items(
-                            items = filteredSeries,
-                            key = { it.name },
-                        ) { series ->
-                            SeriesCard(
-                                series = series,
-                                onClick = { onSeriesClick(series.name) },
-                            )
+                                }
+                            },
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                        LazyColumn(
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 8.dp,
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            items(
+                                items = filteredSeries,
+                                key = { it.name },
+                            ) { series ->
+                                SeriesCard(
+                                    series = series,
+                                    onClick = { onSeriesClick(series.name) },
+                                )
+                            }
                         }
                     }
                 }
