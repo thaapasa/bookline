@@ -41,17 +41,18 @@ class GoodreadsFeedService {
         private const val TIMEOUT_MS = 15_000
 
         /**
-         * Append or replace the `page` query parameter in the feed URL.
+         * Build the feed URL for a given page.
+         * Keeps only the `key` parameter from the original URL and adds
+         * `order=isbn` for stable pagination ordering.
          */
         internal fun appendPage(feedUrl: String, page: Int): String {
             val uri = URI(feedUrl)
-            val params = uri.rawQuery
+            val key = uri.rawQuery
                 ?.split("&")
-                ?.filter { !it.startsWith("page=") }
-                ?: emptyList()
-            val newParams = (params + "page=$page").joinToString("&")
+                ?.firstOrNull { it.startsWith("key=") }
+            val params = listOfNotNull(key, "order=isbn", "page=$page").joinToString("&")
             return URI(
-                uri.scheme, uri.authority, uri.path, newParams, uri.fragment,
+                uri.scheme, uri.authority, uri.path, params, uri.fragment,
             ).toString()
         }
     }
