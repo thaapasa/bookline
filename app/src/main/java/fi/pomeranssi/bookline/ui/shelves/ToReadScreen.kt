@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
+import fi.pomeranssi.bookline.ui.components.RefreshableContent
 
 @Composable
 fun ToReadScreen(
@@ -26,8 +27,9 @@ fun ToReadScreen(
     modifier: Modifier = Modifier,
 ) {
     val books by viewModel.books.collectAsState(initial = emptyList())
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
-    if (books.isEmpty()) {
+    if (books.isEmpty() && !isRefreshing) {
         EmptyContent(
             message = "Your reading list will appear here.",
             modifier = modifier,
@@ -41,17 +43,23 @@ fun ToReadScreen(
             },
         )
     } else {
-        LazyColumn(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+        RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refresh() },
+            modifier = modifier,
         ) {
-            item { Spacer(modifier = Modifier.height(4.dp)) }
-            items(items = books, key = { it.bookId }) { book ->
-                BookCard(book = book, onClick = { onBookClick(book.bookId) })
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                item { Spacer(modifier = Modifier.height(4.dp)) }
+                items(items = books, key = { it.bookId }) { book ->
+                    BookCard(book = book, onClick = { onBookClick(book.bookId) })
+                }
+                item { Spacer(modifier = Modifier.height(4.dp)) }
             }
-            item { Spacer(modifier = Modifier.height(4.dp)) }
         }
     }
 }

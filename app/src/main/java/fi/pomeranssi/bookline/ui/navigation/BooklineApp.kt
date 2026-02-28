@@ -63,7 +63,7 @@ fun BooklineApp() {
     val database = remember { BooklineDatabase.getInstance(context.applicationContext) }
     val bookRepository = remember { BookRepository(database.bookDao(), database.bookSeriesDao(), database.seriesInfoDao(), settingsRepository) }
     val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
-    val toReadViewModel = remember { ToReadViewModel(bookRepository) }
+    val toReadViewModel = remember { ToReadViewModel(settingsRepository, bookRepository) }
     val seriesListViewModel = remember { SeriesListViewModel(settingsRepository, bookRepository) }
 
     // URL override for navigating to a specific Goodreads page from book details
