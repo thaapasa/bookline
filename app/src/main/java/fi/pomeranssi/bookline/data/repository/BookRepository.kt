@@ -1,9 +1,12 @@
 package fi.pomeranssi.bookline.data.repository
 
+import android.util.Log
 import fi.pomeranssi.bookline.data.db.BookDao
 import fi.pomeranssi.bookline.data.db.BookEntity
 import fi.pomeranssi.bookline.data.db.BookSeriesDao
 import fi.pomeranssi.bookline.data.db.BookSeriesEntity
+import fi.pomeranssi.bookline.data.db.BookSortOverrideDao
+import fi.pomeranssi.bookline.data.db.BookSortOverrideEntity
 import fi.pomeranssi.bookline.data.db.SeriesInfoDao
 import fi.pomeranssi.bookline.data.db.SeriesInfoEntity
 import fi.pomeranssi.bookline.data.network.GoodreadsFeedService
@@ -11,6 +14,7 @@ import fi.pomeranssi.bookline.data.network.GoodreadsRssParser
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.Series
 import fi.pomeranssi.bookline.domain.model.SeriesEntry
+import fi.pomeranssi.bookline.domain.model.ToReadBookItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -29,6 +33,7 @@ class BookRepository(
     private val bookSeriesDao: BookSeriesDao,
     private val seriesInfoDao: SeriesInfoDao,
     private val settingsRepository: SettingsRepository,
+    private val bookSortOverrideDao: BookSortOverrideDao,
     private val feedService: GoodreadsFeedService = GoodreadsFeedService(),
     private val rssParser: GoodreadsRssParser = GoodreadsRssParser(),
 ) {
@@ -65,20 +70,35 @@ class BookRepository(
             }
         }
 
-    /** Observe books on the to-read shelf. */
-    fun observeToReadBooks(): Flow<List<Book>> =
+    private companion object {
+        const val TAG = "BookRepository"
+        const val MS_PER_DAY = 86_400_000L
+    }
+
+    /** Observe books on the to-read shelf, sorted by effective sort date descending. */
+    fun observeToReadBooks(): Flow<List<ToReadBookItem>> =
         combine(
             bookDao.observeToRead(),
             bookSeriesDao.observeAll(),
-        ) { entities, allSeriesRows ->
+            bookSortOverrideDao.observeAll(),
+        ) { entities, allSeriesRows, overrides ->
+            val overrideMap = overrides.associate { it.bookId to it.sortDateMs }
             val seriesByBookId = allSeriesRows.groupBy { it.bookId }
             entities.map { entity ->
                 val entries = seriesByBookId[entity.bookId]
                     ?.map { SeriesEntry(it.seriesName, it.position) }
                     .orEmpty()
-                entity.toDomain(seriesEntries = entries)
-            }
+                val book = entity.toDomain(seriesEntries = entries)
+                val effectiveSortDateMs = overrideMap[book.bookId]
+                    ?: (book.userDateAdded?.toEpochDay()?.times(MS_PER_DAY) ?: 0L)
+                ToReadBookItem(book = book, effectiveSortDateMs = effectiveSortDateMs)
+            }.sortedByDescending { it.effectiveSortDateMs }
         }
+
+    /** Update the sort date override for a to-read book. */
+    suspend fun updateToReadSortDate(bookId: String, sortDateMs: Long) {
+        bookSortOverrideDao.upsert(BookSortOverrideEntity(bookId, sortDateMs))
+    }
 
     /**
      * Observe all book series, sorted by the most recent read date descending.
@@ -104,7 +124,8 @@ class BookRepository(
                 }
                 val lastRead = books.mapNotNull { it.userReadAt }.maxOrNull()
                 Series(name = seriesName, books = books, lastReadAt = lastRead)
-            }.sortedWith(
+            }.filter { it.books.isNotEmpty() }
+            .sortedWith(
                 compareByDescending<Series> { it.lastReadAt }
                     .thenBy { it.name }
             )
@@ -133,8 +154,23 @@ class BookRepository(
             }
         }
 
+    /**
+     * Observe the alternative parsed names for a series (aliases that differ from displayName).
+     */
+    fun observeSeriesAliases(displayName: String): Flow<List<String>> =
+        seriesInfoDao.observeByDisplayName(displayName).map { entity ->
+            entity?.parsedNameSet()
+                ?.filter { it != displayName }
+                ?.sorted()
+                .orEmpty()
+        }
+
     /** Returns true when the cached data is stale or absent. */
-    fun isSyncNeeded(): Boolean = settingsRepository.isSyncStale()
+    fun isSyncNeeded(): Boolean {
+        val stale = settingsRepository.isSyncStale()
+        Log.d(TAG, "isSyncNeeded: $stale (lastSync=${settingsRepository.lastSyncEpochMs})")
+        return stale
+    }
 
     /**
      * Fetch all pages of the RSS feed and sync to the local cache.
@@ -144,6 +180,7 @@ class BookRepository(
      * Returns the total number of books synced.
      */
     suspend fun sync(feedUrl: String): Int = withContext(Dispatchers.IO) {
+        Log.i(TAG, "Sync starting from feed: ${feedUrl.take(60)}…")
         val syncTimestamp = System.currentTimeMillis()
         var totalBooks = 0
         var page = 1
@@ -176,13 +213,20 @@ class BookRepository(
             }
 
             totalBooks += books.size
+            Log.d(TAG, "Sync page $page: ${books.size} books (total so far: $totalBooks)")
             page++
         }
 
-        bookDao.deleteNotSyncedSince(syncTimestamp)
-        bookSeriesDao.deleteNotSyncedSince(syncTimestamp)
-        bookSeriesDao.deleteOrphans()
-        settingsRepository.lastSyncEpochMs = syncTimestamp
+        if (totalBooks == 0) {
+            Log.w(TAG, "Sync fetched 0 books — skipping cleanup to protect existing data")
+        } else {
+            bookDao.deleteNotSyncedSince(syncTimestamp)
+            bookSeriesDao.deleteNotSyncedSince(syncTimestamp)
+            bookSeriesDao.deleteOrphans()
+            bookSortOverrideDao.deleteOrphans()
+            settingsRepository.lastSyncEpochMs = syncTimestamp
+            Log.i(TAG, "Sync complete: $totalBooks books in ${page - 1} pages")
+        }
         totalBooks
     }
 

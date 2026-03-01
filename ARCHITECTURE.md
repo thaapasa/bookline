@@ -41,6 +41,8 @@ fi.pomeranssi.bookline
 │   │   ├── BookDao               # DAO with Flow queries and transactional replaceAll
 │   │   ├── BookSeriesEntity      # Room entity for book-series memberships (many-to-many)
 │   │   ├── BookSeriesDao         # DAO for series queries + orphan cleanup
+│   │   ├── BookSortOverrideEntity # Room entity for to-read manual sort date overrides
+│   │   ├── BookSortOverrideDao   # DAO for sort override CRUD + orphan cleanup
 │   │   ├── SeriesInfoEntity     # Room entity for series display name mapping
 │   │   ├── SeriesInfoDao        # DAO for series info (rename/merge lookups)
 │   │   └── BooklineDatabase      # Room database singleton
@@ -55,7 +57,8 @@ fi.pomeranssi.bookline
 │   └── model
 │       ├── Book                  # Book data class + ReadingStatus sealed interface
 │       ├── Series                # Series data class (name, books, coverUrls, authors)
-│       └── SeriesEntry           # Book's membership in a series (seriesName + position)
+│       ├── SeriesEntry           # Book's membership in a series (seriesName + position)
+│       └── ToReadBookItem        # Book + effectiveSortDateMs for to-read list ordering
 ├── ui                            # Presentation layer
 │   ├── theme                     # Material 3 theme (Color, Type, Theme)
 │   ├── navigation                # NavHost, route definitions, BooklineApp scaffold
@@ -108,11 +111,27 @@ Goodreads RSS feed (XML/HTTP, paginated)
 
 1. **Timeline** — chronological view of books read (main screen)
 2. **Series** — browse book series with fan-style cover cards
-3. **To Read** — books on the to-read shelf
+3. **To Read** — books on the to-read shelf, with manual drag-to-reorder
 4. **Goodreads** — embedded WebView showing goodreads.com (with in-WebView back navigation)
 5. **Book detail** — cover, metadata, rating, review
 6. **Series detail** — books in a series ordered by position, rename/merge via edit icon
 7. **Settings** — configure Goodreads RSS feed URL, theme prefs
+
+## To-Read Sort Overrides
+
+The to-read list supports manual reordering via drag-and-drop (toggle with the
+⇅ button in the top app bar). Position is determined by an **effective sort
+date** (epoch milliseconds), sorted descending:
+
+- **Default**: `userDateAdded` × 86 400 000 (epoch days → ms)
+- **Override**: stored in the `book_sort_overrides` table, independent of the
+  main `books` table so it survives feed sync
+
+When a book is dragged to a new position, its override is set to:
+- **Top**: `max(now, topNeighbor + 1 day)` — new Goodreads books naturally
+  appear above since they get a fresh date
+- **Between two books**: midpoint of neighbors' effective dates
+- **Bottom**: bottom neighbor − 1 day
 
 ## Design Decisions
 

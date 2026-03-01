@@ -29,6 +29,7 @@ fun EmptyContent(
     message: String,
     modifier: Modifier = Modifier,
     icon: @Composable (() -> Unit)? = null,
+    onRefresh: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
@@ -44,6 +45,14 @@ fun EmptyContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 32.dp),
         )
+        if (onRefresh != null) {
+            TextButton(
+                onClick = onRefresh,
+                modifier = Modifier.padding(top = 16.dp),
+            ) {
+                Text("Refresh")
+            }
+        }
     }
 }
 

@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -29,8 +29,15 @@ class SeriesDetailViewModel(
 
     val uiState: StateFlow<SeriesDetailUiState> = currentName
         .flatMapLatest { name ->
-            bookRepository.observeSeriesBooks(name).map { books ->
-                SeriesDetailUiState.Success(seriesName = name, books = books)
+            combine(
+                bookRepository.observeSeriesBooks(name),
+                bookRepository.observeSeriesAliases(name),
+            ) { books, aliases ->
+                SeriesDetailUiState.Success(
+                    seriesName = name,
+                    books = books,
+                    aliases = aliases,
+                )
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SeriesDetailUiState.Loading)
@@ -51,5 +58,6 @@ sealed interface SeriesDetailUiState {
     data class Success(
         val seriesName: String,
         val books: List<Book>,
+        val aliases: List<String> = emptyList(),
     ) : SeriesDetailUiState
 }

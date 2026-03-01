@@ -41,4 +41,7 @@ interface BookDao {
 
     @Query("DELETE FROM books WHERE lastSyncedMs < :syncTimestamp")
     suspend fun deleteNotSyncedSince(syncTimestamp: Long)
+
+    @Query("DELETE FROM books")
+    suspend fun deleteAll()
 }

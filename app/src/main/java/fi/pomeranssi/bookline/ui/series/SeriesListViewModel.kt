@@ -1,5 +1,6 @@
 package fi.pomeranssi.bookline.ui.series
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fi.pomeranssi.bookline.data.repository.BookRepository
@@ -19,6 +20,10 @@ class SeriesListViewModel(
     private val bookRepository: BookRepository,
 ) : ViewModel() {
 
+    private companion object {
+        const val TAG = "SeriesListVM"
+    }
+
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
@@ -27,8 +32,10 @@ class SeriesListViewModel(
     val uiState: StateFlow<SeriesListUiState> = bookRepository.observeAllSeries()
         .map { seriesList ->
             if (settingsRepository.feedUrl.value.isBlank()) {
+                Log.d(TAG, "Series: no feed configured")
                 SeriesListUiState.NoFeedConfigured
             } else {
+                Log.d(TAG, "Series loaded: ${seriesList.size} series")
                 SeriesListUiState.Success(series = seriesList)
             }
         }
@@ -55,9 +62,15 @@ class SeriesListViewModel(
     }
 
     private fun syncIfNeeded() {
-        if (settingsRepository.feedUrl.value.isBlank()) return
+        if (settingsRepository.feedUrl.value.isBlank()) {
+            Log.d(TAG, "syncIfNeeded: skipped, no feed URL")
+            return
+        }
         if (bookRepository.isSyncNeeded()) {
+            Log.i(TAG, "syncIfNeeded: sync is needed, starting")
             syncFeed()
+        } else {
+            Log.d(TAG, "syncIfNeeded: data is fresh, skipping sync")
         }
     }
 
@@ -65,12 +78,14 @@ class SeriesListViewModel(
         val feedUrl = settingsRepository.feedUrl.value
         if (feedUrl.isBlank()) return
 
+        Log.i(TAG, "syncFeed: starting sync")
         _isRefreshing.value = true
         viewModelScope.launch {
             try {
-                bookRepository.sync(feedUrl)
-            } catch (_: Exception) {
-                // Sync failures are non-fatal when we already have cached data
+                val count = bookRepository.sync(feedUrl)
+                Log.i(TAG, "syncFeed: completed, $count books synced")
+            } catch (e: Exception) {
+                Log.e(TAG, "syncFeed: failed", e)
             } finally {
                 _isRefreshing.value = false
             }

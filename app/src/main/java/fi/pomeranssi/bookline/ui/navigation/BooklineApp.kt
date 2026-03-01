@@ -4,17 +4,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,7 +65,7 @@ fun BooklineApp() {
     val context = LocalContext.current
     val settingsRepository = remember { SettingsRepository(context.applicationContext) }
     val database = remember { BooklineDatabase.getInstance(context.applicationContext) }
-    val bookRepository = remember { BookRepository(database.bookDao(), database.bookSeriesDao(), database.seriesInfoDao(), settingsRepository) }
+    val bookRepository = remember { BookRepository(database.bookDao(), database.bookSeriesDao(), database.seriesInfoDao(), settingsRepository, database.bookSortOverrideDao()) }
     val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
     val toReadViewModel = remember { ToReadViewModel(settingsRepository, bookRepository) }
     val seriesListViewModel = remember { SeriesListViewModel(settingsRepository, bookRepository) }
@@ -71,6 +75,8 @@ fun BooklineApp() {
 
     // Determine whether we are on a top-level tab (show bottom bar + top bar)
     val isTopLevel = TopLevelRoute.entries.any { it.route == currentDestination?.route }
+    val isToReadRoute = currentDestination?.route == TopLevelRoute.ToRead.route
+    val reorderMode by toReadViewModel.reorderMode.collectAsState()
 
     Scaffold(
         topBar = {
@@ -81,6 +87,9 @@ fun BooklineApp() {
                             launchSingleTop = true
                         }
                     },
+                    showReorderToggle = isToReadRoute,
+                    reorderMode = reorderMode,
+                    onReorderToggle = { toReadViewModel.toggleReorderMode() },
                 )
             }
         },
@@ -162,7 +171,7 @@ fun BooklineApp() {
                 )
             }
             composable(SETTINGS_ROUTE) {
-                val viewModel = remember { SettingsViewModel(settingsRepository) }
+                val viewModel = remember { SettingsViewModel(settingsRepository, database) }
                 SettingsScreen(
                     viewModel = viewModel,
                     onNavigateBack = { navController.popBackStack() },
@@ -217,12 +226,28 @@ fun BooklineApp() {
 @Composable
 private fun BooklineTopBar(
     onSettingsClick: () -> Unit,
+    showReorderToggle: Boolean = false,
+    reorderMode: Boolean = false,
+    onReorderToggle: () -> Unit = {},
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
     TopAppBar(
         title = { Text("Bookline") },
         actions = {
+            if (showReorderToggle) {
+                IconButton(onClick = onReorderToggle) {
+                    Icon(
+                        imageVector = Icons.Default.SwapVert,
+                        contentDescription = if (reorderMode) "Exit reorder mode" else "Reorder list",
+                        tint = if (reorderMode) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            LocalContentColor.current
+                        },
+                    )
+                }
+            }
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,

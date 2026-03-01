@@ -15,6 +15,9 @@ interface BookSeriesDao {
     @Query("DELETE FROM book_series WHERE lastSyncedMs < :syncTimestamp")
     suspend fun deleteNotSyncedSince(syncTimestamp: Long)
 
+    @Query("DELETE FROM book_series")
+    suspend fun deleteAll()
+
     /** Delete series entries whose bookId no longer exists in the books table. */
     @Query("DELETE FROM book_series WHERE bookId NOT IN (SELECT bookId FROM books)")
     suspend fun deleteOrphans()

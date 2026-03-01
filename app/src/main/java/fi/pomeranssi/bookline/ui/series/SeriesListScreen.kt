@@ -78,6 +78,7 @@ fun SeriesListScreen(
                 EmptyContent(
                     message = "No series found.\nBooks with series info in their title will appear here.",
                     modifier = modifier.fillMaxSize(),
+                    onRefresh = { viewModel.refresh() },
                 )
             } else {
                 RefreshableContent(

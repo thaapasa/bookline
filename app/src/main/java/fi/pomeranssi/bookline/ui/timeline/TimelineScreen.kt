@@ -77,6 +77,7 @@ fun TimelineScreen(
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     },
+                    onRefresh = viewModel::refresh,
                 )
             } else {
                 RefreshableContent(

@@ -108,6 +108,16 @@ fun SeriesDetailScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    if (state.aliases.isNotEmpty()) {
+                        item(key = "_aliases") {
+                            Text(
+                                text = "Also known as: ${state.aliases.joinToString(", ")}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 4.dp),
+                            )
+                        }
+                    }
                     items(
                         items = state.books,
                         key = { it.bookId },
