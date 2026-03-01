@@ -15,6 +15,9 @@ interface BookSortOverrideDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(override: BookSortOverrideEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(overrides: List<BookSortOverrideEntity>)
+
     @Query("DELETE FROM book_sort_overrides WHERE bookId = :bookId")
     suspend fun deleteByBookId(bookId: String)
 

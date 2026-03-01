@@ -92,12 +92,20 @@ class BookRepository(
                 val effectiveSortDateMs = overrideMap[book.bookId]
                     ?: (book.userDateAdded?.toEpochDay()?.times(MS_PER_DAY) ?: 0L)
                 ToReadBookItem(book = book, effectiveSortDateMs = effectiveSortDateMs)
-            }.sortedByDescending { it.effectiveSortDateMs }
+            }.sortedWith(
+                compareByDescending<ToReadBookItem> { it.effectiveSortDateMs }
+                    .thenBy { it.book.bookId }
+            )
         }
 
     /** Update the sort date override for a to-read book. */
     suspend fun updateToReadSortDate(bookId: String, sortDateMs: Long) {
         bookSortOverrideDao.upsert(BookSortOverrideEntity(bookId, sortDateMs))
+    }
+
+    /** Batch-update sort date overrides for multiple to-read books. */
+    suspend fun updateToReadSortDates(updates: Map<String, Long>) {
+        bookSortOverrideDao.upsertAll(updates.map { (id, ms) -> BookSortOverrideEntity(id, ms) })
     }
 
     /**

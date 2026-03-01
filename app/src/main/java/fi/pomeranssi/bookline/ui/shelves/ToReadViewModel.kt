@@ -34,16 +34,86 @@ class ToReadViewModel(
      * [bookId] is the moved book, [reorderedItems] is the list after the move.
      */
     fun onBookMoved(bookId: String, reorderedItems: List<ToReadBookItem>) {
-        val index = reorderedItems.indexOfFirst { it.book.bookId == bookId }
-        if (index < 0) return
+        val movedIndex = reorderedItems.indexOfFirst { it.book.bookId == bookId }
+        if (movedIndex < 0) return
 
-        val above = if (index > 0) reorderedItems[index - 1].effectiveSortDateMs else null
-        val below = if (index < reorderedItems.size - 1) reorderedItems[index + 1].effectiveSortDateMs else null
+        val aboveMs = if (movedIndex > 0) reorderedItems[movedIndex - 1].effectiveSortDateMs else null
+        val belowMs = if (movedIndex < reorderedItems.size - 1) reorderedItems[movedIndex + 1].effectiveSortDateMs else null
 
-        val newSortDateMs = calculateNewSortDate(above, below)
+        // If neighbors have same or very close stamps, spread out the whole group
+        if (aboveMs != null && belowMs != null && aboveMs - belowMs < SPREAD_INTERVAL) {
+            spreadGroup(movedIndex, reorderedItems)
+            return
+        }
 
+        val newSortDateMs = calculateNewSortDate(aboveMs, belowMs)
         viewModelScope.launch {
             bookRepository.updateToReadSortDate(bookId, newSortDateMs)
+        }
+    }
+
+    /**
+     * When the moved book lands between items with the same (or very close) stamps,
+     * find all items in that cluster and assign them evenly-spaced stamps that
+     * preserve the current list order.
+     *
+     * Walks outward from the moved item's *neighbors* (not the moved item itself,
+     * whose stamp is stale) to find the full cluster, then spaces all items evenly
+     * between the stamps of the adjacent non-group items.
+     */
+    private fun spreadGroup(movedIndex: Int, items: List<ToReadBookItem>) {
+        // Walk outward from the neighbors (which have valid stamps)
+        var start = movedIndex - 1
+        while (start > 0 &&
+            items[start - 1].effectiveSortDateMs - items[start].effectiveSortDateMs < SPREAD_INTERVAL
+        ) {
+            start--
+        }
+        var end = movedIndex + 1
+        while (end < items.size - 1 &&
+            items[end].effectiveSortDateMs - items[end + 1].effectiveSortDateMs < SPREAD_INTERVAL
+        ) {
+            end++
+        }
+        // Group is items[start..end], which includes movedIndex between the two walks
+
+        val groupSize = end - start + 1
+
+        // Boundary stamps from adjacent non-group items
+        val upperBound = if (start > 0) items[start - 1].effectiveSortDateMs else null
+        val lowerBound = if (end < items.size - 1) items[end + 1].effectiveSortDateMs else null
+
+        val topStamp: Long
+        val interval: Long
+
+        when {
+            upperBound != null && lowerBound != null -> {
+                // Spread evenly between the two boundary stamps
+                interval = (upperBound - lowerBound) / (groupSize + 1)
+                topStamp = upperBound - interval
+            }
+            upperBound != null -> {
+                interval = SPREAD_INTERVAL
+                topStamp = upperBound - interval
+            }
+            lowerBound != null -> {
+                interval = SPREAD_INTERVAL
+                topStamp = lowerBound + groupSize * interval
+            }
+            else -> {
+                interval = SPREAD_INTERVAL
+                topStamp = System.currentTimeMillis()
+            }
+        }
+
+        val updates = mutableMapOf<String, Long>()
+        for (i in start..end) {
+            updates[items[i].book.bookId] = topStamp - (i - start) * interval
+        }
+
+        Log.d(TAG, "spreadGroup: spreading $groupSize items, interval=${interval}ms")
+        viewModelScope.launch {
+            bookRepository.updateToReadSortDates(updates)
         }
     }
 
@@ -91,5 +161,6 @@ class ToReadViewModel(
     private companion object {
         const val TAG = "ToReadVM"
         const val MS_PER_DAY = 86_400_000L
+        const val SPREAD_INTERVAL = 600_000L // 10 minutes — used to space out same-stamped items
     }
 }

@@ -17,7 +17,6 @@ import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.shadow
 import fi.pomeranssi.bookline.domain.model.ToReadBookItem
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
@@ -144,38 +144,38 @@ private fun ReorderableToReadList(
                     targetValue = if (isDragging) 4.dp else 0.dp,
                     label = "dragElevation",
                 )
-                Surface(shadowElevation = elevation) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        BookCard(
-                            book = item.book,
-                            onClick = { onBookClick(item.book.bookId) },
-                            modifier = Modifier.weight(1f),
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    BookCard(
+                        book = item.book,
+                        onClick = { onBookClick(item.book.bookId) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .shadow(elevation, shape = MaterialTheme.shapes.medium),
+                    )
+                    IconButton(
+                        modifier = Modifier.draggableHandle(
+                            onDragStarted = {
+                                isReordering = true
+                                draggedBookId = item.book.bookId
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                            },
+                            onDragStopped = {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                draggedBookId?.let { bookId ->
+                                    onBookMoved(bookId, localItems)
+                                }
+                                draggedBookId = null
+                                isReordering = false
+                            },
+                        ),
+                        onClick = {},
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.DragHandle,
+                            contentDescription = "Reorder",
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        IconButton(
-                            modifier = Modifier.draggableHandle(
-                                onDragStarted = {
-                                    isReordering = true
-                                    draggedBookId = item.book.bookId
-                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                                },
-                                onDragStopped = {
-                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
-                                    draggedBookId?.let { bookId ->
-                                        onBookMoved(bookId, localItems)
-                                    }
-                                    draggedBookId = null
-                                    isReordering = false
-                                },
-                            ),
-                            onClick = {},
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.DragHandle,
-                                contentDescription = "Reorder",
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
                     }
                 }
             }
