@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -275,7 +276,6 @@ private fun MetaSection(book: Book) {
         book.isbn?.let { add("ISBN" to it) }
         book.numPages?.let { add("Pages" to it.toString()) }
         book.bookPublishedYear?.let { add("Published" to it.toString()) }
-        book.averageRating?.let { add("Average rating" to String.format("%.2f", it)) }
         book.userReadAt?.let { add("Last read" to it.format(DATE_FORMATTER)) }
         book.userDateAdded?.let { add("Date added" to it.format(DATE_FORMATTER)) }
         book.userDateCreated?.let { add("Date created" to it.format(DATE_FORMATTER)) }
@@ -284,8 +284,43 @@ private fun MetaSection(book: Book) {
         }
     }
 
-    if (items.isNotEmpty()) {
+    if (items.isNotEmpty() || book.averageRating != null) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            // Average rating with stars
+            book.averageRating?.let { rating ->
+                val fullStars = kotlin.math.round(rating).toInt().coerceIn(0, 5)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Average rating",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.width(120.dp),
+                    )
+                    repeat(fullStars) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    repeat(5 - fullStars) {
+                        Icon(
+                            imageVector = Icons.Default.StarBorder,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = String.format("%.2f", rating),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
             items.forEach { (label, value) ->
                 Row {
                     Text(

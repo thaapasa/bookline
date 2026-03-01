@@ -175,10 +175,17 @@ fun BookCard(
                         }
 
                         ReadingStatus.ToRead -> {
+                            Icon(
+                                imageVector = Icons.Default.Book,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.secondary,
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "To read",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.secondary,
                             )
                         }
                     }
