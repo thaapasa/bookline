@@ -1,9 +1,9 @@
 package fi.pomeranssi.bookline.ui.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.CollectionsBookmark
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -18,6 +18,6 @@ enum class TopLevelRoute(
     Timeline(route = "timeline", label = "Timeline", icon = Icons.Default.Timeline),
     ToRead(route = "to_read", label = "To Read", icon = Icons.Default.Book),
     Series(route = "series", label = "Series", icon = Icons.Default.CollectionsBookmark),
-    Goodreads(route = "goodreads", label = "Goodreads", icon = Icons.Default.Language),
+    Library(route = "library", label = "Library", icon = Icons.AutoMirrored.Filled.LibraryBooks),
 }
 

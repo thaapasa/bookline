@@ -69,13 +69,16 @@ fi.pomeranssi.bookline
 │   │   ├── TimelineScreen        # LazyColumn of book cards with covers
 │   │   └── TimelineViewModel     # Loads feed, exposes TimelineUiState
 │   ├── shelves                   # Shelf browser / To Read screen
+│   ├── library                   # Library screen (all books with search + shelf filter)
+│   │   ├── LibraryScreen         # Search field, shelf chip row, LazyColumn of BookCards
+│   │   └── LibraryViewModel      # Search/shelf filtering, exposes LibraryUiState
 │   ├── series                    # Book Series screens (list + detail)
 │   │   ├── SeriesListScreen      # LazyColumn of series cards, pull-to-refresh
 │   │   ├── SeriesListViewModel   # Observes all series, exposes SeriesListUiState
 │   │   ├── SeriesDetailScreen    # Books in a series ordered by position
 │   │   └── SeriesDetailViewModel # Loads single series by name
-│   ├── goodreads                 # Embedded Goodreads WebView screen
-│   ├── bookdetail                # Book detail screen
+│   ├── goodreads                 # Embedded Goodreads WebView (accessible from top bar icon)
+│   ├── bookdetail                # Book detail screen (series names link to series detail)
 │   └── settings                  # Settings screen (RSS URL config)
 │       ├── SettingsScreen        # Compose UI for settings
 │       └── SettingsViewModel     # ViewModel for settings state
@@ -112,10 +115,11 @@ Goodreads RSS feed (XML/HTTP, paginated)
 1. **Timeline** — chronological view of books read (main screen)
 2. **Series** — browse book series with fan-style cover cards
 3. **To Read** — books on the to-read shelf, with manual drag-to-reorder
-4. **Goodreads** — embedded WebView showing goodreads.com (with in-WebView back navigation)
-5. **Book detail** — cover, metadata, rating, review
-6. **Series detail** — books in a series ordered by position, rename/merge via edit icon
-7. **Settings** — configure Goodreads RSS feed URL, theme prefs
+4. **Library** — all books with search (title/author) and shelf filter chips
+5. **Goodreads** — embedded WebView (accessible from top bar globe icon on all screens)
+6. **Book detail** — cover, metadata, rating, review; series names link to series detail
+7. **Series detail** — books in a series ordered by position, rename/merge via edit icon
+8. **Settings** — configure Goodreads RSS feed URL, theme prefs
 
 ## To-Read Sort Overrides
 

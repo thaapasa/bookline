@@ -57,6 +57,7 @@ fun BookDetailScreen(
     viewModel: BookDetailViewModel,
     onNavigateBack: () -> Unit,
     onOpenGoodreads: (String) -> Unit,
+    onSeriesClick: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val book by viewModel.book.collectAsState(initial = null)
@@ -84,6 +85,7 @@ fun BookDetailScreen(
             BookDetailContent(
                 book = currentBook,
                 onOpenGoodreads = onOpenGoodreads,
+                onSeriesClick = onSeriesClick,
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -94,6 +96,7 @@ fun BookDetailScreen(
 private fun BookDetailContent(
     book: Book,
     onOpenGoodreads: (String) -> Unit,
+    onSeriesClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showCoverDialog by remember { mutableStateOf(false) }
@@ -150,6 +153,7 @@ private fun BookDetailContent(
                             text = "${entry.seriesName} $posLabel",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable { onSeriesClick(entry.seriesName) },
                         )
                     }
                 }

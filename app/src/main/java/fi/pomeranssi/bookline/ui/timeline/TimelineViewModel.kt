@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.Month
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -44,7 +43,10 @@ class TimelineViewModel(
         } else {
             val sections = groupIntoSections(books, collapsed)
             val bookCount = sections.count { it is TimelineSection.BookItem }
-            Log.d(TAG, "Timeline loaded: $bookCount books in ${sections.size} sections (from ${books.size} total)")
+            Log.d(
+                TAG,
+                "Timeline loaded: $bookCount books in ${sections.size} sections (from ${books.size} total)"
+            )
             TimelineUiState.Success(sections = sections)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TimelineUiState.Loading)

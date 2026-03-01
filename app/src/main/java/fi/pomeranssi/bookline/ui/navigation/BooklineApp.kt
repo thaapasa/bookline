@@ -2,6 +2,7 @@ package fi.pomeranssi.bookline.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapVert
@@ -36,22 +37,24 @@ import androidx.navigation.navArgument
 import fi.pomeranssi.bookline.data.db.BooklineDatabase
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
-import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.detail.BookDetailScreen
 import fi.pomeranssi.bookline.ui.detail.BookDetailViewModel
 import fi.pomeranssi.bookline.ui.goodreads.GoodreadsScreen
-import fi.pomeranssi.bookline.ui.settings.SettingsScreen
-import fi.pomeranssi.bookline.ui.settings.SettingsViewModel
-import fi.pomeranssi.bookline.ui.shelves.ToReadScreen
-import fi.pomeranssi.bookline.ui.shelves.ToReadViewModel
+import fi.pomeranssi.bookline.ui.library.LibraryScreen
+import fi.pomeranssi.bookline.ui.library.LibraryViewModel
 import fi.pomeranssi.bookline.ui.series.SeriesDetailScreen
 import fi.pomeranssi.bookline.ui.series.SeriesDetailViewModel
 import fi.pomeranssi.bookline.ui.series.SeriesListScreen
 import fi.pomeranssi.bookline.ui.series.SeriesListViewModel
+import fi.pomeranssi.bookline.ui.settings.SettingsScreen
+import fi.pomeranssi.bookline.ui.settings.SettingsViewModel
+import fi.pomeranssi.bookline.ui.shelves.ToReadScreen
+import fi.pomeranssi.bookline.ui.shelves.ToReadViewModel
 import fi.pomeranssi.bookline.ui.timeline.TimelineScreen
 import fi.pomeranssi.bookline.ui.timeline.TimelineViewModel
 
 private const val SETTINGS_ROUTE = "settings"
+private const val GOODREADS_ROUTE = "goodreads"
 private const val BOOK_DETAIL_ROUTE = "book/{bookId}"
 private const val SERIES_DETAIL_ROUTE = "series_detail/{seriesName}"
 
@@ -65,16 +68,26 @@ fun BooklineApp() {
     val context = LocalContext.current
     val settingsRepository = remember { SettingsRepository(context.applicationContext) }
     val database = remember { BooklineDatabase.getInstance(context.applicationContext) }
-    val bookRepository = remember { BookRepository(database.bookDao(), database.bookSeriesDao(), database.seriesInfoDao(), settingsRepository, database.bookSortOverrideDao()) }
+    val bookRepository = remember {
+        BookRepository(
+            database.bookDao(),
+            database.bookSeriesDao(),
+            database.seriesInfoDao(),
+            settingsRepository,
+            database.bookSortOverrideDao()
+        )
+    }
     val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
     val toReadViewModel = remember { ToReadViewModel(settingsRepository, bookRepository) }
     val seriesListViewModel = remember { SeriesListViewModel(settingsRepository, bookRepository) }
+    val libraryViewModel = remember { LibraryViewModel(settingsRepository, bookRepository) }
 
     // URL override for navigating to a specific Goodreads page from book details
     var goodreadsUrlOverride by remember { mutableStateOf<String?>(null) }
 
     // Determine whether we are on a top-level tab (show bottom bar + top bar)
     val isTopLevel = TopLevelRoute.entries.any { it.route == currentDestination?.route }
+            || currentDestination?.route == GOODREADS_ROUTE
     val isToReadRoute = currentDestination?.route == TopLevelRoute.ToRead.route
     val reorderMode by toReadViewModel.reorderMode.collectAsState()
 
@@ -82,6 +95,12 @@ fun BooklineApp() {
         topBar = {
             if (isTopLevel) {
                 BooklineTopBar(
+                    onGoodreadsClick = {
+                        goodreadsUrlOverride = null
+                        navController.navigate(GOODREADS_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    },
                     onSettingsClick = {
                         navController.navigate(SETTINGS_ROUTE) {
                             launchSingleTop = true
@@ -155,14 +174,32 @@ fun BooklineApp() {
                 SeriesListScreen(
                     viewModel = seriesListViewModel,
                     onSeriesClick = { seriesName ->
-                        navController.navigate("series_detail/${java.net.URLEncoder.encode(seriesName, "UTF-8")}") {
+                        navController.navigate(
+                            "series_detail/${
+                                java.net.URLEncoder.encode(
+                                    seriesName,
+                                    "UTF-8"
+                                )
+                            }"
+                        ) {
                             launchSingleTop = true
                         }
                     },
                     modifier = Modifier.padding(innerPadding),
                 )
             }
-            composable(TopLevelRoute.Goodreads.route) {
+            composable(TopLevelRoute.Library.route) {
+                LibraryScreen(
+                    viewModel = libraryViewModel,
+                    onBookClick = { bookId ->
+                        navController.navigate("book/$bookId") {
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.padding(innerPadding),
+                )
+            }
+            composable(GOODREADS_ROUTE) {
                 val urlOverride = goodreadsUrlOverride
                 goodreadsUrlOverride = null
                 GoodreadsScreen(
@@ -190,10 +227,19 @@ fun BooklineApp() {
                     onNavigateBack = { navController.popBackStack() },
                     onOpenGoodreads = { url ->
                         goodreadsUrlOverride = url
-                        navController.navigate(TopLevelRoute.Goodreads.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
+                        navController.navigate(GOODREADS_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onSeriesClick = { seriesName ->
+                        navController.navigate(
+                            "series_detail/${
+                                java.net.URLEncoder.encode(
+                                    seriesName,
+                                    "UTF-8"
+                                )
+                            }"
+                        ) {
                             launchSingleTop = true
                         }
                     },
@@ -203,7 +249,8 @@ fun BooklineApp() {
                 route = SERIES_DETAIL_ROUTE,
                 arguments = listOf(navArgument("seriesName") { type = NavType.StringType }),
             ) { backStackEntry ->
-                val encodedName = backStackEntry.arguments?.getString("seriesName") ?: return@composable
+                val encodedName =
+                    backStackEntry.arguments?.getString("seriesName") ?: return@composable
                 val seriesName = java.net.URLDecoder.decode(encodedName, "UTF-8")
                 val viewModel = remember(seriesName) {
                     SeriesDetailViewModel(bookRepository, seriesName)
@@ -225,6 +272,7 @@ fun BooklineApp() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BooklineTopBar(
+    onGoodreadsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     showReorderToggle: Boolean = false,
     reorderMode: Boolean = false,
@@ -247,6 +295,12 @@ private fun BooklineTopBar(
                         },
                     )
                 }
+            }
+            IconButton(onClick = onGoodreadsClick) {
+                Icon(
+                    imageVector = Icons.Default.Language,
+                    contentDescription = "Goodreads",
+                )
             }
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
