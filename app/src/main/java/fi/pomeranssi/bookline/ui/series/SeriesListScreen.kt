@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
@@ -65,8 +66,16 @@ fun SeriesListScreen(
 
         SeriesListUiState.NoFeedConfigured -> {
             EmptyContent(
-                message = "No feed configured.\nGo to Settings to add your Goodreads RSS URL.",
+                message = "Set up your Goodreads RSS feed in Settings to see your series.",
                 modifier = modifier.fillMaxSize(),
+                icon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.List,
+                        contentDescription = null,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                },
             )
         }
 
@@ -76,8 +85,16 @@ fun SeriesListScreen(
 
             if (state.series.isEmpty() && !isRefreshing) {
                 EmptyContent(
-                    message = "No series found.\nBooks with series info in their title will appear here.",
+                    message = "No series found in your feed.",
                     modifier = modifier.fillMaxSize(),
+                    icon = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.List,
+                            contentDescription = null,
+                            modifier = Modifier.padding(bottom = 16.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    },
                     onRefresh = { viewModel.refresh() },
                 )
             } else {
