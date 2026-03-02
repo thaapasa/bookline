@@ -108,119 +108,11 @@ private fun BookDetailContent(
             .padding(16.dp),
     ) {
         // Cover + title header
-        Row(modifier = Modifier.fillMaxWidth()) {
-            val imageUrl = book.bestImageUrl
-            if (imageUrl != null) {
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = "Cover of ${book.title}",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(width = 120.dp, height = 180.dp)
-                        .clickable { showCoverDialog = true },
-                )
-            } else {
-                Box(
-                    modifier = Modifier.size(width = 120.dp, height = 180.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Book,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = book.title,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-
-                // Series membership
-                if (book.seriesEntries.isNotEmpty()) {
-                    book.seriesEntries.forEach { entry ->
-                        val posLabel = if (entry.position == entry.position.toLong().toDouble()) {
-                            "#${entry.position.toLong()}"
-                        } else {
-                            "#${entry.position}"
-                        }
-                        Text(
-                            text = "${entry.seriesName} $posLabel",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable { onSeriesClick(entry.seriesName) },
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = book.authorName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Rating
-                if (book.userRating > 0) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        repeat(book.userRating) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-                }
-
-                // Reading status
-                Spacer(modifier = Modifier.height(8.dp))
-                when (book.readingStatus) {
-                    ReadingStatus.CurrentlyReading -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.tertiary,
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Currently reading",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.tertiary,
-                            )
-                        }
-                    }
-
-                    ReadingStatus.Read -> {
-                        book.userReadAt?.let { date ->
-                            Text(
-                                text = "Read ${date.format(DATE_FORMATTER)}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-
-                    ReadingStatus.ToRead -> {
-                        Text(
-                            text = "To read",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-        }
+        BookDetailHeader(
+            book = book,
+            onCoverClick = { showCoverDialog = true },
+            onSeriesClick = onSeriesClick,
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
         HorizontalDivider()
@@ -271,6 +163,124 @@ private fun BookDetailContent(
             title = book.title,
             onDismiss = { showCoverDialog = false },
         )
+    }
+}
+
+@Composable
+private fun BookDetailHeader(
+    book: Book,
+    onCoverClick: () -> Unit,
+    onSeriesClick: (String) -> Unit,
+) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        val imageUrl = book.bestImageUrl
+        if (imageUrl != null) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Cover of ${book.title}",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(width = 120.dp, height = 180.dp)
+                    .clickable(onClick = onCoverClick),
+            )
+        } else {
+            Box(
+                modifier = Modifier.size(width = 120.dp, height = 180.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Book,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = book.title,
+                style = MaterialTheme.typography.titleLarge,
+            )
+
+            if (book.seriesEntries.isNotEmpty()) {
+                book.seriesEntries.forEach { entry ->
+                    val posLabel = if (entry.position == entry.position.toLong().toDouble()) {
+                        "#${entry.position.toLong()}"
+                    } else {
+                        "#${entry.position}"
+                    }
+                    Text(
+                        text = "${entry.seriesName} $posLabel",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable { onSeriesClick(entry.seriesName) },
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = book.authorName,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (book.userRating > 0) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    repeat(book.userRating) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            when (book.readingStatus) {
+                ReadingStatus.CurrentlyReading -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.tertiary,
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Currently reading",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.tertiary,
+                        )
+                    }
+                }
+
+                ReadingStatus.Read -> {
+                    book.userReadAt?.let { date ->
+                        Text(
+                            text = "Read ${date.format(DATE_FORMATTER)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                ReadingStatus.ToRead -> {
+                    Text(
+                        text = "To read",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
     }
 }
 

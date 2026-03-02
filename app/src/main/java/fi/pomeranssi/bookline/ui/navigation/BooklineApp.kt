@@ -1,5 +1,6 @@
 package fi.pomeranssi.bookline.ui.navigation
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Language
@@ -26,8 +27,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -52,11 +55,55 @@ import fi.pomeranssi.bookline.ui.shelves.ToReadScreen
 import fi.pomeranssi.bookline.ui.shelves.ToReadViewModel
 import fi.pomeranssi.bookline.ui.timeline.TimelineScreen
 import fi.pomeranssi.bookline.ui.timeline.TimelineViewModel
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 private const val SETTINGS_ROUTE = "settings"
 private const val GOODREADS_ROUTE = "goodreads"
 private const val BOOK_DETAIL_ROUTE = "book/{bookId}"
 private const val SERIES_DETAIL_ROUTE = "series_detail/{seriesName}"
+
+/**
+ * Holder for app-level dependencies (repositories + ViewModels).
+ */
+private class AppDependencies(
+    val settingsRepository: SettingsRepository,
+    val database: BooklineDatabase,
+    val bookRepository: BookRepository,
+    val timelineViewModel: TimelineViewModel,
+    val toReadViewModel: ToReadViewModel,
+    val seriesListViewModel: SeriesListViewModel,
+    val libraryViewModel: LibraryViewModel,
+)
+
+@Composable
+private fun rememberAppDependencies(): AppDependencies {
+    val context = LocalContext.current
+    return remember {
+        val settings = SettingsRepository(context.applicationContext)
+        val db = BooklineDatabase.getInstance(context.applicationContext)
+        val bookRepo = BookRepository(
+            db.bookDao(),
+            db.bookSeriesDao(),
+            db.seriesInfoDao(),
+            settings,
+            db.bookSortOverrideDao(),
+        )
+        AppDependencies(
+            settingsRepository = settings,
+            database = db,
+            bookRepository = bookRepo,
+            timelineViewModel = TimelineViewModel(settings, bookRepo),
+            toReadViewModel = ToReadViewModel(settings, bookRepo),
+            seriesListViewModel = SeriesListViewModel(settings, bookRepo),
+            libraryViewModel = LibraryViewModel(settings, bookRepo),
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Main app composable
+// ---------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,32 +111,14 @@ fun BooklineApp() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val deps = rememberAppDependencies()
 
-    val context = LocalContext.current
-    val settingsRepository = remember { SettingsRepository(context.applicationContext) }
-    val database = remember { BooklineDatabase.getInstance(context.applicationContext) }
-    val bookRepository = remember {
-        BookRepository(
-            database.bookDao(),
-            database.bookSeriesDao(),
-            database.seriesInfoDao(),
-            settingsRepository,
-            database.bookSortOverrideDao()
-        )
-    }
-    val timelineViewModel = remember { TimelineViewModel(settingsRepository, bookRepository) }
-    val toReadViewModel = remember { ToReadViewModel(settingsRepository, bookRepository) }
-    val seriesListViewModel = remember { SeriesListViewModel(settingsRepository, bookRepository) }
-    val libraryViewModel = remember { LibraryViewModel(settingsRepository, bookRepository) }
-
-    // URL override for navigating to a specific Goodreads page from book details
     var goodreadsUrlOverride by remember { mutableStateOf<String?>(null) }
 
-    // Determine whether we are on a top-level tab (show bottom bar + top bar)
     val isTopLevel = TopLevelRoute.entries.any { it.route == currentDestination?.route }
-            || currentDestination?.route == GOODREADS_ROUTE
+        || currentDestination?.route == GOODREADS_ROUTE
     val isToReadRoute = currentDestination?.route == TopLevelRoute.ToRead.route
-    val reorderMode by toReadViewModel.reorderMode.collectAsState()
+    val reorderMode by deps.toReadViewModel.reorderMode.collectAsState()
 
     Scaffold(
         topBar = {
@@ -97,177 +126,183 @@ fun BooklineApp() {
                 BooklineTopBar(
                     onGoodreadsClick = {
                         goodreadsUrlOverride = null
-                        navController.navigate(GOODREADS_ROUTE) {
-                            launchSingleTop = true
-                        }
+                        navController.navigate(GOODREADS_ROUTE) { launchSingleTop = true }
                     },
                     onSettingsClick = {
-                        navController.navigate(SETTINGS_ROUTE) {
-                            launchSingleTop = true
-                        }
+                        navController.navigate(SETTINGS_ROUTE) { launchSingleTop = true }
                     },
                     showReorderToggle = isToReadRoute,
                     reorderMode = reorderMode,
-                    onReorderToggle = { toReadViewModel.toggleReorderMode() },
+                    onReorderToggle = { deps.toReadViewModel.toggleReorderMode() },
                 )
             }
         },
         bottomBar = {
             if (isTopLevel) {
-                NavigationBar {
-                    TopLevelRoute.entries.forEach { destination ->
-                        val selected = currentDestination?.hierarchy?.any {
-                            it.route == destination.route
-                        } == true
-
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector = destination.icon,
-                                    contentDescription = destination.label,
-                                )
-                            },
-                            label = { Text(text = destination.label) },
-                        )
-                    }
-                }
+                BooklineBottomBar(
+                    currentDestination = currentDestination,
+                    onTabSelected = { route ->
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                        }
+                    },
+                )
             }
         },
     ) { innerPadding ->
-        NavHost(
+        BooklineNavHost(
             navController = navController,
-            startDestination = TopLevelRoute.Timeline.route,
-        ) {
-            composable(TopLevelRoute.Timeline.route) {
-                TimelineScreen(
-                    viewModel = timelineViewModel,
-                    onBookClick = { bookId ->
-                        navController.navigate("book/$bookId") {
-                            launchSingleTop = true
-                        }
-                    },
-                    modifier = Modifier.padding(innerPadding),
-                )
-            }
-            composable(TopLevelRoute.ToRead.route) {
-                ToReadScreen(
-                    viewModel = toReadViewModel,
-                    onBookClick = { bookId ->
-                        navController.navigate("book/$bookId") {
-                            launchSingleTop = true
-                        }
-                    },
-                    modifier = Modifier.padding(innerPadding),
-                )
-            }
-            composable(TopLevelRoute.Series.route) {
-                SeriesListScreen(
-                    viewModel = seriesListViewModel,
-                    onSeriesClick = { seriesName ->
-                        navController.navigate(
-                            "series_detail/${
-                                java.net.URLEncoder.encode(
-                                    seriesName,
-                                    "UTF-8"
-                                )
-                            }"
-                        ) {
-                            launchSingleTop = true
-                        }
-                    },
-                    modifier = Modifier.padding(innerPadding),
-                )
-            }
-            composable(TopLevelRoute.Library.route) {
-                LibraryScreen(
-                    viewModel = libraryViewModel,
-                    onBookClick = { bookId ->
-                        navController.navigate("book/$bookId") {
-                            launchSingleTop = true
-                        }
-                    },
-                    modifier = Modifier.padding(innerPadding),
-                )
-            }
-            composable(GOODREADS_ROUTE) {
-                val urlOverride = goodreadsUrlOverride
-                goodreadsUrlOverride = null
-                GoodreadsScreen(
-                    initialUrl = urlOverride ?: "https://www.goodreads.com",
-                    modifier = Modifier.padding(innerPadding),
-                )
-            }
-            composable(SETTINGS_ROUTE) {
-                val viewModel = remember { SettingsViewModel(settingsRepository, database) }
-                SettingsScreen(
-                    viewModel = viewModel,
-                    onNavigateBack = { navController.popBackStack() },
-                )
-            }
-            composable(
-                route = BOOK_DETAIL_ROUTE,
-                arguments = listOf(navArgument("bookId") { type = NavType.StringType }),
-            ) { backStackEntry ->
-                val bookId = backStackEntry.arguments?.getString("bookId") ?: return@composable
-                val viewModel = remember(bookId) {
-                    BookDetailViewModel(bookRepository, bookId)
-                }
-                BookDetailScreen(
-                    viewModel = viewModel,
-                    onNavigateBack = { navController.popBackStack() },
-                    onOpenGoodreads = { url ->
-                        goodreadsUrlOverride = url
-                        navController.navigate(GOODREADS_ROUTE) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onSeriesClick = { seriesName ->
-                        navController.navigate(
-                            "series_detail/${
-                                java.net.URLEncoder.encode(
-                                    seriesName,
-                                    "UTF-8"
-                                )
-                            }"
-                        ) {
-                            launchSingleTop = true
-                        }
-                    },
-                )
-            }
-            composable(
-                route = SERIES_DETAIL_ROUTE,
-                arguments = listOf(navArgument("seriesName") { type = NavType.StringType }),
-            ) { backStackEntry ->
-                val encodedName =
-                    backStackEntry.arguments?.getString("seriesName") ?: return@composable
-                val seriesName = java.net.URLDecoder.decode(encodedName, "UTF-8")
-                val viewModel = remember(seriesName) {
-                    SeriesDetailViewModel(bookRepository, seriesName)
-                }
-                SeriesDetailScreen(
-                    viewModel = viewModel,
-                    onNavigateBack = { navController.popBackStack() },
-                    onBookClick = { bookId ->
-                        navController.navigate("book/$bookId") {
-                            launchSingleTop = true
-                        }
-                    },
-                )
-            }
+            innerPadding = innerPadding,
+            deps = deps,
+            goodreadsUrlOverride = goodreadsUrlOverride,
+            onGoodreadsUrlOverride = { goodreadsUrlOverride = it },
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Bottom navigation bar
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun BooklineBottomBar(
+    currentDestination: NavDestination?,
+    onTabSelected: (route: String) -> Unit,
+) {
+    NavigationBar {
+        TopLevelRoute.entries.forEach { destination ->
+            val selected = currentDestination?.hierarchy?.any {
+                it.route == destination.route
+            } == true
+
+            NavigationBarItem(
+                selected = selected,
+                onClick = { onTabSelected(destination.route) },
+                icon = {
+                    Icon(
+                        imageVector = destination.icon,
+                        contentDescription = destination.label,
+                    )
+                },
+                label = { Text(text = destination.label) },
+            )
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Navigation host with all routes
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun BooklineNavHost(
+    navController: NavHostController,
+    innerPadding: PaddingValues,
+    deps: AppDependencies,
+    goodreadsUrlOverride: String?,
+    onGoodreadsUrlOverride: (String?) -> Unit,
+) {
+    fun navigateToBook(bookId: String) {
+        navController.navigate("book/$bookId") { launchSingleTop = true }
+    }
+
+    fun navigateToSeries(seriesName: String) {
+        val encoded = URLEncoder.encode(seriesName, "UTF-8")
+        navController.navigate("series_detail/$encoded") { launchSingleTop = true }
+    }
+
+    NavHost(
+        navController = navController,
+        startDestination = TopLevelRoute.Timeline.route,
+    ) {
+        composable(TopLevelRoute.Timeline.route) {
+            TimelineScreen(
+                viewModel = deps.timelineViewModel,
+                onBookClick = ::navigateToBook,
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
+        composable(TopLevelRoute.ToRead.route) {
+            ToReadScreen(
+                viewModel = deps.toReadViewModel,
+                onBookClick = ::navigateToBook,
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
+        composable(TopLevelRoute.Series.route) {
+            SeriesListScreen(
+                viewModel = deps.seriesListViewModel,
+                onSeriesClick = ::navigateToSeries,
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
+        composable(TopLevelRoute.Library.route) {
+            LibraryScreen(
+                viewModel = deps.libraryViewModel,
+                onBookClick = ::navigateToBook,
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
+        composable(GOODREADS_ROUTE) {
+            val urlOverride = goodreadsUrlOverride
+            onGoodreadsUrlOverride(null)
+            GoodreadsScreen(
+                initialUrl = urlOverride ?: "https://www.goodreads.com",
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
+        composable(SETTINGS_ROUTE) {
+            val viewModel = remember {
+                SettingsViewModel(deps.settingsRepository, deps.database)
+            }
+            SettingsScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = BOOK_DETAIL_ROUTE,
+            arguments = listOf(navArgument("bookId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getString("bookId") ?: return@composable
+            val viewModel = remember(bookId) {
+                BookDetailViewModel(deps.bookRepository, bookId)
+            }
+            BookDetailScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onOpenGoodreads = { url ->
+                    onGoodreadsUrlOverride(url)
+                    navController.navigate(GOODREADS_ROUTE) { launchSingleTop = true }
+                },
+                onSeriesClick = ::navigateToSeries,
+            )
+        }
+        composable(
+            route = SERIES_DETAIL_ROUTE,
+            arguments = listOf(navArgument("seriesName") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val encodedName =
+                backStackEntry.arguments?.getString("seriesName") ?: return@composable
+            val seriesName = URLDecoder.decode(encodedName, "UTF-8")
+            val viewModel = remember(seriesName) {
+                SeriesDetailViewModel(deps.bookRepository, seriesName)
+            }
+            SeriesDetailScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onBookClick = ::navigateToBook,
+            )
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Top app bar
+// ---------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
