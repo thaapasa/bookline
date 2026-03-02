@@ -9,19 +9,52 @@ your reading journey.
 
 ## ✨ Features
 
-- **Goodreads RSS import** — fetch your shelves directly from your Goodreads RSS
-  feed
-- **Reading timeline** — see your books laid out chronologically, showing when
-  you started and finished each one
-- **Shelf browsing** — browse books by shelf (_read_, _currently-reading_,
-  _to-read_, and any custom shelves)
-- **Beautiful book cards** — cover art, title, author, rating, and review at a
-  glance
-- **Material You theming** — dynamic color support with Material 3 so the app
-  feels right at home on your device
-- **Dark mode** — full light & dark theme support out of the box
-- **Offline-ready** — books are cached locally so you can browse your collection
-  without a network connection
+### Core Screens
+
+- **Reading Timeline** — your books laid out chronologically, grouped by year and
+  month with collapsible sections. A "Currently Reading" section sits at the top.
+  Collapse/expand individual sections or all at once via the top bar toggle.
+- **To Read** — your to-read shelf with manual **drag-to-reorder** support. Long-
+  press a drag handle to reposition books; positions persist across syncs. Haptic
+  feedback and elevation animation while dragging.
+- **Series** — browse your book series as cards with a fan of overlapping covers.
+  Filter series by name. Tap a series to see all books in reading order.
+- **Library** — search all your books by title or author, and filter by Goodreads
+  shelf using horizontal filter chips. Results update in real time.
+
+### Book Detail
+
+- Full cover image (tap to view full-screen), title, author, user rating (stars),
+  reading status, and formatted read date
+- Series membership with position number — tap a series name to jump to its
+  detail view
+- Metadata section: average rating, ISBN, page count, published year, dates
+  added/created, and shelves
+- HTML-rendered book description from Goodreads
+- "View on Goodreads" button opens the book's page in the embedded browser
+
+### Series Detail
+
+- All books in a series listed by position number
+- Series rename / merge functionality (edit icon in top bar)
+- Alias display ("Also known as: …") when a series has been renamed
+
+### Goodreads Integration
+
+- **RSS feed sync** — automatic background sync on app resume; manual
+  pull-to-refresh on every screen
+- **Embedded Goodreads browser** — accessible from the globe icon in the top bar
+  on any screen. Supports JavaScript, DOM storage, and in-WebView back
+  navigation.
+- **Offline-ready** — books are cached locally in Room so you can browse your
+  collection without a network connection
+
+### Look & Feel
+
+- **Material You theming** — dynamic color support with Material 3
+- **Dark mode** — full light and dark theme support
+- **Animated UI** — section collapse/expand chevron rotation, drag elevation,
+  save-confirmation fade animations
 
 ## 📸 Screenshots
 
@@ -31,11 +64,11 @@ _Coming soon._
 
 | Layer             | Technology                                     |
 |-------------------|------------------------------------------------|
-| **Language**      | Kotlin 2.0+                                    |
+| **Language**      | Kotlin 2.3+                                    |
 | **UI**            | Jetpack Compose with Material 3 / Material You |
 | **Async**         | Kotlin Coroutines + Flow                       |
-| **Networking**    | Ktor Client                                    |
-| **Image loading** | Coil (Compose)                                 |
+| **Networking**    | HttpURLConnection (no library needed for RSS)  |
+| **Image loading** | Coil 3 (Compose)                               |
 | **Local storage** | Room                                           |
 | **Navigation**    | Compose Navigation                             |
 | **Minimum SDK**   | 28 (Android 9 Pie)                             |
@@ -83,20 +116,28 @@ Goodreads profile:
 ```
 bookline/
 ├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/fi/pomeranssi/bookline/   # Application code
-│   │   │   │   ├── MainActivity.kt
-│   │   │   │   └── ui/theme/                   # Material 3 theming
-│   │   │   ├── res/                            # Resources & drawables
-│   │   │   └── AndroidManifest.xml
-│   │   ├── test/                               # Unit tests
-│   │   └── androidTest/                        # Instrumented tests
-│   └── build.gradle.kts
+│   └── src/main/
+│       ├── java/fi/pomeranssi/bookline/
+│       │   ├── data/                # Data layer (db, network, repository)
+│       │   ├── domain/model/        # Domain models (Book, Series, etc.)
+│       │   ├── ui/                  # Presentation layer
+│       │   │   ├── common/          # Shared utilities (SyncHelper, DateFormatters)
+│       │   │   ├── components/      # Shared composables (BookCard, SearchField, etc.)
+│       │   │   ├── navigation/      # App scaffold, routes, bottom nav
+│       │   │   ├── timeline/        # Timeline screen + ViewModel
+│       │   │   ├── shelves/         # To Read screen + ViewModel
+│       │   │   ├── series/          # Series list & detail screens + ViewModels
+│       │   │   ├── library/         # Library screen + ViewModel
+│       │   │   ├── detail/          # Book detail screen + ViewModel
+│       │   │   ├── goodreads/       # Embedded Goodreads WebView
+│       │   │   ├── settings/        # Settings screen + ViewModel
+│       │   │   └── theme/           # Material 3 theming
+│       │   └── MainActivity.kt
+│       └── res/                     # Resources & drawables
 ├── gradle/
-│   └── libs.versions.toml                      # Version catalog
+│   └── libs.versions.toml           # Version catalog
+├── ARCHITECTURE.md                  # Detailed architecture documentation
 ├── build.gradle.kts
-├── settings.gradle.kts
 └── README.md
 ```
 

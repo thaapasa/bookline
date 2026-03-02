@@ -12,13 +12,13 @@ project — the emphasis is on clean code, not enterprise process.
 
 | Concern       | Choice                                                                 |
 |---------------|------------------------------------------------------------------------|
-| Language      | Kotlin (2.0+)                                                          |
+| Language      | Kotlin (2.3+)                                                          |
 | UI toolkit    | Jetpack Compose                                                        |
 | Design system | Material 3 (Material You, dynamic color)                               |
 | Min SDK       | 28 (Android 9) · Target SDK 36                                         |
 | Build         | Gradle 9 with Kotlin DSL + version catalog (`libs.versions.toml`)      |
 | Async         | Kotlin Coroutines + Flow                                               |
-| Networking    | Ktor Client (or Retrofit — TBD)                                        |
+| Networking    | HttpURLConnection (no library for a single GET)                        |
 | XML parsing   | Kotlin XML / XmlPullParser for RSS                                     |
 | Image loading | Coil 3 (Compose)                                                       |
 | Local storage | Room (SQLite)                                                          |
@@ -79,7 +79,7 @@ fi.pomeranssi.bookline
 │   │   ├── SeriesDetailScreen    # Books in a series ordered by position
 │   │   └── SeriesDetailViewModel # Loads single series by name
 │   ├── goodreads                 # Embedded Goodreads WebView (accessible from top bar icon)
-│   ├── bookdetail                # Book detail screen (series names link to series detail)
+│   ├── detail                    # Book detail screen (series names link to series detail)
 │   └── settings                  # Settings screen (RSS URL config)
 │       ├── SettingsScreen        # Compose UI for settings
 │       └── SettingsViewModel     # ViewModel for settings state

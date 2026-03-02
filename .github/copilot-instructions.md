@@ -9,6 +9,8 @@ single professional developer as a quick prototype to validate the idea.
 - Package: `fi.pomeranssi.bookline`
 - Architecture doc: see `ARCHITECTURE.md` in the project root — always consult
   it for the current package layout, tech choices, and data flow.
+- Features & user-facing docs: see `README.md` — update it when adding or
+  changing user-visible features.
 
 ## Tech & Tooling
 
@@ -21,8 +23,8 @@ single professional developer as a quick prototype to validate the idea.
   When adding dependencies, add them to the catalog first.
 - **Single-activity** MVVM — one `MainActivity`, Compose Navigation for routing,
   ViewModels exposing `StateFlow<UiState>`.
-- **Room** for local persistence, **Coil** for image loading, **Ktor** (or
-  Retrofit) for HTTP + RSS parsing.
+- **Room** for local persistence, **Coil** for image loading, **HttpURLConnection**
+  for HTTP + **XmlPullParser** for RSS parsing.
 - **No DI framework** — use simple constructor injection. A lightweight manual
   `ServiceLocator` / factory is acceptable.
 - **No test infrastructure** — we are not writing tests for this project. Do not
