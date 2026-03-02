@@ -1,6 +1,5 @@
 package fi.pomeranssi.bookline.ui.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,14 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import coil3.compose.AsyncImage
-import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Series
 
 /**
@@ -124,22 +118,11 @@ private fun CoverFan(
                 .size(width = coverWidth, height = 90.dp)
                 .clip(MaterialTheme.shapes.extraSmall)
 
-            if (LocalInspectionMode.current) {
-                Image(
-                    painter = painterResource(R.drawable.book_cover_placeholder),
-                    contentDescription = "Cover from $seriesName",
-                    contentScale = ContentScale.Crop,
-                    modifier = coverModifier,
-                )
-            } else {
-                AsyncImage(
-                    model = url,
-                    contentDescription = "Cover from $seriesName",
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(R.drawable.book_cover_placeholder),
-                    modifier = coverModifier,
-                )
-            }
+            BookCover(
+                imageUrl = url,
+                contentDescription = "Cover from $seriesName",
+                modifier = coverModifier,
+            )
         }
     }
 }

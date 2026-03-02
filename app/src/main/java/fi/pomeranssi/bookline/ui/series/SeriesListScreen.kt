@@ -11,13 +11,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +26,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
+import fi.pomeranssi.bookline.ui.components.SearchField
 import fi.pomeranssi.bookline.ui.components.SeriesCard
 
 @Composable
@@ -104,30 +101,10 @@ fun SeriesListScreen(
                     modifier = modifier.fillMaxSize(),
                 ) {
                     Column {
-                        OutlinedTextField(
+                        SearchField(
                             value = filterText,
                             onValueChange = { viewModel.filterText.value = it },
-                            placeholder = { Text("Filter series…") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = null,
-                                )
-                            },
-                            trailingIcon = {
-                                if (filterText.isNotEmpty()) {
-                                    IconButton(onClick = { viewModel.filterText.value = "" }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Clear,
-                                            contentDescription = "Clear filter",
-                                        )
-                                    }
-                                }
-                            },
-                            singleLine = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            placeholder = "Filter series…",
                         )
                         LazyColumn(
                             contentPadding = PaddingValues(

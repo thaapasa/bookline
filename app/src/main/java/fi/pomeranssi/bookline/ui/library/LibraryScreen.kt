@@ -12,14 +12,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +29,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
+import fi.pomeranssi.bookline.ui.components.SearchField
 
 @Composable
 fun LibraryScreen(
@@ -107,30 +104,10 @@ fun LibraryScreen(
                     modifier = modifier.fillMaxSize(),
                 ) {
                     Column {
-                        OutlinedTextField(
+                        SearchField(
                             value = searchQuery,
                             onValueChange = { viewModel.searchQuery.value = it },
-                            placeholder = { Text("Search books…") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = null,
-                                )
-                            },
-                            trailingIcon = {
-                                if (searchQuery.isNotEmpty()) {
-                                    IconButton(onClick = { viewModel.searchQuery.value = "" }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Clear,
-                                            contentDescription = "Clear search",
-                                        )
-                                    }
-                                }
-                            },
-                            singleLine = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            placeholder = "Search books…",
                         )
 
                         if (availableShelves.isNotEmpty()) {

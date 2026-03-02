@@ -1,7 +1,5 @@
 package fi.pomeranssi.bookline.ui.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,15 +19,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
-import fi.pomeranssi.bookline.R
 import androidx.compose.ui.tooling.preview.Preview
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
@@ -52,38 +45,11 @@ fun BookCard(
             modifier = Modifier.fillMaxWidth(),
         ) {
             // Cover image — flush with the card edge
-            val imageUrl = book.bestImageUrl
-            val coverModifier = Modifier.size(width = 85.dp, height = 120.dp)
-            if (imageUrl != null) {
-                if (LocalInspectionMode.current) {
-                    Image(
-                        painter = painterResource(R.drawable.book_cover_placeholder),
-                        contentDescription = "Cover of ${book.title}",
-                        contentScale = ContentScale.Crop,
-                        modifier = coverModifier,
-                    )
-                } else {
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = "Cover of ${book.title}",
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(R.drawable.book_cover_placeholder),
-                        modifier = coverModifier,
-                    )
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(width = 85.dp, height = 120.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Book,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            BookCover(
+                imageUrl = book.bestImageUrl,
+                contentDescription = "Cover of ${book.title}",
+                modifier = Modifier.size(width = 85.dp, height = 120.dp),
+            )
 
             // Book info
             Column(
