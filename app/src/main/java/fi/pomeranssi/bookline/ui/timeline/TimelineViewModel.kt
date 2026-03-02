@@ -24,6 +24,10 @@ class TimelineViewModel(
 
     private companion object {
         const val TAG = "TimelineVM"
+        const val KEY_CURRENTLY_READING = "currently-reading"
+        const val KEY_NO_DATE = "no-date"
+        fun yearKey(year: Int) = "year-$year"
+        fun monthKey(year: Int, monthValue: Int) = "month-$year-$monthValue"
     }
 
     private val syncHelper = SyncHelper(settingsRepository, bookRepository, TAG)
@@ -110,28 +114,37 @@ class TimelineViewModel(
     private fun groupIntoSections(
         books: List<Book>,
         collapsed: Set<String>,
-    ): List<TimelineSection> {
-        val sections = mutableListOf<TimelineSection>()
+    ): List<TimelineSection> = buildList {
+        addCurrentlyReadingSection(books, collapsed)
+        addReadDateSections(books, collapsed)
+        addNoDateSection(books, collapsed)
+    }
 
-        // Currently reading
+    private fun MutableList<TimelineSection>.addCurrentlyReadingSection(
+        books: List<Book>,
+        collapsed: Set<String>,
+    ) {
         val currentlyReading = books.filter { it.readingStatus == ReadingStatus.CurrentlyReading }
-        if (currentlyReading.isNotEmpty()) {
-            val key = "currently-reading"
-            sections.add(
-                TimelineSection.Header(
-                    key = key,
-                    title = "Currently Reading",
-                    level = SectionLevel.Top,
-                    isCollapsed = key in collapsed,
-                    bookCount = currentlyReading.size,
-                ),
-            )
-            if (key !in collapsed) {
-                currentlyReading.forEach { sections.add(TimelineSection.BookItem(it)) }
-            }
-        }
+        if (currentlyReading.isEmpty()) return
 
-        // Books with read dates, grouped by year then month
+        add(
+            TimelineSection.Header(
+                key = KEY_CURRENTLY_READING,
+                title = "Currently Reading",
+                level = SectionLevel.Top,
+                isCollapsed = KEY_CURRENTLY_READING in collapsed,
+                bookCount = currentlyReading.size,
+            ),
+        )
+        if (KEY_CURRENTLY_READING !in collapsed) {
+            currentlyReading.forEach { add(TimelineSection.BookItem(it)) }
+        }
+    }
+
+    private fun MutableList<TimelineSection>.addReadDateSections(
+        books: List<Book>,
+        collapsed: Set<String>,
+    ) {
         val withDate = books.filter {
             it.readingStatus != ReadingStatus.CurrentlyReading && it.userReadAt != null
         }
@@ -139,62 +152,63 @@ class TimelineViewModel(
             .toSortedMap(compareByDescending { it })
 
         for ((year, yearBooks) in byYear) {
-            val yearKey = "year-$year"
+            val yKey = yearKey(year)
             val byMonth = yearBooks.groupBy { it.userReadAt!!.month }
                 .toSortedMap(compareByDescending { it.value })
-            val monthKeys = byMonth.keys.map { "month-$year-${it.value}" }
+            val monthKeys = byMonth.keys.map { monthKey(year, it.value) }
 
-            sections.add(
+            add(
                 TimelineSection.Header(
-                    key = yearKey,
+                    key = yKey,
                     title = year.toString(),
                     level = SectionLevel.Year,
-                    isCollapsed = yearKey in collapsed,
+                    isCollapsed = yKey in collapsed,
                     bookCount = yearBooks.size,
                     childKeys = monthKeys,
                 ),
             )
-            if (yearKey !in collapsed) {
+            if (yKey !in collapsed) {
                 for ((month, monthBooks) in byMonth) {
-                    val monthKey = "month-$year-${month.value}"
+                    val mKey = monthKey(year, month.value)
                     val monthName = month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                    sections.add(
+                    add(
                         TimelineSection.Header(
-                            key = monthKey,
+                            key = mKey,
                             title = monthName,
                             level = SectionLevel.Month,
-                            isCollapsed = monthKey in collapsed,
+                            isCollapsed = mKey in collapsed,
                             bookCount = monthBooks.size,
                         ),
                     )
-                    if (monthKey !in collapsed) {
-                        monthBooks.forEach { sections.add(TimelineSection.BookItem(it)) }
+                    if (mKey !in collapsed) {
+                        monthBooks.forEach { add(TimelineSection.BookItem(it)) }
                     }
                 }
             }
         }
+    }
 
-        // Books without read dates
+    private fun MutableList<TimelineSection>.addNoDateSection(
+        books: List<Book>,
+        collapsed: Set<String>,
+    ) {
         val noDate = books.filter {
             it.readingStatus != ReadingStatus.CurrentlyReading && it.userReadAt == null
         }
-        if (noDate.isNotEmpty()) {
-            val key = "no-date"
-            sections.add(
-                TimelineSection.Header(
-                    key = key,
-                    title = "Date Unknown",
-                    level = SectionLevel.Top,
-                    isCollapsed = key in collapsed,
-                    bookCount = noDate.size,
-                ),
-            )
-            if (key !in collapsed) {
-                noDate.forEach { sections.add(TimelineSection.BookItem(it)) }
-            }
-        }
+        if (noDate.isEmpty()) return
 
-        return sections
+        add(
+            TimelineSection.Header(
+                key = KEY_NO_DATE,
+                title = "Date Unknown",
+                level = SectionLevel.Top,
+                isCollapsed = KEY_NO_DATE in collapsed,
+                bookCount = noDate.size,
+            ),
+        )
+        if (KEY_NO_DATE !in collapsed) {
+            noDate.forEach { add(TimelineSection.BookItem(it)) }
+        }
     }
 }
 
