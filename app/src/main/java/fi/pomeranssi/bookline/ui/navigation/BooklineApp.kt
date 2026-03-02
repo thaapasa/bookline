@@ -2,8 +2,8 @@ package fi.pomeranssi.bookline.ui.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapVert
@@ -28,6 +28,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -39,6 +41,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.data.db.BooklineDatabase
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
@@ -353,8 +356,9 @@ private fun BooklineTopBar(
             }
             IconButton(onClick = onGoodreadsClick) {
                 Icon(
-                    imageVector = Icons.Default.Language,
+                    painter = painterResource(R.drawable.ic_goodreads),
                     contentDescription = "Goodreads",
+                    modifier = Modifier.size(24.dp),
                 )
             }
             IconButton(onClick = { menuExpanded = true }) {
