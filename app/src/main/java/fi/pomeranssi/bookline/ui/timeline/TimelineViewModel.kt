@@ -7,14 +7,13 @@ import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
+import fi.pomeranssi.bookline.ui.common.SyncHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -27,8 +26,8 @@ class TimelineViewModel(
         const val TAG = "TimelineVM"
     }
 
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+    private val syncHelper = SyncHelper(settingsRepository, bookRepository, TAG)
+    val isRefreshing: StateFlow<Boolean> = syncHelper.isRefreshing
 
     private val _collapsedSections = MutableStateFlow<Set<String>>(emptySet())
     val allCollapsed: StateFlow<Boolean> = _collapsedSections
@@ -57,17 +56,17 @@ class TimelineViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TimelineUiState.Loading)
 
     init {
-        syncIfNeeded()
+        syncHelper.checkSync(viewModelScope)
     }
 
     /** Re-check whether a sync is needed (e.g. after returning from settings). */
     fun checkSync() {
-        syncIfNeeded()
+        syncHelper.checkSync(viewModelScope)
     }
 
     /** Trigger a manual refresh (e.g. pull-to-refresh). */
     fun refresh() {
-        syncFeed()
+        syncHelper.syncFeed(viewModelScope)
     }
 
     /** Toggle the collapsed state of a section. */
@@ -196,37 +195,6 @@ class TimelineViewModel(
         }
 
         return sections
-    }
-
-    private fun syncIfNeeded() {
-        if (settingsRepository.feedUrl.value.isBlank()) {
-            Log.d(TAG, "syncIfNeeded: skipped, no feed URL")
-            return
-        }
-        if (bookRepository.isSyncNeeded()) {
-            Log.i(TAG, "syncIfNeeded: sync is needed, starting")
-            syncFeed()
-        } else {
-            Log.d(TAG, "syncIfNeeded: data is fresh, skipping sync")
-        }
-    }
-
-    private fun syncFeed() {
-        val feedUrl = settingsRepository.feedUrl.value
-        if (feedUrl.isBlank()) return
-
-        Log.i(TAG, "syncFeed: starting manual/auto sync")
-        _isRefreshing.value = true
-        viewModelScope.launch {
-            try {
-                val count = bookRepository.sync(feedUrl)
-                Log.i(TAG, "syncFeed: completed, $count books synced")
-            } catch (e: Exception) {
-                Log.e(TAG, "syncFeed: failed", e)
-            } finally {
-                _isRefreshing.value = false
-            }
-        }
     }
 }
 

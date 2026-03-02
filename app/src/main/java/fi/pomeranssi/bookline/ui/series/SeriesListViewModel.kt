@@ -6,14 +6,13 @@ import androidx.lifecycle.viewModelScope
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.Series
+import fi.pomeranssi.bookline.ui.common.SyncHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 class SeriesListViewModel(
     private val settingsRepository: SettingsRepository,
@@ -24,8 +23,8 @@ class SeriesListViewModel(
         const val TAG = "SeriesListVM"
     }
 
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+    private val syncHelper = SyncHelper(settingsRepository, bookRepository, TAG)
+    val isRefreshing: StateFlow<Boolean> = syncHelper.isRefreshing
 
     val filterText = MutableStateFlow("")
 
@@ -50,46 +49,15 @@ class SeriesListViewModel(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
-        syncIfNeeded()
+        syncHelper.checkSync(viewModelScope)
     }
 
     fun checkSync() {
-        syncIfNeeded()
+        syncHelper.checkSync(viewModelScope)
     }
 
     fun refresh() {
-        syncFeed()
-    }
-
-    private fun syncIfNeeded() {
-        if (settingsRepository.feedUrl.value.isBlank()) {
-            Log.d(TAG, "syncIfNeeded: skipped, no feed URL")
-            return
-        }
-        if (bookRepository.isSyncNeeded()) {
-            Log.i(TAG, "syncIfNeeded: sync is needed, starting")
-            syncFeed()
-        } else {
-            Log.d(TAG, "syncIfNeeded: data is fresh, skipping sync")
-        }
-    }
-
-    private fun syncFeed() {
-        val feedUrl = settingsRepository.feedUrl.value
-        if (feedUrl.isBlank()) return
-
-        Log.i(TAG, "syncFeed: starting sync")
-        _isRefreshing.value = true
-        viewModelScope.launch {
-            try {
-                val count = bookRepository.sync(feedUrl)
-                Log.i(TAG, "syncFeed: completed, $count books synced")
-            } catch (e: Exception) {
-                Log.e(TAG, "syncFeed: failed", e)
-            } finally {
-                _isRefreshing.value = false
-            }
-        }
+        syncHelper.syncFeed(viewModelScope)
     }
 }
 

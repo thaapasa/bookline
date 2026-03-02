@@ -18,14 +18,12 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
@@ -40,13 +38,9 @@ fun LibraryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(lifecycleOwner) {
-        lifecycleOwner.lifecycle.currentState.let { state ->
-            if (state.isAtLeast(Lifecycle.State.RESUMED)) {
-                viewModel.checkSync()
-            }
-        }
+    LifecycleResumeEffect(viewModel) {
+        viewModel.checkSync()
+        onPauseOrDispose { }
     }
 
     when (val state = uiState) {
