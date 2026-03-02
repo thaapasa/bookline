@@ -31,6 +31,11 @@ class TimelineViewModel(
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     private val _collapsedSections = MutableStateFlow<Set<String>>(emptySet())
+    val allCollapsed: StateFlow<Boolean> = _collapsedSections
+        .combine(bookRepository.observeTimelineBooks()) { collapsed, _ ->
+            collapsed.isNotEmpty()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     /** Books from Room, grouped into collapsible timeline sections. */
     val uiState: StateFlow<TimelineUiState> = combine(
@@ -84,6 +89,23 @@ class TimelineViewModel(
                 current + yearKey + monthKeys.toSet()
             }
         }
+    }
+
+    /** Collapse all sections. */
+    fun collapseAll() {
+        val state = uiState.value
+        if (state is TimelineUiState.Success) {
+            val allKeys = state.sections
+                .filterIsInstance<TimelineSection.Header>()
+                .map { it.key }
+                .toSet()
+            _collapsedSections.value = allKeys
+        }
+    }
+
+    /** Expand all sections. */
+    fun expandAll() {
+        _collapsedSections.value = emptySet()
     }
 
     private fun groupIntoSections(

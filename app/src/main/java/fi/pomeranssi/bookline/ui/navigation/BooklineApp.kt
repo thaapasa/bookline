@@ -7,6 +7,8 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.UnfoldLess
+import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -118,7 +120,9 @@ fun BooklineApp() {
     val isTopLevel = TopLevelRoute.entries.any { it.route == currentDestination?.route }
         || currentDestination?.route == GOODREADS_ROUTE
     val isToReadRoute = currentDestination?.route == TopLevelRoute.ToRead.route
+    val isTimelineRoute = currentDestination?.route == TopLevelRoute.Timeline.route
     val reorderMode by deps.toReadViewModel.reorderMode.collectAsState()
+    val allCollapsed by deps.timelineViewModel.allCollapsed.collectAsState()
 
     Scaffold(
         topBar = {
@@ -134,6 +138,10 @@ fun BooklineApp() {
                     showReorderToggle = isToReadRoute,
                     reorderMode = reorderMode,
                     onReorderToggle = { deps.toReadViewModel.toggleReorderMode() },
+                    showCollapseToggle = isTimelineRoute,
+                    allCollapsed = allCollapsed,
+                    onCollapseAll = { deps.timelineViewModel.collapseAll() },
+                    onExpandAll = { deps.timelineViewModel.expandAll() },
                 )
             }
         },
@@ -312,12 +320,24 @@ private fun BooklineTopBar(
     showReorderToggle: Boolean = false,
     reorderMode: Boolean = false,
     onReorderToggle: () -> Unit = {},
+    showCollapseToggle: Boolean = false,
+    allCollapsed: Boolean = false,
+    onCollapseAll: () -> Unit = {},
+    onExpandAll: () -> Unit = {},
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
     TopAppBar(
         title = { Text("Bookline") },
         actions = {
+            if (showCollapseToggle) {
+                IconButton(onClick = { if (allCollapsed) onExpandAll() else onCollapseAll() }) {
+                    Icon(
+                        imageVector = if (allCollapsed) Icons.Default.UnfoldMore else Icons.Default.UnfoldLess,
+                        contentDescription = if (allCollapsed) "Expand all" else "Collapse all",
+                    )
+                }
+            }
             if (showReorderToggle) {
                 IconButton(onClick = onReorderToggle) {
                     Icon(
