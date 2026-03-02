@@ -47,9 +47,9 @@ import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
+import fi.pomeranssi.bookline.ui.common.DateFormatters
 import fi.pomeranssi.bookline.ui.components.HtmlText
 import fi.pomeranssi.bookline.ui.components.LoadingContent
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -265,7 +265,7 @@ private fun BookDetailHeader(
                 ReadingStatus.Read -> {
                     book.userReadAt?.let { date ->
                         Text(
-                            text = "Read ${date.format(DATE_FORMATTER)}",
+                            text = "Read ${date.format(DateFormatters.displayDate)}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -290,9 +290,9 @@ private fun MetaSection(book: Book) {
         book.isbn?.let { add("ISBN" to it) }
         book.numPages?.let { add("Pages" to it.toString()) }
         book.bookPublishedYear?.let { add("Published" to it.toString()) }
-        book.userReadAt?.let { add("Last read" to it.format(DATE_FORMATTER)) }
-        book.userDateAdded?.let { add("Date added" to it.format(DATE_FORMATTER)) }
-        book.userDateCreated?.let { add("Date created" to it.format(DATE_FORMATTER)) }
+        book.userReadAt?.let { add("Last read" to it.format(DateFormatters.displayDate)) }
+        book.userDateAdded?.let { add("Date added" to it.format(DateFormatters.displayDate)) }
+        book.userDateCreated?.let { add("Date created" to it.format(DateFormatters.displayDate)) }
         if (book.userShelves.isNotEmpty()) {
             add("Shelves" to book.userShelves.joinToString(", "))
         }
@@ -394,4 +394,3 @@ private fun FullScreenCoverDialog(
     }
 }
 
-private val DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM d, yyyy")

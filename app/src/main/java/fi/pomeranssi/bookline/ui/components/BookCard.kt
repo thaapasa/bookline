@@ -26,9 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
+import fi.pomeranssi.bookline.ui.common.DateFormatters
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun BookCard(
@@ -133,7 +133,7 @@ fun BookCard(
                         ReadingStatus.Read -> {
                             book.userReadAt?.let { date ->
                                 Text(
-                                    text = "Read ${date.format(DATE_FORMATTER)}",
+                                    text = "Read ${date.format(DateFormatters.displayDate)}",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -174,8 +174,6 @@ fun BookCard(
         }
     }
 }
-
-private val DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM d, yyyy")
 
 private val previewBook = Book(
     bookId = "preview-1",
