@@ -1,5 +1,7 @@
 package fi.pomeranssi.bookline.ui.detail
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,10 +43,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import fi.pomeranssi.bookline.ui.common.DateFormatters
@@ -137,21 +142,40 @@ private fun BookDetailContent(
             )
         }
 
-        // Goodreads link
+        // Goodreads links
         if (!book.goodreadsUrl.isNullOrBlank()) {
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
-            TextButton(
-                onClick = { onOpenGoodreads(book.goodreadsUrl) },
+            val context = LocalContext.current
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Icon(
-                    imageVector = Icons.Default.OpenInBrowser,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("View on Goodreads")
+                TextButton(
+                    onClick = { onOpenGoodreads(book.goodreadsUrl) },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.OpenInBrowser,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("In app")
+                }
+                TextButton(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(book.goodreadsUrl))
+                        context.startActivity(intent)
+                    },
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_goodreads),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Goodreads")
+                }
             }
         }
     }
