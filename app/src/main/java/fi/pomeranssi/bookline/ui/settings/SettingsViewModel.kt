@@ -28,6 +28,12 @@ class SettingsViewModel(
     private val _dbCleared = MutableStateFlow(false)
     val dbCleared: StateFlow<Boolean> = _dbCleared.asStateFlow()
 
+    fun syncUrlFromRepository() {
+        _urlField.value = settingsRepository.feedUrl.value
+        _saved.value = false
+        _dbCleared.value = false
+    }
+
     fun onUrlChanged(value: String) {
         _urlField.value = value
         _saved.value = false

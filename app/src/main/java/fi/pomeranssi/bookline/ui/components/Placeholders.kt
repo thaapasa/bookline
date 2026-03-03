@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.RssFeed
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -65,6 +68,23 @@ fun EmptyContent(
             }
         }
     }
+}
+
+/** Shared empty state shown when no Goodreads RSS feed URL has been configured. */
+@Composable
+fun NoFeedConfiguredContent(modifier: Modifier = Modifier) {
+    EmptyContent(
+        message = "Set up your Goodreads RSS feed in Settings to see your books.",
+        modifier = modifier,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.RssFeed,
+                contentDescription = null,
+                modifier = Modifier.padding(bottom = 16.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        },
+    )
 }
 
 @Composable

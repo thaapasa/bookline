@@ -13,11 +13,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.RssFeed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,18 +37,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onNavigateBack: () -> Unit,
+    onFindRssFeed: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val urlField by viewModel.urlField.collectAsState()
     val saved by viewModel.saved.collectAsState()
     val dbCleared by viewModel.dbCleared.collectAsState()
     var showClearConfirmation by remember { mutableStateOf(false) }
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.syncUrlFromRepository()
+        onPauseOrDispose {}
+    }
 
     Scaffold(
         topBar = {
@@ -81,12 +90,26 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Paste the URL of your Goodreads RSS feed. " +
-                        "You can find it on your Goodreads profile under the RSS icon. " +
+                text = "Paste the URL of your Goodreads RSS feed, or use auto-detect " +
+                        "to find it after logging in to Goodreads. " +
                         "The URL contains a private access key and is stored encrypted on this device.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = onFindRssFeed,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.RssFeed,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp),
+                )
+                Text("Auto-detect from Goodreads")
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -103,7 +126,6 @@ fun SettingsScreen(
 
             Button(
                 onClick = viewModel::save,
-                enabled = urlField.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Save")

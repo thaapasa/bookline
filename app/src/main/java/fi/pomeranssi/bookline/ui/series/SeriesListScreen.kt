@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import fi.pomeranssi.bookline.ui.components.EmptyContent
+import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SearchField
 import fi.pomeranssi.bookline.ui.components.SeriesCard
@@ -55,18 +56,7 @@ fun SeriesListScreen(
         }
 
         SeriesListUiState.NoFeedConfigured -> {
-            EmptyContent(
-                message = "Set up your Goodreads RSS feed in Settings to see your series.",
-                modifier = modifier.fillMaxSize(),
-                icon = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.List,
-                        contentDescription = null,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                },
-            )
+            NoFeedConfiguredContent(modifier = modifier.fillMaxSize())
         }
 
         is SeriesListUiState.Success -> {

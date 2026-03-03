@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
+import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,17 +48,8 @@ fun TimelineScreen(
     }
 
     when (val state = uiState) {
-        is TimelineUiState.NoFeedConfigured -> EmptyContent(
-            message = "Set up your Goodreads RSS feed in Settings to see your timeline.",
+        is TimelineUiState.NoFeedConfigured -> NoFeedConfiguredContent(
             modifier = modifier,
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Timeline,
-                    contentDescription = null,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            },
         )
 
         is TimelineUiState.Loading,

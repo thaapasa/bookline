@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
+import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SearchField
 
@@ -57,18 +58,7 @@ fun LibraryScreen(
         }
 
         LibraryUiState.NoFeedConfigured -> {
-            EmptyContent(
-                message = "Set up your Goodreads RSS feed in Settings to see your library.",
-                modifier = modifier.fillMaxSize(),
-                icon = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.LibraryBooks,
-                        contentDescription = null,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                },
-            )
+            NoFeedConfiguredContent(modifier = modifier.fillMaxSize())
         }
 
         is LibraryUiState.Success -> {

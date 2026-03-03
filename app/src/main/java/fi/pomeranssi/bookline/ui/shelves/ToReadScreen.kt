@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.shadow
 import fi.pomeranssi.bookline.domain.model.ToReadBookItem
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
+import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -47,7 +48,9 @@ fun ToReadScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val reorderMode by viewModel.reorderMode.collectAsState()
 
-    if (items.isEmpty() && !isRefreshing) {
+    if (!viewModel.isFeedConfigured) {
+        NoFeedConfiguredContent(modifier = modifier)
+    } else if (items.isEmpty() && !isRefreshing) {
         EmptyContent(
             message = "Your reading list will appear here.",
             modifier = modifier,

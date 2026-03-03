@@ -119,6 +119,7 @@ fun BooklineApp() {
     val deps = rememberAppDependencies()
 
     var goodreadsUrlOverride by remember { mutableStateOf<String?>(null) }
+    var goodreadsAutoDetect by remember { mutableStateOf(false) }
 
     val isTopLevel = TopLevelRoute.entries.any { it.route == currentDestination?.route }
         || currentDestination?.route == GOODREADS_ROUTE
@@ -170,6 +171,8 @@ fun BooklineApp() {
             deps = deps,
             goodreadsUrlOverride = goodreadsUrlOverride,
             onGoodreadsUrlOverride = { goodreadsUrlOverride = it },
+            goodreadsAutoDetect = goodreadsAutoDetect,
+            onGoodreadsAutoDetect = { goodreadsAutoDetect = it },
         )
     }
 }
@@ -215,6 +218,8 @@ private fun BooklineNavHost(
     deps: AppDependencies,
     goodreadsUrlOverride: String?,
     onGoodreadsUrlOverride: (String?) -> Unit,
+    goodreadsAutoDetect: Boolean,
+    onGoodreadsAutoDetect: (Boolean) -> Unit,
 ) {
     fun navigateToBook(bookId: String) {
         navController.navigate("book/$bookId") { launchSingleTop = true }
@@ -259,10 +264,18 @@ private fun BooklineNavHost(
         }
         composable(GOODREADS_ROUTE) {
             val urlOverride = goodreadsUrlOverride
+            val autoDetect = goodreadsAutoDetect
             onGoodreadsUrlOverride(null)
+            onGoodreadsAutoDetect(false)
+            val feedUrl by deps.settingsRepository.feedUrl.collectAsState()
+            val isFeedConfigured = feedUrl.isNotBlank()
             GoodreadsScreen(
                 initialUrl = urlOverride ?: "https://www.goodreads.com",
                 modifier = Modifier.padding(innerPadding),
+                onRssFeedDetected = if (!isFeedConfigured || autoDetect) { url ->
+                    deps.settingsRepository.saveFeedUrl(url)
+                } else null,
+                autoDetect = autoDetect,
             )
         }
         composable(SETTINGS_ROUTE) {
@@ -272,6 +285,10 @@ private fun BooklineNavHost(
             SettingsScreen(
                 viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
+                onFindRssFeed = {
+                    onGoodreadsAutoDetect(true)
+                    navController.navigate(GOODREADS_ROUTE) { launchSingleTop = true }
+                },
             )
         }
         composable(

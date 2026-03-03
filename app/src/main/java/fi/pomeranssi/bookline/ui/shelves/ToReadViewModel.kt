@@ -19,6 +19,8 @@ class ToReadViewModel(
 
     val books: Flow<List<ToReadBookItem>> = bookRepository.observeToReadBooks()
 
+    val isFeedConfigured: Boolean get() = settingsRepository.isFeedConfigured
+
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
