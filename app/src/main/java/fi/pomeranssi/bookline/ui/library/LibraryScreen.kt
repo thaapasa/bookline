@@ -98,10 +98,19 @@ fun LibraryScreen(
                     modifier = modifier.fillMaxSize(),
                 ) {
                     Column {
+                        val hasActiveFilters = searchQuery.isNotEmpty()
+                            || selectedShelf != null
+                            || selectedStatus != null
                         SearchField(
                             value = searchQuery,
                             onValueChange = { viewModel.searchQuery.value = it },
                             placeholder = "Search books…",
+                            hasActiveFilters = hasActiveFilters,
+                            onClearAll = {
+                                viewModel.searchQuery.value = ""
+                                viewModel.selectedShelf.value = null
+                                viewModel.selectedStatus.value = null
+                            },
                         )
 
                         var statusExpanded by rememberSaveable { mutableStateOf(false) }
