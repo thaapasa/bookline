@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.Book
+import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import fi.pomeranssi.bookline.ui.common.SyncHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,12 +21,17 @@ class LibraryViewModel(
 
     private companion object {
         const val TAG = "LibraryVM"
+        val STANDARD_SHELVES = setOf("to-read", "currently-reading", "read")
     }
+
+    /** Sentinel value for filtering to books with no custom shelves. */
+    val unshelvedFilter = "__unshelved__"
 
     private val syncHelper = SyncHelper(settingsRepository, bookRepository, TAG)
     val isRefreshing: StateFlow<Boolean> = syncHelper.isRefreshing
 
     val searchQuery = MutableStateFlow("")
+    val selectedStatus = MutableStateFlow<ReadingStatus?>(null)
     val selectedShelf = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<LibraryUiState> = bookRepository.observeBooks()
@@ -38,20 +44,29 @@ class LibraryViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryUiState.Loading)
 
+    /** Custom (user-defined) shelves present in the library. */
     val availableShelves: StateFlow<List<String>> = bookRepository.observeBooks()
         .map { books ->
             books.flatMap { it.userShelves }
+                .filter { it !in STANDARD_SHELVES }
                 .distinct()
                 .sorted()
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val filteredBooks: StateFlow<List<Book>> =
-        combine(uiState, searchQuery, selectedShelf) { state, query, shelf ->
+        combine(uiState, searchQuery, selectedStatus, selectedShelf) { state, query, status, shelf ->
             val allBooks = (state as? LibraryUiState.Success)?.books.orEmpty()
             allBooks
                 .filter { book ->
-                    (shelf == null || shelf in book.userShelves) &&
+                    val matchesStatus = status == null || book.readingStatus == status
+                    val matchesShelf = when (shelf) {
+                        null -> true
+                        unshelvedFilter ->
+                            (book.userShelves.toSet() - STANDARD_SHELVES).isEmpty()
+                        else -> shelf in book.userShelves
+                    }
+                    matchesStatus && matchesShelf &&
                         (query.isBlank() ||
                             book.title.contains(query, ignoreCase = true) ||
                             book.authorName.contains(query, ignoreCase = true))
