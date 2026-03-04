@@ -1,5 +1,6 @@
 package fi.pomeranssi.bookline.ui.navigation
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -50,16 +51,20 @@ import fi.pomeranssi.bookline.ui.detail.BookDetailScreen
 import fi.pomeranssi.bookline.ui.detail.BookDetailViewModel
 import fi.pomeranssi.bookline.ui.goodreads.GoodreadsScreen
 import fi.pomeranssi.bookline.ui.library.LibraryScreen
+import fi.pomeranssi.bookline.ui.library.LibraryUiState
 import fi.pomeranssi.bookline.ui.library.LibraryViewModel
 import fi.pomeranssi.bookline.ui.series.SeriesDetailScreen
 import fi.pomeranssi.bookline.ui.series.SeriesDetailViewModel
 import fi.pomeranssi.bookline.ui.series.SeriesListScreen
+import fi.pomeranssi.bookline.ui.series.SeriesListUiState
 import fi.pomeranssi.bookline.ui.series.SeriesListViewModel
 import fi.pomeranssi.bookline.ui.settings.SettingsScreen
 import fi.pomeranssi.bookline.ui.settings.SettingsViewModel
 import fi.pomeranssi.bookline.ui.shelves.ToReadScreen
 import fi.pomeranssi.bookline.ui.shelves.ToReadViewModel
 import fi.pomeranssi.bookline.ui.timeline.TimelineScreen
+import fi.pomeranssi.bookline.ui.timeline.TimelineSection
+import fi.pomeranssi.bookline.ui.timeline.TimelineUiState
 import fi.pomeranssi.bookline.ui.timeline.TimelineViewModel
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -131,10 +136,49 @@ fun BooklineApp() {
     val reorderMode by deps.toReadViewModel.reorderMode.collectAsState()
     val allCollapsed by deps.timelineViewModel.allCollapsed.collectAsState()
 
+    // Collect counts for the top bar subtitle
+    val timelineState by deps.timelineViewModel.uiState.collectAsState()
+    val toReadBooks by deps.toReadViewModel.books.collectAsState(initial = emptyList())
+    val seriesState by deps.seriesListViewModel.uiState.collectAsState()
+    val filteredSeries by deps.seriesListViewModel.filteredSeries.collectAsState()
+    val libraryState by deps.libraryViewModel.uiState.collectAsState()
+    val filteredBooks by deps.libraryViewModel.filteredBooks.collectAsState()
+
+    val subtitle = when (currentDestination?.route) {
+        TopLevelRoute.Timeline.route -> {
+            val count = (timelineState as? TimelineUiState.Success)?.sections
+                ?.count { it is TimelineSection.BookItem }
+            if (count != null && count > 0) "$count books" else null
+        }
+        TopLevelRoute.ToRead.route -> {
+            if (toReadBooks.isNotEmpty()) "${toReadBooks.size} books" else null
+        }
+        TopLevelRoute.Series.route -> {
+            val total = (seriesState as? SeriesListUiState.Success)?.series?.size ?: 0
+            val filtered = filteredSeries.size
+            when {
+                total == 0 -> null
+                filtered < total -> "$filtered / $total series"
+                else -> "$total series"
+            }
+        }
+        TopLevelRoute.Library.route -> {
+            val total = (libraryState as? LibraryUiState.Success)?.books?.size ?: 0
+            val filtered = filteredBooks.size
+            when {
+                total == 0 -> null
+                filtered < total -> "$filtered / $total books"
+                else -> "$total books"
+            }
+        }
+        else -> null
+    }
+
     Scaffold(
         topBar = {
             if (isTopLevel) {
                 BooklineTopBar(
+                    subtitle = subtitle,
                     onGoodreadsClick = {
                         goodreadsUrlOverride = null
                         navController.navigate(GOODREADS_ROUTE) { launchSingleTop = true }
@@ -343,6 +387,7 @@ private fun BooklineNavHost(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BooklineTopBar(
+    subtitle: String? = null,
     onGoodreadsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     showReorderToggle: Boolean = false,
@@ -358,7 +403,20 @@ private fun BooklineTopBar(
     var menuExpanded by remember { mutableStateOf(false) }
 
     TopAppBar(
-        title = { Text("Bookline") },
+        title = {
+            if (subtitle != null) {
+                Column {
+                    Text("Bookline")
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                Text("Bookline")
+            }
+        },
         actions = {
             if (showCollapseToggle) {
                 IconButton(onClick = { if (allCollapsed) onExpandAll() else onCollapseAll() }) {
