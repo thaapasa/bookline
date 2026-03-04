@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.UnfoldLess
 import androidx.compose.material.icons.filled.UnfoldMore
@@ -120,11 +121,13 @@ fun BooklineApp() {
 
     var goodreadsUrlOverride by remember { mutableStateOf<String?>(null) }
     var goodreadsAutoDetect by remember { mutableStateOf(false) }
+    var onToggleMobileDesktop by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     val isTopLevel = TopLevelRoute.entries.any { it.route == currentDestination?.route }
         || currentDestination?.route == GOODREADS_ROUTE
     val isToReadRoute = currentDestination?.route == TopLevelRoute.ToRead.route
     val isTimelineRoute = currentDestination?.route == TopLevelRoute.Timeline.route
+    val isGoodreadsRoute = currentDestination?.route == GOODREADS_ROUTE
     val reorderMode by deps.toReadViewModel.reorderMode.collectAsState()
     val allCollapsed by deps.timelineViewModel.allCollapsed.collectAsState()
 
@@ -142,6 +145,8 @@ fun BooklineApp() {
                     showReorderToggle = isToReadRoute,
                     reorderMode = reorderMode,
                     onReorderToggle = { deps.toReadViewModel.toggleReorderMode() },
+                    showMobileToggle = isGoodreadsRoute,
+                    onMobileToggle = { onToggleMobileDesktop?.invoke() },
                     showCollapseToggle = isTimelineRoute,
                     allCollapsed = allCollapsed,
                     onCollapseAll = { deps.timelineViewModel.collapseAll() },
@@ -173,6 +178,7 @@ fun BooklineApp() {
             onGoodreadsUrlOverride = { goodreadsUrlOverride = it },
             goodreadsAutoDetect = goodreadsAutoDetect,
             onGoodreadsAutoDetect = { goodreadsAutoDetect = it },
+            onRegisterMobileToggle = { onToggleMobileDesktop = it },
         )
     }
 }
@@ -220,6 +226,7 @@ private fun BooklineNavHost(
     onGoodreadsUrlOverride: (String?) -> Unit,
     goodreadsAutoDetect: Boolean,
     onGoodreadsAutoDetect: (Boolean) -> Unit,
+    onRegisterMobileToggle: ((() -> Unit)?) -> Unit,
 ) {
     fun navigateToBook(bookId: String) {
         navController.navigate("book/$bookId") { launchSingleTop = true }
@@ -276,6 +283,7 @@ private fun BooklineNavHost(
                     deps.settingsRepository.saveFeedUrl(url)
                 } else null,
                 autoDetect = autoDetect,
+                onRegisterMobileToggle = onRegisterMobileToggle,
             )
         }
         composable(SETTINGS_ROUTE) {
@@ -340,6 +348,8 @@ private fun BooklineTopBar(
     showReorderToggle: Boolean = false,
     reorderMode: Boolean = false,
     onReorderToggle: () -> Unit = {},
+    showMobileToggle: Boolean = false,
+    onMobileToggle: () -> Unit = {},
     showCollapseToggle: Boolean = false,
     allCollapsed: Boolean = false,
     onCollapseAll: () -> Unit = {},
@@ -355,6 +365,14 @@ private fun BooklineTopBar(
                     Icon(
                         imageVector = if (allCollapsed) Icons.Default.UnfoldMore else Icons.Default.UnfoldLess,
                         contentDescription = if (allCollapsed) "Expand all" else "Collapse all",
+                    )
+                }
+            }
+            if (showMobileToggle) {
+                IconButton(onClick = onMobileToggle) {
+                    Icon(
+                        imageVector = Icons.Default.SwapHoriz,
+                        contentDescription = "Toggle mobile/desktop view",
                     )
                 }
             }

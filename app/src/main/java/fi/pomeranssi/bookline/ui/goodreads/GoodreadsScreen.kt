@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,6 +83,7 @@ fun GoodreadsScreen(
     initialUrl: String = GOODREADS_URL,
     onRssFeedDetected: ((String) -> Unit)? = null,
     autoDetect: Boolean = false,
+    onRegisterMobileToggle: (((() -> Unit)?) -> Unit)? = null,
 ) {
     var isLoading by remember { mutableStateOf(true) }
     var webView by remember { mutableStateOf<WebView?>(null) }
@@ -89,6 +91,13 @@ fun GoodreadsScreen(
 
     BackHandler(enabled = webView?.canGoBack() == true) {
         webView?.goBack()
+    }
+
+    DisposableEffect(webView) {
+        webView?.let { wv ->
+            onRegisterMobileToggle?.invoke { wv.loadUrl(TOGGLE_MODE_URL) }
+        }
+        onDispose { onRegisterMobileToggle?.invoke(null) }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
