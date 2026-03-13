@@ -128,6 +128,30 @@ class BookRepository(
     }
 
     /**
+     * Immediately delete all stale books (those not present in the latest
+     * successful sync). Also cleans up orphaned series entries and sort overrides.
+     */
+    suspend fun flushStaleBooks() = withContext(Dispatchers.IO) {
+        val lastSync = settingsRepository.lastSyncEpochMs
+        if (lastSync <= 0) {
+            Log.d(TAG, "flushStaleBooks: no successful sync recorded, nothing to flush")
+            return@withContext
+        }
+        bookDao.deleteStaleBooks(lastSync)
+        bookSeriesDao.deleteStaleEntries(lastSync)
+        bookSeriesDao.deleteOrphans()
+        bookSortOverrideDao.deleteOrphans()
+        Log.i(TAG, "Flushed stale books (lastSyncedMs < $lastSync)")
+    }
+
+    /** Observe the count of stale books (not present in the latest successful sync). */
+    fun observeStaleBookCount(): Flow<Int> {
+        val lastSync = settingsRepository.lastSyncEpochMs
+        return if (lastSync > 0) bookDao.observeStaleCount(lastSync)
+        else kotlinx.coroutines.flow.flowOf(0)
+    }
+
+    /**
      * Observe all book series, sorted by the most recent read date descending.
      * Each [Series] contains its books (with series entries populated).
      */

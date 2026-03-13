@@ -336,7 +336,7 @@ private fun BooklineNavHost(
         }
         composable(SETTINGS_ROUTE) {
             val viewModel = remember {
-                SettingsViewModel(deps.settingsRepository, deps.database)
+                SettingsViewModel(deps.settingsRepository, deps.database, deps.bookRepository)
             }
             SettingsScreen(
                 viewModel = viewModel,

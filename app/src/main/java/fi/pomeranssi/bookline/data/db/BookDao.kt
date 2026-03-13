@@ -42,6 +42,10 @@ interface BookDao {
     @Query("DELETE FROM books WHERE lastSyncedMs > 0 AND lastSyncedMs < :threshold")
     suspend fun deleteStaleBooks(threshold: Long)
 
+    /** Count books not present in the latest successful sync. */
+    @Query("SELECT COUNT(*) FROM books WHERE lastSyncedMs > 0 AND lastSyncedMs < :lastSyncMs")
+    fun observeStaleCount(lastSyncMs: Long): Flow<Int>
+
     /** Reset lastSyncedMs for all books to the given timestamp (dormancy protection). */
     @Query("UPDATE books SET lastSyncedMs = :timestampMs WHERE lastSyncedMs > 0")
     suspend fun refreshLastSyncedMs(timestampMs: Long)

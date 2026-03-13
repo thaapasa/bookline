@@ -50,6 +50,8 @@ fun SettingsScreen(
     val urlField by viewModel.urlField.collectAsState()
     val saved by viewModel.saved.collectAsState()
     val dbCleared by viewModel.dbCleared.collectAsState()
+    val staleFlushed by viewModel.staleFlushed.collectAsState()
+    val staleCount by viewModel.staleBookCount.collectAsState(initial = 0)
     var showClearConfirmation by remember { mutableStateOf(false) }
 
     LifecycleResumeEffect(Unit) {
@@ -154,6 +156,44 @@ fun SettingsScreen(
             )
 
             Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "Books not present in the latest sync are shown faded with a " +
+                        "warning badge. Use the button below to remove them immediately " +
+                        "instead of waiting for the 30-day auto-cleanup.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = viewModel::flushStaleBooks,
+                enabled = staleCount > 0,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    if (staleCount > 0) "Flush $staleCount Missing Book${if (staleCount != 1) "s" else ""}"
+                    else "No Missing Books",
+                )
+            }
+
+            AnimatedVisibility(
+                visible = staleFlushed,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                Text(
+                    text = "✓ Missing books removed",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "Clear all cached book data from the local database. " +
