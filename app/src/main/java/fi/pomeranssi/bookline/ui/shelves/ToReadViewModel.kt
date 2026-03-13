@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.ToReadBookItem
+import fi.pomeranssi.bookline.ui.common.SyncCoordinator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,14 +16,14 @@ import kotlinx.coroutines.launch
 class ToReadViewModel(
     private val settingsRepository: SettingsRepository,
     private val bookRepository: BookRepository,
+    private val syncCoordinator: SyncCoordinator,
 ) : ViewModel() {
 
     val books: Flow<List<ToReadBookItem>> = bookRepository.observeToReadBooks()
 
     val isFeedConfigured: Boolean get() = settingsRepository.isFeedConfigured
 
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+    val isRefreshing: StateFlow<Boolean> = syncCoordinator.isRefreshing
 
     private val _reorderMode = MutableStateFlow(false)
     val reorderMode: StateFlow<Boolean> = _reorderMode.asStateFlow()
@@ -140,24 +141,7 @@ class ToReadViewModel(
     }
 
     fun refresh() {
-        val feedUrl = settingsRepository.feedUrl.value
-        if (feedUrl.isBlank()) {
-            Log.d(TAG, "refresh: skipped, no feed URL")
-            return
-        }
-
-        Log.i(TAG, "refresh: starting sync")
-        _isRefreshing.value = true
-        viewModelScope.launch {
-            try {
-                val count = bookRepository.sync(feedUrl)
-                Log.i(TAG, "refresh: completed, $count books synced")
-            } catch (e: Exception) {
-                Log.e(TAG, "refresh: failed", e)
-            } finally {
-                _isRefreshing.value = false
-            }
-        }
+        syncCoordinator.requestSync(viewModelScope)
     }
 
     private companion object {

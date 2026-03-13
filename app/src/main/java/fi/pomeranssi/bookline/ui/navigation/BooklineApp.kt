@@ -47,6 +47,7 @@ import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.data.db.BooklineDatabase
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
+import fi.pomeranssi.bookline.ui.common.SyncCoordinator
 import fi.pomeranssi.bookline.ui.detail.BookDetailScreen
 import fi.pomeranssi.bookline.ui.detail.BookDetailViewModel
 import fi.pomeranssi.bookline.ui.goodreads.GoodreadsScreen
@@ -81,6 +82,7 @@ private class AppDependencies(
     val settingsRepository: SettingsRepository,
     val database: BooklineDatabase,
     val bookRepository: BookRepository,
+    val syncCoordinator: SyncCoordinator,
     val timelineViewModel: TimelineViewModel,
     val toReadViewModel: ToReadViewModel,
     val seriesListViewModel: SeriesListViewModel,
@@ -100,14 +102,16 @@ private fun rememberAppDependencies(): AppDependencies {
             settings,
             db.bookSortOverrideDao(),
         )
+        val syncCoordinator = SyncCoordinator(settings, bookRepo)
         AppDependencies(
             settingsRepository = settings,
             database = db,
             bookRepository = bookRepo,
-            timelineViewModel = TimelineViewModel(settings, bookRepo),
-            toReadViewModel = ToReadViewModel(settings, bookRepo),
-            seriesListViewModel = SeriesListViewModel(settings, bookRepo),
-            libraryViewModel = LibraryViewModel(settings, bookRepo),
+            syncCoordinator = syncCoordinator,
+            timelineViewModel = TimelineViewModel(settings, bookRepo, syncCoordinator),
+            toReadViewModel = ToReadViewModel(settings, bookRepo, syncCoordinator),
+            seriesListViewModel = SeriesListViewModel(settings, bookRepo, syncCoordinator),
+            libraryViewModel = LibraryViewModel(settings, bookRepo, syncCoordinator),
         )
     }
 }

@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.Series
-import fi.pomeranssi.bookline.ui.common.SyncHelper
+import fi.pomeranssi.bookline.ui.common.SyncCoordinator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,14 +17,14 @@ import kotlinx.coroutines.flow.stateIn
 class SeriesListViewModel(
     private val settingsRepository: SettingsRepository,
     private val bookRepository: BookRepository,
+    private val syncCoordinator: SyncCoordinator,
 ) : ViewModel() {
 
     private companion object {
         const val TAG = "SeriesListVM"
     }
 
-    private val syncHelper = SyncHelper(settingsRepository, bookRepository, TAG)
-    val isRefreshing: StateFlow<Boolean> = syncHelper.isRefreshing
+    val isRefreshing: StateFlow<Boolean> = syncCoordinator.isRefreshing
 
     val filterText = MutableStateFlow("")
 
@@ -49,15 +49,15 @@ class SeriesListViewModel(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
-        syncHelper.checkSync(viewModelScope)
+        syncCoordinator.checkSync(viewModelScope)
     }
 
     fun checkSync() {
-        syncHelper.checkSync(viewModelScope)
+        syncCoordinator.checkSync(viewModelScope)
     }
 
     fun refresh() {
-        syncHelper.syncFeed(viewModelScope)
+        syncCoordinator.requestSync(viewModelScope)
     }
 }
 

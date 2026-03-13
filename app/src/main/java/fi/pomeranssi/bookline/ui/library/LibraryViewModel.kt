@@ -6,7 +6,7 @@ import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
-import fi.pomeranssi.bookline.ui.common.SyncHelper
+import fi.pomeranssi.bookline.ui.common.SyncCoordinator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 class LibraryViewModel(
     private val settingsRepository: SettingsRepository,
     private val bookRepository: BookRepository,
+    private val syncCoordinator: SyncCoordinator,
 ) : ViewModel() {
 
     private companion object {
@@ -27,8 +28,7 @@ class LibraryViewModel(
     /** Sentinel value for filtering to books with no custom shelves. */
     val unshelvedFilter = "__unshelved__"
 
-    private val syncHelper = SyncHelper(settingsRepository, bookRepository, TAG)
-    val isRefreshing: StateFlow<Boolean> = syncHelper.isRefreshing
+    val isRefreshing: StateFlow<Boolean> = syncCoordinator.isRefreshing
 
     val searchQuery = MutableStateFlow("")
     val selectedStatus = MutableStateFlow<ReadingStatus?>(null)
@@ -75,15 +75,15 @@ class LibraryViewModel(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
-        syncHelper.checkSync(viewModelScope)
+        syncCoordinator.checkSync(viewModelScope)
     }
 
     fun checkSync() {
-        syncHelper.checkSync(viewModelScope)
+        syncCoordinator.checkSync(viewModelScope)
     }
 
     fun refresh() {
-        syncHelper.syncFeed(viewModelScope)
+        syncCoordinator.requestSync(viewModelScope)
     }
 }
 

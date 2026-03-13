@@ -7,7 +7,7 @@ import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
-import fi.pomeranssi.bookline.ui.common.SyncHelper
+import fi.pomeranssi.bookline.ui.common.SyncCoordinator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +20,7 @@ import java.util.Locale
 class TimelineViewModel(
     private val settingsRepository: SettingsRepository,
     private val bookRepository: BookRepository,
+    private val syncCoordinator: SyncCoordinator,
 ) : ViewModel() {
 
     private companion object {
@@ -30,8 +31,7 @@ class TimelineViewModel(
         fun monthKey(year: Int, monthValue: Int) = "month-$year-$monthValue"
     }
 
-    private val syncHelper = SyncHelper(settingsRepository, bookRepository, TAG)
-    val isRefreshing: StateFlow<Boolean> = syncHelper.isRefreshing
+    val isRefreshing: StateFlow<Boolean> = syncCoordinator.isRefreshing
 
     private val _collapsedSections = MutableStateFlow<Set<String>>(emptySet())
     val allCollapsed: StateFlow<Boolean> = _collapsedSections
@@ -60,17 +60,17 @@ class TimelineViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TimelineUiState.Loading)
 
     init {
-        syncHelper.checkSync(viewModelScope)
+        syncCoordinator.checkSync(viewModelScope)
     }
 
     /** Re-check whether a sync is needed (e.g. after returning from settings). */
     fun checkSync() {
-        syncHelper.checkSync(viewModelScope)
+        syncCoordinator.checkSync(viewModelScope)
     }
 
     /** Trigger a manual refresh (e.g. pull-to-refresh). */
     fun refresh() {
-        syncHelper.syncFeed(viewModelScope)
+        syncCoordinator.requestSync(viewModelScope)
     }
 
     /** Toggle the collapsed state of a section. */
