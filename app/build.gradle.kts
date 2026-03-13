@@ -23,7 +23,7 @@ android {
         applicationId = "fi.pomeranssi.bookline"
         minSdk = 28
         targetSdk = 36
-        versionCode = 9
+        versionCode = 10
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
