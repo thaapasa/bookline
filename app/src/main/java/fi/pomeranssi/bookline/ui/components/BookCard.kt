@@ -1,5 +1,7 @@
 package fi.pomeranssi.bookline.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,10 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,8 +27,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import fi.pomeranssi.bookline.ui.common.DateFormatters
@@ -38,142 +42,165 @@ fun BookCard(
     showSeriesInfo: Boolean = true,
     onClick: () -> Unit = {},
 ) {
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .then(if (book.isStale) Modifier.alpha(0.5f) else Modifier),
-    ) {
-        Row(
+    Box(modifier = modifier.fillMaxWidth()) {
+        Card(
+            onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            // Cover image — flush with the card edge
-            BookCover(
-                imageUrl = book.bestImageUrl,
-                contentDescription = "Cover of ${book.title}",
-                modifier = Modifier.size(width = 85.dp, height = 120.dp),
-                isStale = book.isStale,
-            )
-
-            // Book info
-            Column(
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .height(120.dp)
-                    .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
+                    .fillMaxWidth()
+                    .then(if (book.isStale) Modifier.alpha(0.5f) else Modifier),
             ) {
-                // Title with optional series suffix
-                val firstSeries = book.seriesEntries.firstOrNull()
-                val titleText = if (showSeriesInfo && firstSeries != null) {
-                    val posLabel = if (firstSeries.position == firstSeries.position.toLong().toDouble()) {
-                        "#${firstSeries.position.toLong()}"
-                    } else {
-                        "#${firstSeries.position}"
-                    }
-                    val seriesColor = MaterialTheme.colorScheme.primary
-                    val titleStyle = MaterialTheme.typography.titleSmall
-                    buildAnnotatedString {
-                        append(book.title)
-                        append(" ")
-                        withStyle(titleStyle.toSpanStyle().copy(color = seriesColor)) {
-                            append("(${firstSeries.seriesName} $posLabel)")
-                        }
-                    }
-                } else {
-                    buildAnnotatedString { append(book.title) }
-                }
-                Text(
-                    text = titleText,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = book.authorName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                // Cover image — flush with the card edge
+                BookCover(
+                    imageUrl = book.bestImageUrl,
+                    contentDescription = "Cover of ${book.title}",
+                    modifier = Modifier.size(width = 85.dp, height = 120.dp),
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Rating row
-                if (book.userRating > 0) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        repeat(book.userRating) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                // Status / date row
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                // Book info
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(120.dp)
+                        .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
                 ) {
-                    when (book.readingStatus) {
-                        ReadingStatus.CurrentlyReading -> {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.tertiary,
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Currently reading",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.tertiary,
-                            )
+                    // Title with optional series suffix
+                    val firstSeries = book.seriesEntries.firstOrNull()
+                    val titleText = if (showSeriesInfo && firstSeries != null) {
+                        val posLabel =
+                            if (firstSeries.position == firstSeries.position.toLong().toDouble()) {
+                                "#${firstSeries.position.toLong()}"
+                            } else {
+                                "#${firstSeries.position}"
+                            }
+                        val seriesColor = MaterialTheme.colorScheme.primary
+                        val titleStyle = MaterialTheme.typography.titleSmall
+                        buildAnnotatedString {
+                            append(book.title)
+                            append(" ")
+                            withStyle(titleStyle.toSpanStyle().copy(color = seriesColor)) {
+                                append("(${firstSeries.seriesName} $posLabel)")
+                            }
                         }
+                    } else {
+                        buildAnnotatedString { append(book.title) }
+                    }
+                    Text(
+                        text = titleText,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = book.authorName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
 
-                        ReadingStatus.Read -> {
-                            book.userReadAt?.let { date ->
-                                Text(
-                                    text = "Read ${date.format(DateFormatters.displayDate)}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Rating row
+                    if (book.userRating > 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            repeat(book.userRating) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.primary,
                                 )
                             }
                         }
+                    }
 
-                        ReadingStatus.ToRead -> {
-                            Icon(
-                                imageVector = Icons.Default.Book,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.secondary,
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "To read",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.secondary,
-                            )
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // Status / date row
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        when (book.readingStatus) {
+                            ReadingStatus.CurrentlyReading -> {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = MaterialTheme.colorScheme.tertiary,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Currently reading",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.tertiary,
+                                )
+                            }
+
+                            ReadingStatus.Read -> {
+                                book.userReadAt?.let { date ->
+                                    Text(
+                                        text = "Read ${date.format(DateFormatters.displayDate)}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+
+                            ReadingStatus.ToRead -> {
+                                Icon(
+                                    imageVector = Icons.Default.Book,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "To read",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                )
+                            }
                         }
                     }
-                }
 
-                // Page count + published year
-                val meta = buildList {
-                    book.numPages?.let { add("$it pages") }
-                    book.bookPublishedYear?.let { add("Published $it") }
-                }.joinToString(" · ")
-                if (meta.isNotEmpty()) {
-                    Text(
-                        text = meta,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp),
-                    )
+                    // Page count + published year
+                    val meta = buildList {
+                        book.numPages?.let { add("$it pages") }
+                        book.bookPublishedYear?.let { add("Published $it") }
+                    }.joinToString(" · ")
+                    if (meta.isNotEmpty()) {
+                        Text(
+                            text = meta,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp),
+                        )
+                    }
                 }
+            }
+            // Close Card
+        }
+        // Stale badge — overlaid on top-right of the card at full opacity
+        if (book.isStale) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(end = 8.dp, top = 8.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shape = CircleShape,
+                    )
+                    .padding(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Not in latest sync",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.error,
+                )
             }
         }
     }
@@ -220,6 +247,17 @@ private fun BookCardCurrentlyReadingPreview() {
                 userReadAt = null,
                 userShelves = listOf("currently-reading"),
             ),
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BookCardStalePreview() {
+    BooklineTheme(dynamicColor = false) {
+        BookCard(
+            book = previewBook.copy(isStale = true),
             modifier = Modifier.padding(16.dp),
         )
     }
