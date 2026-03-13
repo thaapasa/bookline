@@ -29,7 +29,7 @@ data class BookEntity(
     val goodreadsUrl: String?,
     val lastSyncedMs: Long = 0,
 ) {
-    fun toDomain(seriesEntries: List<SeriesEntry> = emptyList()): Book = Book(
+    fun toDomain(seriesEntries: List<SeriesEntry> = emptyList(), isStale: Boolean = false): Book = Book(
         bookId = bookId,
         title = title,
         authorName = authorName,
@@ -50,6 +50,7 @@ data class BookEntity(
         userReview = userReview,
         goodreadsUrl = goodreadsUrl,
         seriesEntries = seriesEntries,
+        isStale = isStale,
     )
 
     companion object {

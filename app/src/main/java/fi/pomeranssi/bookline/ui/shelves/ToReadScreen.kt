@@ -35,6 +35,8 @@ import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
+import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
+import fi.pomeranssi.bookline.ui.common.SyncResult
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -47,6 +49,7 @@ fun ToReadScreen(
     val items by viewModel.books.collectAsState(initial = emptyList())
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val reorderMode by viewModel.reorderMode.collectAsState()
+    val lastSyncResult by viewModel.lastSyncResult.collectAsState()
 
     if (!viewModel.isFeedConfigured) {
         NoFeedConfiguredContent(modifier = modifier)
@@ -86,6 +89,15 @@ fun ToReadScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     item { Spacer(modifier = Modifier.height(4.dp)) }
+                    val syncError = lastSyncResult
+                    if (syncError is SyncResult.Error) {
+                        item(key = "__sync_error__") {
+                            SyncErrorBanner(
+                                message = syncError.message,
+                                onRetry = { viewModel.refresh() },
+                            )
+                        }
+                    }
                     items(items = items, key = { it.book.bookId }) { item ->
                         BookCard(book = item.book, onClick = { onBookClick(item.book.bookId) })
                     }

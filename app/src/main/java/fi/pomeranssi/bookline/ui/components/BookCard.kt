@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -39,7 +40,9 @@ fun BookCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(if (book.isStale) Modifier.alpha(0.5f) else Modifier),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -49,6 +52,7 @@ fun BookCard(
                 imageUrl = book.bestImageUrl,
                 contentDescription = "Cover of ${book.title}",
                 modifier = Modifier.size(width = 85.dp, height = 120.dp),
+                isStale = book.isStale,
             )
 
             // Book info

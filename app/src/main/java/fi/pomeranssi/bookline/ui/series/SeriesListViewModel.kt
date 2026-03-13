@@ -7,6 +7,7 @@ import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.Series
 import fi.pomeranssi.bookline.ui.common.SyncCoordinator
+import fi.pomeranssi.bookline.ui.common.SyncResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,9 @@ class SeriesListViewModel(
     }
 
     val isRefreshing: StateFlow<Boolean> = syncCoordinator.isRefreshing
+    val lastSyncResult: StateFlow<SyncResult> = syncCoordinator.lastSyncResult
+
+    fun clearSyncError() = syncCoordinator.clearError()
 
     val filterText = MutableStateFlow("")
 

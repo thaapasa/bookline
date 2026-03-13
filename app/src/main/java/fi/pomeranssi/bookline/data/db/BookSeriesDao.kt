@@ -12,8 +12,12 @@ interface BookSeriesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(entries: List<BookSeriesEntity>)
 
-    @Query("DELETE FROM book_series WHERE lastSyncedMs < :syncTimestamp")
-    suspend fun deleteNotSyncedSince(syncTimestamp: Long)
+    @Query("DELETE FROM book_series WHERE lastSyncedMs > 0 AND lastSyncedMs < :threshold")
+    suspend fun deleteStaleEntries(threshold: Long)
+
+    /** Reset lastSyncedMs for all series entries to the given timestamp (dormancy protection). */
+    @Query("UPDATE book_series SET lastSyncedMs = :timestampMs WHERE lastSyncedMs > 0")
+    suspend fun refreshLastSyncedMs(timestampMs: Long)
 
     @Query("DELETE FROM book_series")
     suspend fun deleteAll()

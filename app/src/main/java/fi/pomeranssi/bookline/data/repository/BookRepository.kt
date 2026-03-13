@@ -40,7 +40,10 @@ class BookRepository(
 
     /** Observe all locally stored books as a reactive Flow. */
     fun observeBooks(): Flow<List<Book>> =
-        bookDao.observeAll().map { entities -> entities.map { it.toDomain() } }
+        bookDao.observeAll().map { entities ->
+            val lastSync = settingsRepository.lastSyncEpochMs
+            entities.map { it.toDomain(isStale = isEntityStale(it, lastSync)) }
+        }
 
     /** Observe a single book by its ID, including its series entries. */
     fun observeBook(bookId: String): Flow<Book?> =
@@ -52,7 +55,8 @@ class BookRepository(
             val entries = allSeriesRows
                 .filter { it.bookId == bookId }
                 .map { SeriesEntry(it.seriesName, it.position) }
-            entity.toDomain(seriesEntries = entries)
+            val lastSync = settingsRepository.lastSyncEpochMs
+            entity.toDomain(seriesEntries = entries, isStale = isEntityStale(entity, lastSync))
         }
 
     /** Observe books for the timeline, filtered and sorted at the DB level. */
@@ -61,18 +65,29 @@ class BookRepository(
             bookDao.observeTimeline(),
             bookSeriesDao.observeAll(),
         ) { entities, allSeriesRows ->
+            val lastSync = settingsRepository.lastSyncEpochMs
             val seriesByBookId = allSeriesRows.groupBy { it.bookId }
             entities.map { entity ->
                 val entries = seriesByBookId[entity.bookId]
                     ?.map { SeriesEntry(it.seriesName, it.position) }
                     .orEmpty()
-                entity.toDomain(seriesEntries = entries)
+                entity.toDomain(seriesEntries = entries, isStale = isEntityStale(entity, lastSync))
             }
         }
 
     private companion object {
         const val TAG = "BookRepository"
         const val MS_PER_DAY = 86_400_000L
+        /** Books not seen in a sync for this long are eligible for deletion. */
+        const val RETENTION_PERIOD_MS = 30 * MS_PER_DAY
+
+        /**
+         * A book is "stale" when it was not present in the latest successful sync.
+         * We detect this by comparing the entity's lastSyncedMs with the global
+         * last-successful-sync timestamp.
+         */
+        fun isEntityStale(entity: BookEntity, lastSuccessfulSyncMs: Long): Boolean =
+            lastSuccessfulSyncMs > 0 && entity.lastSyncedMs < lastSuccessfulSyncMs
     }
 
     /** Observe books on the to-read shelf, sorted by effective sort date descending. */
@@ -82,13 +97,17 @@ class BookRepository(
             bookSeriesDao.observeAll(),
             bookSortOverrideDao.observeAll(),
         ) { entities, allSeriesRows, overrides ->
+            val lastSync = settingsRepository.lastSyncEpochMs
             val overrideMap = overrides.associate { it.bookId to it.sortDateMs }
             val seriesByBookId = allSeriesRows.groupBy { it.bookId }
             entities.map { entity ->
                 val entries = seriesByBookId[entity.bookId]
                     ?.map { SeriesEntry(it.seriesName, it.position) }
                     .orEmpty()
-                val book = entity.toDomain(seriesEntries = entries)
+                val book = entity.toDomain(
+                    seriesEntries = entries,
+                    isStale = isEntityStale(entity, lastSync),
+                )
                 val effectiveSortDateMs = overrideMap[book.bookId]
                     ?: (book.userDateAdded?.toEpochDay()?.times(MS_PER_DAY) ?: 0L)
                 ToReadBookItem(book = book, effectiveSortDateMs = effectiveSortDateMs)
@@ -117,6 +136,7 @@ class BookRepository(
             bookDao.observeAll(),
             bookSeriesDao.observeAll(),
         ) { bookEntities, seriesRows ->
+            val lastSync = settingsRepository.lastSyncEpochMs
             val booksById = bookEntities.associateBy { it.bookId }
 
             // Group series rows by series name
@@ -128,7 +148,7 @@ class BookRepository(
                     // Build series entries for this book from all its series memberships
                     val bookSeriesRows = seriesRows.filter { it.bookId == row.bookId }
                     val entries = bookSeriesRows.map { SeriesEntry(it.seriesName, it.position) }
-                    entity.toDomain(seriesEntries = entries)
+                    entity.toDomain(seriesEntries = entries, isStale = isEntityStale(entity, lastSync))
                 }
                 val lastRead = books.mapNotNull { it.userReadAt }.maxOrNull()
                 Series(name = seriesName, books = books, lastReadAt = lastRead)
@@ -147,14 +167,14 @@ class BookRepository(
             bookDao.observeAll(),
             bookSeriesDao.observeBySeriesName(seriesName),
         ) { bookEntities, seriesRows ->
+            val lastSync = settingsRepository.lastSyncEpochMs
             val booksById = bookEntities.associateBy { it.bookId }
-            // All series rows for books in this series (to populate full seriesEntries)
-            val allSeriesRows = seriesRows // We only have the ones for this series here
 
             seriesRows.mapNotNull { row ->
                 val entity = booksById[row.bookId] ?: return@mapNotNull null
                 entity.toDomain(
                     seriesEntries = listOf(SeriesEntry(row.seriesName, row.position)),
+                    isStale = isEntityStale(entity, lastSync),
                 )
             }.sortedBy { book ->
                 book.seriesEntries.firstOrNull { it.seriesName == seriesName }?.position
@@ -183,8 +203,13 @@ class BookRepository(
     /**
      * Fetch all pages of the RSS feed and sync to the local cache.
      * Each page is upserted as soon as it is fetched so books appear
-     * in the UI incrementally. After all pages are loaded, any books
-     * not touched during this sync are deleted.
+     * in the UI incrementally. After all pages are loaded, books not
+     * seen for longer than the retention period are removed.
+     *
+     * **Dormancy protection:** if the last successful sync was more than
+     * [RETENTION_PERIOD_MS] ago, all existing books' timestamps are
+     * refreshed first so that they are not immediately deleted.
+     *
      * Returns the total number of books synced.
      */
     suspend fun sync(feedUrl: String): Int = withContext(Dispatchers.IO) {
@@ -192,6 +217,16 @@ class BookRepository(
         val syncTimestamp = System.currentTimeMillis()
         var totalBooks = 0
         var page = 1
+
+        // Dormancy protection: if the app has been inactive for longer than
+        // the retention period, refresh all timestamps so that a successful
+        // sync doesn't mass-delete existing books.
+        val lastSuccessfulSync = settingsRepository.lastSyncEpochMs
+        if (lastSuccessfulSync > 0 && syncTimestamp - lastSuccessfulSync > RETENTION_PERIOD_MS) {
+            Log.i(TAG, "Dormancy detected (last sync ${(syncTimestamp - lastSuccessfulSync) / MS_PER_DAY} days ago) — refreshing retention timestamps")
+            bookDao.refreshLastSyncedMs(syncTimestamp)
+            bookSeriesDao.refreshLastSyncedMs(syncTimestamp)
+        }
 
         // Build parsedName → displayName map from existing series_info
         val seriesInfoMap = buildSeriesInfoMap()
@@ -228,8 +263,9 @@ class BookRepository(
         if (totalBooks == 0) {
             Log.w(TAG, "Sync fetched 0 books — skipping cleanup to protect existing data")
         } else {
-            bookDao.deleteNotSyncedSince(syncTimestamp)
-            bookSeriesDao.deleteNotSyncedSince(syncTimestamp)
+            val retentionThreshold = syncTimestamp - RETENTION_PERIOD_MS
+            bookDao.deleteStaleBooks(retentionThreshold)
+            bookSeriesDao.deleteStaleEntries(retentionThreshold)
             bookSeriesDao.deleteOrphans()
             bookSortOverrideDao.deleteOrphans()
             settingsRepository.lastSyncEpochMs = syncTimestamp

@@ -38,6 +38,8 @@ data class Book(
     val userReview: String?,
     val goodreadsUrl: String?,
     val seriesEntries: List<SeriesEntry> = emptyList(),
+    /** True when this book was not present in the latest successful sync. */
+    val isStale: Boolean = false,
 ) {
     /** Derived reading status based on shelf membership. */
     val readingStatus: ReadingStatus

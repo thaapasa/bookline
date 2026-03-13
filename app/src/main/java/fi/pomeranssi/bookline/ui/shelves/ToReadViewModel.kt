@@ -7,6 +7,7 @@ import fi.pomeranssi.bookline.data.repository.BookRepository
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.ToReadBookItem
 import fi.pomeranssi.bookline.ui.common.SyncCoordinator
+import fi.pomeranssi.bookline.ui.common.SyncResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +25,9 @@ class ToReadViewModel(
     val isFeedConfigured: Boolean get() = settingsRepository.isFeedConfigured
 
     val isRefreshing: StateFlow<Boolean> = syncCoordinator.isRefreshing
+    val lastSyncResult: StateFlow<SyncResult> = syncCoordinator.lastSyncResult
+
+    fun clearSyncError() = syncCoordinator.clearError()
 
     private val _reorderMode = MutableStateFlow(false)
     val reorderMode: StateFlow<Boolean> = _reorderMode.asStateFlow()

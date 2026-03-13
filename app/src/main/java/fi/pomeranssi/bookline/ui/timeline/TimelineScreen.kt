@@ -31,6 +31,8 @@ import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
+import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
+import fi.pomeranssi.bookline.ui.common.SyncResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +43,7 @@ fun TimelineScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val lastSyncResult by viewModel.lastSyncResult.collectAsState()
 
     LifecycleResumeEffect(viewModel) {
         viewModel.checkSync()
@@ -83,6 +86,15 @@ fun TimelineScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         item { Spacer(modifier = Modifier.height(4.dp)) }
+                        val syncError = lastSyncResult
+                        if (syncError is SyncResult.Error) {
+                            item(key = "__sync_error__") {
+                                SyncErrorBanner(
+                                    message = syncError.message,
+                                    onRetry = viewModel::refresh,
+                                )
+                            }
+                        }
                         items(
                             items = sections,
                             key = { section ->

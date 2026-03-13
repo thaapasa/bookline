@@ -7,6 +7,7 @@ import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import fi.pomeranssi.bookline.ui.common.SyncCoordinator
+import fi.pomeranssi.bookline.ui.common.SyncResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,9 @@ class LibraryViewModel(
     val unshelvedFilter = "__unshelved__"
 
     val isRefreshing: StateFlow<Boolean> = syncCoordinator.isRefreshing
+    val lastSyncResult: StateFlow<SyncResult> = syncCoordinator.lastSyncResult
+
+    fun clearSyncError() = syncCoordinator.clearError()
 
     val searchQuery = MutableStateFlow("")
     val selectedStatus = MutableStateFlow<ReadingStatus?>(null)

@@ -1,6 +1,6 @@
 # Bookline — Architecture
 
-> **Last updated:** 2026-02-28
+> **Last updated:** 2026-03-13
 
 ## Overview
 
@@ -38,7 +38,7 @@ fi.pomeranssi.bookline
 ├── data                          # Data layer
 │   ├── db                        # Room database, DAOs, entities
 │   │   ├── BookEntity            # Room entity for books (maps to/from domain Book)
-│   │   ├── BookDao               # DAO with Flow queries and transactional replaceAll
+│   │   ├── BookDao               # DAO with Flow queries, upsert, and retention-based cleanup
 │   │   ├── BookSeriesEntity      # Room entity for book-series memberships (many-to-many)
 │   │   ├── BookSeriesDao         # DAO for series queries + orphan cleanup
 │   │   ├── BookSortOverrideEntity # Room entity for to-read manual sort date overrides
@@ -64,8 +64,8 @@ fi.pomeranssi.bookline
 │   ├── navigation                # NavHost, route definitions, BooklineApp scaffold
 │   │   ├── BooklineApp           # Top-level scaffold with TopAppBar + BottomNavBar
 │   │   └── TopLevelRoute         # Enum of bottom-nav destinations
-│   ├── components                # Shared UI components (BookCard, SeriesCard, BookCover, SearchField, placeholders)
-│   ├── common                    # Cross-cutting utilities (SyncHelper, DateFormatters)
+│   ├── components                # Shared UI components (BookCard, SeriesCard, BookCover, SearchField, SyncErrorBanner, placeholders)
+│   ├── common                    # Cross-cutting utilities (SyncCoordinator, DateFormatters)
 │   ├── timeline                  # Timeline screen (main screen)
 │   │   ├── TimelineScreen        # LazyColumn of book cards with covers
 │   │   └── TimelineViewModel     # Loads feed, exposes TimelineUiState
@@ -95,8 +95,13 @@ Goodreads RSS feed (XML/HTTP, paginated)
    GoodreadsRssParser  ──  XmlPullParser streaming parse → List<Book>
         │                  SeriesParser extracts series info from titles
         ▼
+   SyncCoordinator     ──  Mutex-based singleton, at most one sync at a time
+        │                  checkSync() skips if running; requestSync() joins existing
+        ▼
    BookRepository      ──  sync(): fetches all pages, upserts books + book_series
         │                  applies series_info display name mappings
+        │                  30-day retention cleanup (not immediate deletion)
+        │                  dormancy protection for long-unused app
         │                  renameSeries(): rename/merge via series_info table
         │
         ▼
@@ -137,6 +142,65 @@ When a book is dragged to a new position, its override is set to:
   appear above since they get a fresh date
 - **Between two books**: midpoint of neighbors' effective dates
 - **Bottom**: bottom neighbor − 1 day
+
+## Sync Safety
+
+The sync system is designed to prevent data loss from network failures,
+partial syncs, and concurrent sync requests.
+
+### Concurrency control
+
+A shared `SyncCoordinator` singleton (in `ui/common/`) guarantees at most one
+sync runs at a time using a Kotlin `Mutex`. All ViewModels delegate to this
+coordinator:
+
+- **Auto-sync** (`checkSync`): called on screen resume; skips if a sync is
+  already running or data is fresh (< 24 hours old).
+- **Manual refresh** (`requestSync`): called by pull-to-refresh; if a sync is
+  already running, the existing sync is observed (no duplicate started).
+- **Shared state**: `isRefreshing` and `lastSyncResult` are `StateFlow`s
+  observed by all screens simultaneously.
+
+### 30-day data retention
+
+Books removed from the Goodreads RSS feed are **not** immediately deleted.
+Instead, each book's `lastSyncedMs` timestamp tracks when it was last seen in
+a successful sync. After a successful sync, only books whose `lastSyncedMs`
+is more than 30 days older than the current sync timestamp are deleted:
+
+```sql
+DELETE FROM books WHERE lastSyncedMs > 0 AND lastSyncedMs < :syncTimestamp - 30_DAYS
+```
+
+This protects against:
+- **Partial sync failures**: if only some pages load, books from unfetched
+  pages keep their old `lastSyncedMs` and survive for 30 more days.
+- **Temporary Goodreads API issues**: books briefly missing from the feed
+  are retained and reappear on the next successful sync.
+- **Manual sort overrides**: `book_sort_overrides` are only orphan-cleaned
+  after book deletion, so to-read ordering survives for the retention period.
+
+### Dormancy protection
+
+If the app hasn't been used for more than 30 days (last successful sync is
+> 30 days ago), all existing books' `lastSyncedMs` is refreshed to `now`
+before the sync begins. This prevents mass deletion of books whose
+timestamps became stale due to app inactivity rather than feed absence.
+
+### Stale book UI
+
+Books not present in the latest successful sync (`lastSyncedMs <
+lastSuccessfulSyncMs`) are marked as `isStale = true` in the domain model.
+They appear at 50% opacity with a small warning badge on their cover image.
+This is computed in `BookRepository`'s observe methods and applies uniformly
+across all screens (Timeline, Library, Series, To Read, Book Detail).
+
+### Sync error reporting
+
+When a sync fails, `SyncCoordinator.lastSyncResult` emits a `SyncResult.Error`.
+All list screens show a `SyncErrorBanner` at the top of their content with the
+error message and a retry button. The banner auto-clears when a subsequent sync
+succeeds.
 
 ## Design Decisions
 
