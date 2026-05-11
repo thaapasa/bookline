@@ -61,16 +61,11 @@ class SyncCoordinator(
             Log.d(TAG, "checkSync: skipped, no feed URL")
             return
         }
-        if (_isRefreshing.value) {
-            Log.d(TAG, "checkSync: sync already in progress, skipping")
+        if (!bookRepository.isSyncNeeded()) {
+            Log.d(TAG, "checkSync: data is fresh, skipping sync")
             return
         }
-        if (bookRepository.isSyncNeeded()) {
-            Log.i(TAG, "checkSync: sync is needed, starting")
-            launchSync(scope)
-        } else {
-            Log.d(TAG, "checkSync: data is fresh, skipping sync")
-        }
+        launchSync(scope)
     }
 
     /**
@@ -80,11 +75,6 @@ class SyncCoordinator(
      */
     fun requestSync(scope: CoroutineScope) {
         if (settingsRepository.feedUrl.value.isBlank()) return
-
-        if (_isRefreshing.value) {
-            Log.d(TAG, "requestSync: sync already in progress, joining existing")
-            return
-        }
         launchSync(scope)
     }
 
@@ -97,7 +87,11 @@ class SyncCoordinator(
     }
 
     private fun launchSync(scope: CoroutineScope) {
-        _isRefreshing.value = true
+        // Atomic claim — at most one launch wins. Subsequent callers no-op until done.
+        if (!_isRefreshing.compareAndSet(expect = false, update = true)) {
+            Log.d(TAG, "launchSync: sync already in progress, skipping")
+            return
+        }
         activeSyncJob = scope.launch {
             mutex.withLock {
                 val feedUrl = settingsRepository.feedUrl.value

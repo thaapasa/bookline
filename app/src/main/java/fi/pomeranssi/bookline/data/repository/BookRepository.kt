@@ -162,16 +162,15 @@ class BookRepository(
         ) { bookEntities, seriesRows ->
             val lastSync = settingsRepository.lastSyncEpochMs
             val booksById = bookEntities.associateBy { it.bookId }
-
-            // Group series rows by series name
+            val seriesByBookId = seriesRows.groupBy { it.bookId }
             val grouped = seriesRows.groupBy { it.seriesName }
 
             grouped.map { (seriesName, rows) ->
                 val books = rows.mapNotNull { row ->
                     val entity = booksById[row.bookId] ?: return@mapNotNull null
-                    // Build series entries for this book from all its series memberships
-                    val bookSeriesRows = seriesRows.filter { it.bookId == row.bookId }
-                    val entries = bookSeriesRows.map { SeriesEntry(it.seriesName, it.position) }
+                    val entries = seriesByBookId[row.bookId]
+                        ?.map { SeriesEntry(it.seriesName, it.position) }
+                        .orEmpty()
                     entity.toDomain(seriesEntries = entries, isStale = isEntityStale(entity, lastSync))
                 }
                 val lastRead = books.mapNotNull { it.userReadAt }.maxOrNull()
@@ -242,15 +241,10 @@ class BookRepository(
         var totalBooks = 0
         var page = 1
 
-        // Dormancy protection: if the app has been inactive for longer than
-        // the retention period, refresh all timestamps so that a successful
-        // sync doesn't mass-delete existing books.
         val lastSuccessfulSync = settingsRepository.lastSyncEpochMs
-        if (lastSuccessfulSync > 0 && syncTimestamp - lastSuccessfulSync > RETENTION_PERIOD_MS) {
-            Log.i(TAG, "Dormancy detected (last sync ${(syncTimestamp - lastSuccessfulSync) / MS_PER_DAY} days ago) — refreshing retention timestamps")
-            bookDao.refreshLastSyncedMs(syncTimestamp)
-            bookSeriesDao.refreshLastSyncedMs(syncTimestamp)
-        }
+        val isDormant = lastSuccessfulSync > 0 &&
+            syncTimestamp - lastSuccessfulSync > RETENTION_PERIOD_MS
+        var dormancyHandled = false
 
         // Build parsedName → displayName map from existing series_info
         val seriesInfoMap = buildSeriesInfoMap()
@@ -260,6 +254,16 @@ class BookRepository(
                 rssParser.parse(stream)
             }
             if (books.isEmpty()) break
+
+            // Dormancy protection: defer until we've seen a valid page-1 response,
+            // so a transient empty/failed fetch doesn't trigger a needless DB rewrite.
+            if (isDormant && !dormancyHandled) {
+                Log.i(TAG, "Dormancy detected (last sync ${(syncTimestamp - lastSuccessfulSync) / MS_PER_DAY} days ago) — refreshing retention timestamps")
+                bookDao.refreshLastSyncedMs(syncTimestamp)
+                bookSeriesDao.refreshLastSyncedMs(syncTimestamp)
+                dormancyHandled = true
+            }
+
             val entities = books.map { BookEntity.fromDomain(it, lastSyncedMs = syncTimestamp) }
             bookDao.upsertAll(entities)
 
@@ -285,18 +289,23 @@ class BookRepository(
         }
 
         if (totalBooks == 0) {
-            Log.w(TAG, "Sync fetched 0 books — skipping cleanup to protect existing data")
-        } else {
-            val retentionThreshold = syncTimestamp - RETENTION_PERIOD_MS
-            bookDao.deleteStaleBooks(retentionThreshold)
-            bookSeriesDao.deleteStaleEntries(retentionThreshold)
-            bookSeriesDao.deleteOrphans()
-            bookSortOverrideDao.deleteOrphans()
-            settingsRepository.lastSyncEpochMs = syncTimestamp
-            Log.i(TAG, "Sync complete: $totalBooks books in ${page - 1} pages")
+            // Empty page-1 almost always means transient failure (network, auth,
+            // rate-limit), not a legitimately empty Goodreads shelf. Throw so the
+            // caller treats it as an error rather than a fresh success that would
+            // suppress further retries for the next 24h.
+            throw EmptyFeedException()
         }
+        val retentionThreshold = syncTimestamp - RETENTION_PERIOD_MS
+        bookDao.deleteStaleBooks(retentionThreshold)
+        bookSeriesDao.deleteStaleEntries(retentionThreshold)
+        bookSeriesDao.deleteOrphans()
+        bookSortOverrideDao.deleteOrphans()
+        settingsRepository.lastSyncEpochMs = syncTimestamp
+        Log.i(TAG, "Sync complete: $totalBooks books in ${page - 1} pages")
         totalBooks
     }
+
+    class EmptyFeedException : RuntimeException("Feed returned no books")
 
     /**
      * Rename a series. If the new name matches an existing series (by

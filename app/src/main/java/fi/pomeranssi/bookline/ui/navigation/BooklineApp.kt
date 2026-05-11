@@ -33,6 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -44,10 +47,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import fi.pomeranssi.bookline.R
-import fi.pomeranssi.bookline.data.db.BooklineDatabase
-import fi.pomeranssi.bookline.data.repository.BookRepository
+import fi.pomeranssi.bookline.booklineApp
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
-import fi.pomeranssi.bookline.ui.common.SyncCoordinator
 import fi.pomeranssi.bookline.ui.detail.BookDetailScreen
 import fi.pomeranssi.bookline.ui.detail.BookDetailViewModel
 import fi.pomeranssi.bookline.ui.goodreads.GoodreadsScreen
@@ -75,45 +76,60 @@ private const val GOODREADS_ROUTE = "goodreads"
 private const val BOOK_DETAIL_ROUTE = "book/{bookId}"
 private const val SERIES_DETAIL_ROUTE = "series_detail/{seriesName}"
 
-/**
- * Holder for app-level dependencies (repositories + ViewModels).
- */
-private class AppDependencies(
-    val settingsRepository: SettingsRepository,
-    val database: BooklineDatabase,
-    val bookRepository: BookRepository,
-    val syncCoordinator: SyncCoordinator,
-    val timelineViewModel: TimelineViewModel,
-    val toReadViewModel: ToReadViewModel,
-    val seriesListViewModel: SeriesListViewModel,
-    val libraryViewModel: LibraryViewModel,
-)
+@Composable
+private fun timelineViewModel(): TimelineViewModel {
+    val app = LocalContext.current.booklineApp
+    return viewModel(factory = viewModelFactory {
+        initializer { TimelineViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
+    })
+}
 
 @Composable
-private fun rememberAppDependencies(): AppDependencies {
-    val context = LocalContext.current
-    return remember {
-        val settings = SettingsRepository(context.applicationContext)
-        val db = BooklineDatabase.getInstance(context.applicationContext)
-        val bookRepo = BookRepository(
-            db.bookDao(),
-            db.bookSeriesDao(),
-            db.seriesInfoDao(),
-            settings,
-            db.bookSortOverrideDao(),
-        )
-        val syncCoordinator = SyncCoordinator(settings, bookRepo)
-        AppDependencies(
-            settingsRepository = settings,
-            database = db,
-            bookRepository = bookRepo,
-            syncCoordinator = syncCoordinator,
-            timelineViewModel = TimelineViewModel(settings, bookRepo, syncCoordinator),
-            toReadViewModel = ToReadViewModel(settings, bookRepo, syncCoordinator),
-            seriesListViewModel = SeriesListViewModel(settings, bookRepo, syncCoordinator),
-            libraryViewModel = LibraryViewModel(settings, bookRepo, syncCoordinator),
-        )
-    }
+private fun toReadViewModel(): ToReadViewModel {
+    val app = LocalContext.current.booklineApp
+    return viewModel(factory = viewModelFactory {
+        initializer { ToReadViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
+    })
+}
+
+@Composable
+private fun seriesListViewModel(): SeriesListViewModel {
+    val app = LocalContext.current.booklineApp
+    return viewModel(factory = viewModelFactory {
+        initializer { SeriesListViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
+    })
+}
+
+@Composable
+private fun libraryViewModel(): LibraryViewModel {
+    val app = LocalContext.current.booklineApp
+    return viewModel(factory = viewModelFactory {
+        initializer { LibraryViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
+    })
+}
+
+@Composable
+private fun settingsViewModel(): SettingsViewModel {
+    val app = LocalContext.current.booklineApp
+    return viewModel(factory = viewModelFactory {
+        initializer { SettingsViewModel(app.settingsRepository, app.database, app.bookRepository) }
+    })
+}
+
+@Composable
+private fun bookDetailViewModel(bookId: String): BookDetailViewModel {
+    val app = LocalContext.current.booklineApp
+    return viewModel(key = "book_$bookId", factory = viewModelFactory {
+        initializer { BookDetailViewModel(app.bookRepository, bookId) }
+    })
+}
+
+@Composable
+private fun seriesDetailViewModel(seriesName: String): SeriesDetailViewModel {
+    val app = LocalContext.current.booklineApp
+    return viewModel(key = "series_$seriesName", factory = viewModelFactory {
+        initializer { SeriesDetailViewModel(app.bookRepository, seriesName) }
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -126,7 +142,12 @@ fun BooklineApp() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val deps = rememberAppDependencies()
+
+    val timelineVm = timelineViewModel()
+    val toReadVm = toReadViewModel()
+    val seriesListVm = seriesListViewModel()
+    val libraryVm = libraryViewModel()
+    val settingsRepository = LocalContext.current.booklineApp.settingsRepository
 
     var goodreadsUrlOverride by remember { mutableStateOf<String?>(null) }
     var goodreadsAutoDetect by remember { mutableStateOf(false) }
@@ -137,16 +158,16 @@ fun BooklineApp() {
     val isToReadRoute = currentDestination?.route == TopLevelRoute.ToRead.route
     val isTimelineRoute = currentDestination?.route == TopLevelRoute.Timeline.route
     val isGoodreadsRoute = currentDestination?.route == GOODREADS_ROUTE
-    val reorderMode by deps.toReadViewModel.reorderMode.collectAsState()
-    val allCollapsed by deps.timelineViewModel.allCollapsed.collectAsState()
+    val reorderMode by toReadVm.reorderMode.collectAsState()
+    val allCollapsed by timelineVm.allCollapsed.collectAsState()
 
     // Collect counts for the top bar subtitle
-    val timelineState by deps.timelineViewModel.uiState.collectAsState()
-    val toReadBooks by deps.toReadViewModel.books.collectAsState(initial = emptyList())
-    val seriesState by deps.seriesListViewModel.uiState.collectAsState()
-    val filteredSeries by deps.seriesListViewModel.filteredSeries.collectAsState()
-    val libraryState by deps.libraryViewModel.uiState.collectAsState()
-    val filteredBooks by deps.libraryViewModel.filteredBooks.collectAsState()
+    val timelineState by timelineVm.uiState.collectAsState()
+    val toReadBooks by toReadVm.books.collectAsState(initial = emptyList())
+    val seriesState by seriesListVm.uiState.collectAsState()
+    val filteredSeries by seriesListVm.filteredSeries.collectAsState()
+    val libraryState by libraryVm.uiState.collectAsState()
+    val filteredBooks by libraryVm.filteredBooks.collectAsState()
 
     val subtitle = when (currentDestination?.route) {
         TopLevelRoute.Timeline.route -> {
@@ -192,13 +213,13 @@ fun BooklineApp() {
                     },
                     showReorderToggle = isToReadRoute,
                     reorderMode = reorderMode,
-                    onReorderToggle = { deps.toReadViewModel.toggleReorderMode() },
+                    onReorderToggle = { toReadVm.toggleReorderMode() },
                     showMobileToggle = isGoodreadsRoute,
                     onMobileToggle = { onToggleMobileDesktop?.invoke() },
                     showCollapseToggle = isTimelineRoute,
                     allCollapsed = allCollapsed,
-                    onCollapseAll = { deps.timelineViewModel.collapseAll() },
-                    onExpandAll = { deps.timelineViewModel.expandAll() },
+                    onCollapseAll = { timelineVm.collapseAll() },
+                    onExpandAll = { timelineVm.expandAll() },
                 )
             }
         },
@@ -221,7 +242,11 @@ fun BooklineApp() {
         BooklineNavHost(
             navController = navController,
             innerPadding = innerPadding,
-            deps = deps,
+            timelineVm = timelineVm,
+            toReadVm = toReadVm,
+            seriesListVm = seriesListVm,
+            libraryVm = libraryVm,
+            settingsRepository = settingsRepository,
             goodreadsUrlOverride = goodreadsUrlOverride,
             onGoodreadsUrlOverride = { goodreadsUrlOverride = it },
             goodreadsAutoDetect = goodreadsAutoDetect,
@@ -269,7 +294,11 @@ private fun BooklineBottomBar(
 private fun BooklineNavHost(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    deps: AppDependencies,
+    timelineVm: TimelineViewModel,
+    toReadVm: ToReadViewModel,
+    seriesListVm: SeriesListViewModel,
+    libraryVm: LibraryViewModel,
+    settingsRepository: SettingsRepository,
     goodreadsUrlOverride: String?,
     onGoodreadsUrlOverride: (String?) -> Unit,
     goodreadsAutoDetect: Boolean,
@@ -291,28 +320,28 @@ private fun BooklineNavHost(
     ) {
         composable(TopLevelRoute.Timeline.route) {
             TimelineScreen(
-                viewModel = deps.timelineViewModel,
+                viewModel = timelineVm,
                 onBookClick = ::navigateToBook,
                 modifier = Modifier.padding(innerPadding),
             )
         }
         composable(TopLevelRoute.ToRead.route) {
             ToReadScreen(
-                viewModel = deps.toReadViewModel,
+                viewModel = toReadVm,
                 onBookClick = ::navigateToBook,
                 modifier = Modifier.padding(innerPadding),
             )
         }
         composable(TopLevelRoute.Series.route) {
             SeriesListScreen(
-                viewModel = deps.seriesListViewModel,
+                viewModel = seriesListVm,
                 onSeriesClick = ::navigateToSeries,
                 modifier = Modifier.padding(innerPadding),
             )
         }
         composable(TopLevelRoute.Library.route) {
             LibraryScreen(
-                viewModel = deps.libraryViewModel,
+                viewModel = libraryVm,
                 onBookClick = ::navigateToBook,
                 modifier = Modifier.padding(innerPadding),
             )
@@ -322,24 +351,21 @@ private fun BooklineNavHost(
             val autoDetect = goodreadsAutoDetect
             onGoodreadsUrlOverride(null)
             onGoodreadsAutoDetect(false)
-            val feedUrl by deps.settingsRepository.feedUrl.collectAsState()
+            val feedUrl by settingsRepository.feedUrl.collectAsState()
             val isFeedConfigured = feedUrl.isNotBlank()
             GoodreadsScreen(
                 initialUrl = urlOverride ?: "https://www.goodreads.com",
                 modifier = Modifier.padding(innerPadding),
                 onRssFeedDetected = if (!isFeedConfigured || autoDetect) { url ->
-                    deps.settingsRepository.saveFeedUrl(url)
+                    settingsRepository.saveFeedUrl(url)
                 } else null,
                 autoDetect = autoDetect,
                 onRegisterMobileToggle = onRegisterMobileToggle,
             )
         }
         composable(SETTINGS_ROUTE) {
-            val viewModel = remember {
-                SettingsViewModel(deps.settingsRepository, deps.database, deps.bookRepository)
-            }
             SettingsScreen(
-                viewModel = viewModel,
+                viewModel = settingsViewModel(),
                 onNavigateBack = { navController.popBackStack() },
                 onFindRssFeed = {
                     onGoodreadsAutoDetect(true)
@@ -352,11 +378,8 @@ private fun BooklineNavHost(
             arguments = listOf(navArgument("bookId") { type = NavType.StringType }),
         ) { backStackEntry ->
             val bookId = backStackEntry.arguments?.getString("bookId") ?: return@composable
-            val viewModel = remember(bookId) {
-                BookDetailViewModel(deps.bookRepository, bookId)
-            }
             BookDetailScreen(
-                viewModel = viewModel,
+                viewModel = bookDetailViewModel(bookId),
                 onNavigateBack = { navController.popBackStack() },
                 onOpenGoodreads = { url ->
                     onGoodreadsUrlOverride(url)
@@ -372,11 +395,8 @@ private fun BooklineNavHost(
             val encodedName =
                 backStackEntry.arguments?.getString("seriesName") ?: return@composable
             val seriesName = URLDecoder.decode(encodedName, "UTF-8")
-            val viewModel = remember(seriesName) {
-                SeriesDetailViewModel(deps.bookRepository, seriesName)
-            }
             SeriesDetailScreen(
-                viewModel = viewModel,
+                viewModel = seriesDetailViewModel(seriesName),
                 onNavigateBack = { navController.popBackStack() },
                 onBookClick = ::navigateToBook,
             )
