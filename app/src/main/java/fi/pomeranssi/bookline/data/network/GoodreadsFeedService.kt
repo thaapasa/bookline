@@ -23,18 +23,25 @@ class GoodreadsFeedService {
     suspend fun fetch(feedUrl: String, page: Int = 1): InputStream = withContext(Dispatchers.IO) {
         val pagedUrl = appendPage(feedUrl, page)
         val connection = URI(pagedUrl).toURL().openConnection() as HttpURLConnection
-        connection.connectTimeout = TIMEOUT_MS
-        connection.readTimeout = TIMEOUT_MS
-        connection.requestMethod = "GET"
-        connection.connect()
+        try {
+            connection.connectTimeout = TIMEOUT_MS
+            connection.readTimeout = TIMEOUT_MS
+            connection.requestMethod = "GET"
+            connection.connect()
 
-        if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-            throw GoodreadsFeedException(
-                "Feed returned HTTP ${connection.responseCode}: ${connection.responseMessage}",
-            )
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                throw GoodreadsFeedException(
+                    "Feed returned HTTP ${connection.responseCode}: ${connection.responseMessage}",
+                )
+            }
+
+            connection.inputStream
+        } catch (t: Throwable) {
+            // Release the socket on any error path; the success path hands the
+            // stream to the caller, who is responsible for closing it.
+            connection.disconnect()
+            throw t
         }
-
-        connection.inputStream
     }
 
     companion object {
