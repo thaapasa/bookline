@@ -158,7 +158,6 @@ sits against them:
       disclaimer in the description + privacy policy link.
 - [x] Store listing assets: 512 px hi-res icon, 1024×500 feature
       graphic, public support email.
-- [ ] (Optional) Add a `--no-network` debug toggle for screenshots.
 - [x] Screenshot set: no Goodreads logo visible in any image
       (verified all six; Goodreads WebView screenshot removed).
 
