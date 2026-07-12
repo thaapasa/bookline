@@ -1,7 +1,6 @@
 # Publication Plan
 
-Pre-release checklist for shipping Bookline to a public Android store
-(Play Store, F-Droid, etc).
+Pre-release checklist for shipping Bookline to Google Play.
 
 > **Not legal advice.** Consult a lawyer before commercial release. The
 > notes below summarize known risks and the conventional pattern other
@@ -31,8 +30,9 @@ with Goodreads or Amazon. Personal use only at present.
   (source in the pomeranssi.fi site repo). Covers: on-device-only
   storage (Keystore-encrypted feed URL, Room cache, sync timestamp),
   no analytics/telemetry/third-party SDKs, network only to
-  Goodreads/Amazon, uninstall deletes all data.
-- Remaining: link from Play Store listing and from the About screen.
+  Goodreads/Amazon, uninstall deletes all data. Linked from the
+  About screen.
+- Remaining: link from the Play Store listing.
 
 ### 3. Read Goodreads ToS
 
@@ -69,16 +69,11 @@ with Goodreads or Amazon. Personal use only at present.
   - Cache aggressively (Coil already does).
   - Accept the risk for v1; revisit if cease-and-desist arrives.
 
-## Distribution choices
+## Distribution
 
-- **Free release recommended.** Paid app monetizing third-party data
-  strengthens any future legal complaint.
-- **Play Store** — main target, requires privacy policy + content
-  rating + data safety form.
-- **F-Droid** — viable alternative, more permissive but requires
-  fully open-source build (already MIT-licensed).
-- **GitHub Releases (APK sideload)** — simplest, no review process,
-  but limited audience.
+- **Google Play only**, free release. Paid app monetizing third-party
+  data strengthens any future legal complaint. Requires privacy
+  policy + content rating + data safety form.
 
 ## Pre-release checklist
 
@@ -87,12 +82,27 @@ with Goodreads or Amazon. Personal use only at present.
 - [x] Add About screen (in top bar dropdown menu) with unaffiliated
       disclaimer + license + privacy policy link + app version.
 - [x] Write privacy policy: https://pomeranssi.fi/bookline/privacy-policy.html
+- [x] Disable backups: `android:allowBackup="false"` plus exclude-all
+      `data_extraction_rules.xml` / `backup_rules.xml` (Android 12+ /
+      pre-12). Keeps the privacy policy's "uninstall deletes all data"
+      claim true; Keystore-encrypted prefs would not survive a restore
+      anyway.
 - [ ] Read Goodreads ToS end-to-end, note any clauses to comply with.
 - [ ] Verify launcher icon has no Goodreads visual resemblance.
+- [x] Show third-party license attributions in the app — static list
+      in the About screen (all shipped libraries are Apache-2.0), link
+      to the license text. List is hand-maintained; see CLAUDE.md.
 - [ ] Bump `versionName` and `versionCode` in `app/build.gradle.kts`.
 - [ ] Test release build with shrinking/minification on a real device.
+- [ ] Build an App Bundle (`./gradlew bundleRelease`) — Play requires
+      `.aab`, not APK — and enroll in Play App Signing (mandatory);
+      keep a backup of the upload keystore.
+- [ ] Fill in Play Console data safety form (declare: no data
+      collected or shared) and content rating questionnaire.
 - [ ] Prepare Play Store listing copy with unaffiliated disclaimer
-      in the description.
+      in the description + privacy policy link.
+- [ ] Store listing assets: 512 px hi-res icon, 1024×500 feature
+      graphic, public support email.
 - [ ] (Optional) Add a `--no-network` debug toggle for screenshots.
 - [ ] Screenshot set: no Goodreads logo visible in any image.
 
