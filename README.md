@@ -84,7 +84,7 @@ your reading journey.
 | **Local storage** | Room                                           |
 | **Navigation**    | Compose Navigation                             |
 | **Minimum SDK**   | 28 (Android 9 Pie)                             |
-| **Target SDK**    | 36                                             |
+| **Target SDK**    | 37                                             |
 | **Build system**  | Gradle 9 (Kotlin DSL) with version catalog     |
 | **Architecture**  | Single-activity MVVM, single module            |
 | **DI**            | Manual constructor injection (no Hilt/Dagger)  |

@@ -15,7 +15,7 @@ project — the emphasis is on clean code, not enterprise process.
 | Language      | Kotlin (2.3+)                                                          |
 | UI toolkit    | Jetpack Compose                                                        |
 | Design system | Material 3 (Material You, dynamic color)                               |
-| Min SDK       | 28 (Android 9) · Target SDK 36                                         |
+| Min SDK       | 28 (Android 9) · Target SDK 37                                         |
 | Build         | Gradle 9 with Kotlin DSL + version catalog (`libs.versions.toml`)      |
 | Async         | Kotlin Coroutines + Flow                                               |
 | Networking    | HttpURLConnection (no library for a single GET)                        |

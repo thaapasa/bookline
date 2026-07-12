@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Bookline — single-module Android app (Kotlin + Jetpack Compose) that fetches a Goodreads RSS feed and renders the library as a timeline. Personal prototype, single professional developer.
 
 - Package: `fi.pomeranssi.bookline`
-- Min SDK 28, Target SDK 36, Java 17, Gradle 9 (Kotlin DSL) with version catalog (`gradle/libs.versions.toml`).
+- Min SDK 28, Target SDK 37, Java 17, Gradle 9 (Kotlin DSL) with version catalog (`gradle/libs.versions.toml`).
 
 ## Authoritative docs
 
