@@ -69,7 +69,6 @@ import fi.pomeranssi.bookline.ui.settings.SettingsViewModel
 import fi.pomeranssi.bookline.ui.shelves.ToReadScreen
 import fi.pomeranssi.bookline.ui.shelves.ToReadViewModel
 import fi.pomeranssi.bookline.ui.timeline.TimelineScreen
-import fi.pomeranssi.bookline.ui.timeline.TimelineSection
 import fi.pomeranssi.bookline.ui.timeline.TimelineUiState
 import fi.pomeranssi.bookline.ui.timeline.TimelineViewModel
 import java.net.URLDecoder
@@ -201,10 +200,7 @@ fun BooklineApp() {
     val subtitle =
         when (currentDestination?.route) {
             TopLevelRoute.Timeline.route -> {
-                val count =
-                    (timelineState as? TimelineUiState.Success)
-                        ?.sections
-                        ?.count { it is TimelineSection.BookItem }
+                val count = (timelineState as? TimelineUiState.Success)?.totalBookCount
                 if (count != null && count > 0) {
                     pluralStringResource(R.plurals.book_count, count, count)
                 } else {

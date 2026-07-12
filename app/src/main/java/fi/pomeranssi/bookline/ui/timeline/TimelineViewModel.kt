@@ -58,12 +58,11 @@ class TimelineViewModel(
                 TimelineUiState.NoFeedConfigured
             } else {
                 val sections = groupIntoSections(books, collapsed)
-                val bookCount = sections.count { it is TimelineSection.BookItem }
                 Log.d(
                     TAG,
-                    "Timeline loaded: $bookCount books in ${sections.size} sections (from ${books.size} total)",
+                    "Timeline loaded: ${books.size} books in ${sections.size} sections",
                 )
-                TimelineUiState.Success(sections = sections)
+                TimelineUiState.Success(sections = sections, totalBookCount = books.size)
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TimelineUiState.Loading)
 
@@ -237,6 +236,7 @@ sealed interface TimelineUiState {
 
     data class Success(
         val sections: List<TimelineSection>,
+        val totalBookCount: Int,
     ) : TimelineUiState
 }
 
