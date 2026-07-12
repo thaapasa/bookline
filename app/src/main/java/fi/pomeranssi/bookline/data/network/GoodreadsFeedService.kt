@@ -1,5 +1,6 @@
 package fi.pomeranssi.bookline.data.network
 
+import fi.pomeranssi.bookline.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
@@ -30,6 +31,7 @@ class GoodreadsFeedService {
                 connection.connectTimeout = TIMEOUT_MS
                 connection.readTimeout = TIMEOUT_MS
                 connection.requestMethod = "GET"
+                connection.setRequestProperty("User-Agent", USER_AGENT)
                 connection.connect()
 
                 if (connection.responseCode != HttpURLConnection.HTTP_OK) {
@@ -49,6 +51,13 @@ class GoodreadsFeedService {
 
     companion object {
         private const val TIMEOUT_MS = 15_000
+
+        /**
+         * Amazon's Agent Terms (Conditions of Use) require automated
+         * clients to self-identify with an "Agent/[name]" token in the
+         * User-Agent header.
+         */
+        private val USER_AGENT = "Bookline/${BuildConfig.VERSION_NAME} Agent/Bookline"
 
         /**
          * Build the feed URL for a given page.

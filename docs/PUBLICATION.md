@@ -72,7 +72,17 @@ sits against them:
 - **§5 eligibility: 13+.** Match in the Play content rating /target
   audience declarations (do not target under-13s).
 - **Disputes are governed by the Amazon.com Conditions of Use**
-  (incorporated by reference) — skim before release.
+  (incorporated by reference). Reviewed (rev. 2025-05-30): license
+  clause is a verbatim twin of Goodreads §1 (same accepted risks);
+  disputes go to state/federal courts in King County, WA under WA
+  law (no arbitration); trademark rules already satisfied. One new
+  obligation: the **Agent Terms** require software taking
+  autonomous/semi-autonomous action (auto-sync qualifies on a
+  literal reading, and Goodreads is an Amazon affiliate) to
+  identify itself with an `Agent/[name]` User-Agent header, not
+  mimic humans, and not bypass bot checks. Bookline complies with
+  the conduct rules already; the User-Agent tag is a one-line
+  addition (see checklist).
 - **Enforcement reality:** license terminates on breach; Goodreads
   may cut access at will. Worst case remains account/feed blocking or
   a takedown request → comply and pull the app.
@@ -123,7 +133,13 @@ sits against them:
       anyway.
 - [x] Read Goodreads ToS end-to-end, note any clauses to comply with
       (see "Goodreads ToS review" above; residual risks accepted).
-- [ ] Skim Amazon.com Conditions of Use (governs disputes, per ToS).
+- [x] Skim Amazon.com Conditions of Use (governs disputes, per ToS)
+      — see notes under "Goodreads ToS review".
+- [x] Send `User-Agent: Bookline/<version> Agent/Bookline` on RSS
+      feed fetches (`GoodreadsFeedService`) per Amazon Agent Terms.
+      Deliberately not set for Coil image requests — cover rendering
+      is user-initiated display, and a nonstandard UA risks CDN
+      filtering.
 - [x] Verify launcher icon has no Goodreads visual resemblance
       (owl on dark green — nothing like the brown/cream "g" mark).
 - [x] Show third-party license attributions in the app — static list
