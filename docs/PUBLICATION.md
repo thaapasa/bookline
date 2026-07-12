@@ -34,29 +34,62 @@ with Goodreads or Amazon. Personal use only at present.
   About screen.
 - Remaining: link from the Play Store listing.
 
-### 3. Read Goodreads ToS
+### 3. Goodreads ToS review
 
-- https://www.goodreads.com/about/terms
-- Look for clauses on:
-  - Automated access / scraping
-  - RSS feed permissible use
-  - Derivative works / display of content
-  - Trademark and branding
-- The RSS feed is per-user opt-in (each user has a private `key=`
-  URL), which strengthens the "user accessing their own data"
-  framing — but Amazon reserves the right to disagree. Worst case
-  is a takedown request: comply and pull the app.
+Reviewed https://www.goodreads.com/about/terms (rev. 2021-04-28).
+The ToS says nothing about RSS feeds, APIs, or third-party apps —
+neither permitting nor prohibiting. Relevant clauses and how the app
+sits against them:
+
+- **§1 license: personal, non-commercial use only.** Aligned — app is
+  free, each user reads only their own opt-in feed. Keep it free;
+  monetization would void this footing.
+- **§1 prohibits "collection and use of any book listings,
+  descriptions, reviews", "derivative use", and "data mining, robots,
+  or similar data gathering and extraction tools".** Read literally,
+  this covers any RSS reader that caches. Counterweight: Goodreads
+  publishes per-user RSS feeds expressly for external consumption
+  (implied license), the data is the user's own library, and sync is
+  modest (24 h auto-sync freshness window, single-flight, manual
+  pull-to-refresh). Residual risk, accepted.
+- **§4: no copying/reproducing/publicly displaying content.** Room
+  cache + on-device display is private use, not public display or
+  redistribution. Covers are hotlinked from Goodreads/Amazon CDN, not
+  re-served (see "Cover image hotlinking" below).
+- **§1 framing clause: may not "frame or utilize framing techniques
+  to enclose any trademark, logo, or other proprietary information
+  (including images, text, page layout, or form)".** Closest literal
+  conflict: the in-app WebView (`GoodreadsScreen`) renders
+  goodreads.com inside the app during RSS feed discovery, and its JS
+  scans the page DOM for the feed link. Scope is narrow — one
+  user-initiated setup flow, functionally an in-app browser, no
+  Goodreads branding used as the app's own. Residual risk, accepted;
+  book links elsewhere open the external browser (`ACTION_VIEW`).
+- **§1 "never use another Member's account".** Fine — the user logs
+  into their own account in the discovery WebView; credentials never
+  touch app code.
+- **§5 eligibility: 13+.** Match in the Play content rating /target
+  audience declarations (do not target under-13s).
+- **Disputes are governed by the Amazon.com Conditions of Use**
+  (incorporated by reference) — skim before release.
+- **Enforcement reality:** license terminates on breach; Goodreads
+  may cut access at will. Worst case remains account/feed blocking or
+  a takedown request → comply and pull the app.
 
 ## Trademark guidelines (apply consistently)
 
-- App name **Bookline** — keep, contains no Goodreads reference.
-- App icon — current launcher icon is neutral. Verify no resemblance
-  to Goodreads' brown/cream palette or "G" mark.
-- Never use the Goodreads logo, wordmark in their typeface, or any
-  derivative.
+- App name **Bookline** — OK, contains no Goodreads reference.
+- App icon — **verified**: cartoon owl with books on a dark green
+  (#115129) background; no resemblance to Goodreads' brown/cream
+  palette or "g" mark.
+- Goodreads logo asset (`ic_goodreads.xml`) — **removed**; no
+  Goodreads-branded drawables remain (checked `res/`).
 - Plain-text references to the name "Goodreads" are OK when
   identifying the data source ("Fetches your Goodreads RSS feed",
-  "View on Goodreads"). Do not imply endorsement.
+  "View on Goodreads"). Do not imply endorsement — current strings
+  comply.
+- Never use the Goodreads logo, wordmark in their typeface, or any
+  derivative.
 - Store listing screenshots: avoid showing the Goodreads logo even
   inside the embedded WebView screenshot — frame around it.
 
@@ -87,8 +120,11 @@ with Goodreads or Amazon. Personal use only at present.
       pre-12). Keeps the privacy policy's "uninstall deletes all data"
       claim true; Keystore-encrypted prefs would not survive a restore
       anyway.
-- [ ] Read Goodreads ToS end-to-end, note any clauses to comply with.
-- [ ] Verify launcher icon has no Goodreads visual resemblance.
+- [x] Read Goodreads ToS end-to-end, note any clauses to comply with
+      (see "Goodreads ToS review" above; residual risks accepted).
+- [ ] Skim Amazon.com Conditions of Use (governs disputes, per ToS).
+- [x] Verify launcher icon has no Goodreads visual resemblance
+      (owl on dark green — nothing like the brown/cream "g" mark).
 - [x] Show third-party license attributions in the app — static list
       in the About screen (all shipped libraries are Apache-2.0), link
       to the license text. List is hand-maintained; see CLAUDE.md.
