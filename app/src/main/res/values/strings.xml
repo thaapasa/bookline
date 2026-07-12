@@ -1,3 +1,154 @@
 <resources>
     <string name="app_name">Bookline</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_timeline">Timeline</string>
+    <string name="nav_to_read">To Read</string>
+    <string name="nav_series">Series</string>
+    <string name="nav_library">Library</string>
+
+    <!-- Top bar -->
+    <string name="action_expand_all">Expand all</string>
+    <string name="action_collapse_all">Collapse all</string>
+    <string name="action_toggle_mobile_desktop">Toggle mobile/desktop view</string>
+    <string name="action_reorder_list">Reorder list</string>
+    <string name="action_exit_reorder">Exit reorder mode</string>
+    <string name="action_menu">Menu</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_about">About</string>
+    <plurals name="book_count">
+        <item quantity="one">%d book</item>
+        <item quantity="other">%d books</item>
+    </plurals>
+    <plurals name="series_count">
+        <item quantity="one">%d series</item>
+        <item quantity="other">%d series</item>
+    </plurals>
+    <plurals name="filtered_book_count">
+        <item quantity="one">%1$d / %2$d book</item>
+        <item quantity="other">%1$d / %2$d books</item>
+    </plurals>
+    <plurals name="filtered_series_count">
+        <item quantity="one">%1$d / %2$d series</item>
+        <item quantity="other">%1$d / %2$d series</item>
+    </plurals>
+
+    <!-- Common actions -->
+    <string name="action_back">Back</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_dismiss">Dismiss</string>
+    <string name="action_try_again">Try Again</string>
+    <string name="action_close">Close</string>
+    <string name="action_expand">Expand</string>
+    <string name="action_collapse">Collapse</string>
+    <string name="action_reorder">Reorder</string>
+
+    <!-- Goodreads -->
+    <string name="goodreads" translatable="false">Goodreads</string>
+
+    <!-- Timeline sections -->
+    <string name="timeline_currently_reading">Currently Reading</string>
+    <string name="timeline_date_unknown">Date Unknown</string>
+
+    <!-- Empty / error states -->
+    <string name="empty_no_books">No books found in your feed.</string>
+    <string name="empty_reading_list">Your reading list will appear here.</string>
+    <string name="empty_no_series">No series found in your feed.</string>
+    <string name="no_feed_configured">Set up your Goodreads RSS feed in Settings to see your books.</string>
+    <string name="error_something_went_wrong">Something went wrong</string>
+    <string name="sync_failed">Sync failed: %1$s</string>
+
+    <!-- Search & filters -->
+    <string name="search_books_placeholder">Search books…</string>
+    <string name="filter_series_placeholder">Filter series…</string>
+    <string name="action_clear_search">Clear search</string>
+    <string name="action_clear_all_filters">Clear all filters</string>
+    <string name="filter_all">all</string>
+    <string name="filter_unshelved">unshelved</string>
+    <string name="filter_read">read</string>
+    <string name="filter_currently_reading">currently reading</string>
+    <string name="filter_to_read">to read</string>
+    <string name="action_show_status_filter">Show reading status filter</string>
+    <string name="action_hide_status_filter">Hide reading status filter</string>
+
+    <!-- Book card / status -->
+    <string name="cover_of_book">Cover of %1$s</string>
+    <string name="status_currently_reading">Currently reading</string>
+    <string name="status_to_read">To read</string>
+    <string name="status_read_on">Read %1$s</string>
+    <plurals name="page_count">
+        <item quantity="one">%d page</item>
+        <item quantity="other">%d pages</item>
+    </plurals>
+    <string name="published_in_year">Published %1$d</string>
+    <string name="badge_not_in_latest_sync">Not in latest sync</string>
+
+    <!-- Series -->
+    <string name="cover_from_series">Cover from %1$s</string>
+    <string name="action_rename_series">Rename series</string>
+    <string name="series_also_known_as">Also known as: %1$s</string>
+    <string name="rename_series_title">Rename Series</string>
+    <string name="series_name_label">Series name</string>
+    <string name="action_rename">Rename</string>
+
+    <!-- Book detail -->
+    <string name="book_details_title">Book Details</string>
+    <string name="description_title">Description</string>
+    <string name="link_in_app">In app</string>
+    <string name="meta_average_rating">Average rating</string>
+    <string name="meta_isbn" translatable="false">ISBN</string>
+    <string name="meta_pages">Pages</string>
+    <string name="meta_published">Published</string>
+    <string name="meta_last_read">Last read</string>
+    <string name="meta_date_added">Date added</string>
+    <string name="meta_date_created">Date created</string>
+    <string name="meta_shelves">Shelves</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_language_section">Language</string>
+    <string name="settings_language_system">System default</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_finnish" translatable="false">Suomi</string>
+    <string name="settings_feed_section">Goodreads RSS Feed</string>
+    <string name="settings_feed_description">Paste the URL of your Goodreads RSS feed, or use auto-detect to find it after logging in to Goodreads. The URL contains a private access key and is stored encrypted on this device.</string>
+    <string name="settings_autodetect">Auto-detect from Goodreads</string>
+    <string name="settings_feed_url_label">Feed URL</string>
+    <string name="settings_feed_url_placeholder" translatable="false">https://www.goodreads.com/review/list_rss/…</string>
+    <string name="settings_saved">✓ Saved</string>
+    <string name="settings_data_section">Data Management</string>
+    <string name="settings_stale_description">Books not present in the latest sync are shown faded with a warning badge. Use the button below to remove them immediately instead of waiting for the 30-day auto-cleanup.</string>
+    <plurals name="settings_flush_missing_books">
+        <item quantity="one">Flush %d Missing Book</item>
+        <item quantity="other">Flush %d Missing Books</item>
+    </plurals>
+    <string name="settings_no_missing_books">No Missing Books</string>
+    <string name="settings_missing_books_removed">✓ Missing books removed</string>
+    <string name="settings_clear_description">Clear all cached book data from the local database. Your feed URL will be kept. Books will be reloaded from Goodreads on next refresh.</string>
+    <string name="settings_clear_all_data">Clear All Data</string>
+    <string name="settings_database_cleared">✓ Database cleared</string>
+    <string name="clear_dialog_title">Clear all data?</string>
+    <string name="clear_dialog_text">This will delete all cached books, series, and sorting preferences. Your feed URL will be kept. Data will be reloaded from Goodreads on next refresh.</string>
+    <string name="action_clear">Clear</string>
+
+    <!-- Goodreads screen / RSS detection -->
+    <string name="rss_searching">Searching for RSS feed…</string>
+    <string name="action_find_rss_feed">Find RSS feed</string>
+    <string name="rss_found_title">RSS Feed Found</string>
+    <string name="rss_found_text">Found your Goodreads RSS feed URL. Save it to start syncing your books?</string>
+    <string name="rss_not_found_title">RSS Feed Not Found</string>
+    <string name="rss_not_found_text">Could not find an RSS feed link on this page. Make sure you are logged in to Goodreads, then try again.</string>
+
+    <!-- About -->
+    <string name="about_title">About</string>
+    <string name="about_version">Version %1$s (%2$d)</string>
+    <string name="about_tagline">A timeline for your books.</string>
+    <string name="about_description">Bookline reads the RSS feed of your Goodreads library and presents your read and to-read books as a visually rich timeline, with series browsing, search, and offline access to your collection.</string>
+    <string name="about_disclaimer">Bookline is an unofficial, third-party app. It is not affiliated with, endorsed by, or sponsored by Goodreads or Amazon.</string>
+    <string name="about_license">Open source under the MIT License.</string>
+    <string name="about_privacy_policy">Privacy policy</string>
+    <string name="about_source_code">Source code on GitHub</string>
 </resources>

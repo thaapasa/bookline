@@ -14,8 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 /**
@@ -55,7 +57,7 @@ fun SearchField(
                     IconButton(onClick = { onValueChange("") }) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear search",
+                            contentDescription = stringResource(R.string.action_clear_search),
                         )
                     }
                 }
@@ -67,7 +69,7 @@ fun SearchField(
             IconButton(onClick = onClearAll) {
                 Icon(
                     imageVector = Icons.Default.FilterListOff,
-                    contentDescription = "Clear all filters",
+                    contentDescription = stringResource(R.string.action_clear_all_filters),
                 )
             }
         }

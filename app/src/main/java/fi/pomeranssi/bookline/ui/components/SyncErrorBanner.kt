@@ -18,9 +18,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 /**
@@ -50,7 +52,7 @@ fun SyncErrorBanner(
                 tint = MaterialTheme.colorScheme.onErrorContainer,
             )
             Text(
-                text = "Sync failed: $message",
+                text = stringResource(R.string.sync_failed, message),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 maxLines = 2,
@@ -64,7 +66,7 @@ fun SyncErrorBanner(
                     modifier = Modifier.size(16.dp),
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Retry")
+                Text(stringResource(R.string.action_retry))
             }
         }
     }

@@ -24,11 +24,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import fi.pomeranssi.bookline.ui.common.DateFormatters
@@ -56,7 +59,7 @@ fun BookCard(
                 // Cover image — flush with the card edge
                 BookCover(
                     imageUrl = book.bestImageUrl,
-                    contentDescription = "Cover of ${book.title}",
+                    contentDescription = stringResource(R.string.cover_of_book, book.title),
                     modifier = Modifier.size(width = 85.dp, height = 120.dp),
                 )
 
@@ -136,7 +139,7 @@ fun BookCard(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "Currently reading",
+                                    text = stringResource(R.string.status_currently_reading),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.tertiary,
                                 )
@@ -145,7 +148,11 @@ fun BookCard(
                             ReadingStatus.Read -> {
                                 book.userReadAt?.let { date ->
                                     Text(
-                                        text = "Read ${date.format(DateFormatters.displayDate)}",
+                                        text =
+                                            stringResource(
+                                                R.string.status_read_on,
+                                                date.format(DateFormatters.displayDate),
+                                            ),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -161,7 +168,7 @@ fun BookCard(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "To read",
+                                    text = stringResource(R.string.status_to_read),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.secondary,
                                 )
@@ -172,8 +179,8 @@ fun BookCard(
                     // Page count + published year
                     val meta =
                         buildList {
-                            book.numPages?.let { add("$it pages") }
-                            book.bookPublishedYear?.let { add("Published $it") }
+                            book.numPages?.let { add(pluralStringResource(R.plurals.page_count, it, it)) }
+                            book.bookPublishedYear?.let { add(stringResource(R.string.published_in_year, it)) }
                         }.joinToString(" · ")
                     if (meta.isNotEmpty()) {
                         Text(
@@ -201,7 +208,7 @@ fun BookCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
-                    contentDescription = "Not in latest sync",
+                    contentDescription = stringResource(R.string.badge_not_in_latest_sync),
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.error,
                 )

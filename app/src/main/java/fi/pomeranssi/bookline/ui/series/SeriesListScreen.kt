@@ -19,9 +19,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Series
 import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.common.SyncResult
@@ -71,7 +73,7 @@ fun SeriesListScreen(
 
             if (state.series.isEmpty() && !isRefreshing) {
                 EmptyContent(
-                    message = "No series found in your feed.",
+                    message = stringResource(R.string.empty_no_series),
                     modifier = modifier.fillMaxSize(),
                     icon = {
                         Icon(
@@ -116,7 +118,7 @@ private fun SeriesListContent(
         SearchField(
             value = filterText,
             onValueChange = onFilterTextChange,
-            placeholder = "Filter series…",
+            placeholder = stringResource(R.string.filter_series_placeholder),
         )
         LazyColumn(
             contentPadding =

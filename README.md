@@ -55,6 +55,8 @@ your reading journey.
 - **Dark mode** — full light and dark theme support
 - **Animated UI** — section collapse/expand chevron rotation, drag elevation,
   save-confirmation fade animations
+- **Localized** — English (default) and Finnish (as *Lukujana*), selectable
+  in-app from Settings or via the Android 13+ system per-app language settings
 
 ## 📸 Screenshots
 

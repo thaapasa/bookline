@@ -29,8 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.ToReadBookItem
 import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.common.SyncResult
@@ -58,7 +60,7 @@ fun ToReadScreen(
         NoFeedConfiguredContent(modifier = modifier)
     } else if (items.isEmpty() && !isRefreshing) {
         EmptyContent(
-            message = "Your reading list will appear here.",
+            message = stringResource(R.string.empty_reading_list),
             modifier = modifier,
             icon = {
                 Icon(
@@ -210,7 +212,7 @@ private fun ReorderableToReadList(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.DragHandle,
-                            contentDescription = "Reorder",
+                            contentDescription = stringResource(R.string.action_reorder),
                             modifier = Modifier.size(24.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

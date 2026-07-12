@@ -204,6 +204,34 @@ All list screens show a `SyncErrorBanner` at the top of their content with the
 error message and a retry button. The banner auto-clears when a subsequent sync
 succeeds.
 
+## Localization
+
+- **Languages**: English (default, `res/values/strings.xml`) and Finnish
+  (`res/values-fi/strings.xml`, where the app is named *Lukujana*). All
+  user-facing text goes through string resources; only `@Preview` composables
+  may use hardcoded strings.
+- **Per-app language**: `res/xml/locales_config.xml` + `android:localeConfig`
+  in the manifest enable the Android 13+ system per-app language picker.
+  `androidResources.localeFilters` in `app/build.gradle.kts` limits packaged
+  locales to `en`/`fi` — add new languages in both places, plus an option in
+  `LanguageDropdown` in `SettingsScreen`.
+- **In-app language selector**: the Settings screen opens with a Language
+  dropdown (System default / English / Suomi) that reads and writes the same per-app
+  locale store via `LocaleManager.applicationLocales`, so it stays in sync with
+  the system dialog. API 33+ only; the section is hidden on older versions
+  (`currentLanguageTag = null`), where the app follows the system locale.
+- **Counts use `<plurals>`** (`book_count`, `series_count`, `page_count`, …)
+  via `pluralStringResource`.
+- **ViewModels never resolve display text**: `TimelineViewModel` emits
+  `SectionTitle` (sealed: `Text` / `MonthName` / `CurrentlyReading` /
+  `DateUnknown`) and the composable resolves it against the current locale,
+  because ViewModels outlive locale changes. Dates are formatted with
+  `DateFormatters.displayDate` (localized `FormatStyle.MEDIUM`, resolved per
+  call).
+- **Sync error messages** (exception text shown in `SyncErrorBanner`) stay in
+  English — they are diagnostic strings originating from exceptions in the data
+  layer; only the "Sync failed:" wrapper is localized.
+
 ## Design Decisions
 
 - **No test infrastructure** — this is a quick personal prototype. Code quality

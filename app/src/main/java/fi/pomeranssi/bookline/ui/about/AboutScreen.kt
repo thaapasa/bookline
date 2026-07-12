@@ -33,10 +33,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import fi.pomeranssi.bookline.BuildConfig
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 private const val PRIVACY_POLICY_URL = "https://pomeranssi.fi/bookline/privacy-policy.html"
@@ -51,12 +53,12 @@ fun AboutScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("About") },
+                title = { Text(stringResource(R.string.about_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.action_back),
                         )
                     }
                 },
@@ -87,11 +89,16 @@ private fun AboutContent(modifier: Modifier = Modifier) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Bookline",
+                    text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.headlineMedium,
                 )
                 Text(
-                    text = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                    text =
+                        stringResource(
+                            R.string.about_version,
+                            BuildConfig.VERSION_NAME,
+                            BuildConfig.VERSION_CODE,
+                        ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -102,18 +109,14 @@ private fun AboutContent(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "A timeline for your books.",
+            text = stringResource(R.string.about_tagline),
             style = MaterialTheme.typography.bodyLarge,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text =
-                "Bookline reads the RSS feed of your Goodreads library and " +
-                    "presents your read and to-read books as a visually rich " +
-                    "timeline, with series browsing, search, and offline access " +
-                    "to your collection.",
+            text = stringResource(R.string.about_description),
             style = MaterialTheme.typography.bodyMedium,
         )
 
@@ -122,16 +125,14 @@ private fun AboutContent(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text =
-                "Bookline is an unofficial, third-party app. It is not affiliated " +
-                    "with, endorsed by, or sponsored by Goodreads or Amazon.",
+            text = stringResource(R.string.about_disclaimer),
             style = MaterialTheme.typography.bodyMedium,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Open source under the MIT License.",
+            text = stringResource(R.string.about_license),
             style = MaterialTheme.typography.bodyMedium,
         )
 
@@ -140,11 +141,11 @@ private fun AboutContent(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(8.dp))
 
         ExternalLinkButton(
-            label = "Privacy policy",
+            label = stringResource(R.string.about_privacy_policy),
             onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) },
         )
         ExternalLinkButton(
-            label = "Source code on GitHub",
+            label = stringResource(R.string.about_source_code),
             onClick = { uriHandler.openUri(GITHUB_URL) },
         )
 

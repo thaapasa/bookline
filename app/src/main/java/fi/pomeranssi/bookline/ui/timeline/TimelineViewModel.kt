@@ -15,8 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import java.time.format.TextStyle
-import java.util.Locale
+import java.time.Month
 
 class TimelineViewModel(
     private val settingsRepository: SettingsRepository,
@@ -144,7 +143,7 @@ class TimelineViewModel(
         add(
             TimelineSection.Header(
                 key = KEY_CURRENTLY_READING,
-                title = "Currently Reading",
+                title = SectionTitle.CurrentlyReading,
                 level = SectionLevel.Top,
                 isCollapsed = KEY_CURRENTLY_READING in collapsed,
                 bookCount = currentlyReading.size,
@@ -179,7 +178,7 @@ class TimelineViewModel(
             add(
                 TimelineSection.Header(
                     key = yKey,
-                    title = year.toString(),
+                    title = SectionTitle.Text(year.toString()),
                     level = SectionLevel.Year,
                     isCollapsed = yKey in collapsed,
                     bookCount = yearBooks.size,
@@ -189,11 +188,10 @@ class TimelineViewModel(
             if (yKey !in collapsed) {
                 for ((month, monthBooks) in byMonth) {
                     val mKey = monthKey(year, month.value)
-                    val monthName = month.getDisplayName(TextStyle.FULL, Locale.getDefault())
                     add(
                         TimelineSection.Header(
                             key = mKey,
-                            title = monthName,
+                            title = SectionTitle.MonthName(month),
                             level = SectionLevel.Month,
                             isCollapsed = mKey in collapsed,
                             bookCount = monthBooks.size,
@@ -220,7 +218,7 @@ class TimelineViewModel(
         add(
             TimelineSection.Header(
                 key = KEY_NO_DATE,
-                title = "Date Unknown",
+                title = SectionTitle.DateUnknown,
                 level = SectionLevel.Top,
                 isCollapsed = KEY_NO_DATE in collapsed,
                 bookCount = noDate.size,
@@ -244,10 +242,28 @@ sealed interface TimelineUiState {
 
 enum class SectionLevel { Top, Year, Month }
 
+/**
+ * Section title as data rather than display text, so the UI layer can resolve
+ * it against the current locale (the ViewModel outlives locale changes).
+ */
+sealed interface SectionTitle {
+    data class Text(
+        val value: String,
+    ) : SectionTitle
+
+    data class MonthName(
+        val month: Month,
+    ) : SectionTitle
+
+    data object CurrentlyReading : SectionTitle
+
+    data object DateUnknown : SectionTitle
+}
+
 sealed interface TimelineSection {
     data class Header(
         val key: String,
-        val title: String,
+        val title: SectionTitle,
         val level: SectionLevel,
         val isCollapsed: Boolean,
         val bookCount: Int,

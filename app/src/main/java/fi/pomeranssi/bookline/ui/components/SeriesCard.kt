@@ -20,10 +20,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Series
 import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
@@ -77,7 +80,7 @@ fun SeriesCard(
 
                 val bookCount = series.books.size
                 Text(
-                    text = "$bookCount ${if (bookCount == 1) "book" else "books"}",
+                    text = pluralStringResource(R.plurals.book_count, bookCount, bookCount),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -125,7 +128,7 @@ private fun CoverFan(
 
             BookCover(
                 imageUrl = url,
-                contentDescription = "Cover from $seriesName",
+                contentDescription = stringResource(R.string.cover_from_series, seriesName),
                 modifier = coverModifier,
             )
         }

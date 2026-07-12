@@ -30,9 +30,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import fi.pomeranssi.bookline.ui.common.PreviewData
@@ -44,8 +46,6 @@ import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SearchField
 import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
-
-private const val UNSHELVED_FILTER_LABEL = "unshelved"
 
 @Composable
 fun LibraryScreen(
@@ -88,7 +88,7 @@ fun LibraryScreen(
 
             if (state.books.isEmpty() && !isRefreshing) {
                 EmptyContent(
-                    message = "No books found in your feed.",
+                    message = stringResource(R.string.empty_no_books),
                     modifier = modifier.fillMaxSize(),
                     icon = {
                         Icon(
@@ -149,7 +149,7 @@ private fun LibraryContent(
         SearchField(
             value = searchQuery,
             onValueChange = onSearchQueryChange,
-            placeholder = "Search books…",
+            placeholder = stringResource(R.string.search_books_placeholder),
             hasActiveFilters = hasActiveFilters,
             onClearAll = {
                 onSearchQueryChange("")
@@ -174,7 +174,7 @@ private fun LibraryContent(
                         FilterChip(
                             selected = selectedShelf == null,
                             onClick = { onShelfSelected(null) },
-                            label = { Text("all") },
+                            label = { Text(stringResource(R.string.filter_all)) },
                         )
                     }
                     item {
@@ -189,7 +189,7 @@ private fun LibraryContent(
                                     },
                                 )
                             },
-                            label = { Text(UNSHELVED_FILTER_LABEL) },
+                            label = { Text(stringResource(R.string.filter_unshelved)) },
                         )
                     }
                     items(availableShelves) { shelf ->
@@ -206,7 +206,7 @@ private fun LibraryContent(
                     IconButton(onClick = { statusExpanded = true }) {
                         Icon(
                             imageVector = Icons.Default.ExpandMore,
-                            contentDescription = "Show reading status filter",
+                            contentDescription = stringResource(R.string.action_show_status_filter),
                         )
                     }
                 }
@@ -216,9 +216,9 @@ private fun LibraryContent(
         AnimatedVisibility(visible = statusExpanded) {
             val statuses =
                 listOf(
-                    ReadingStatus.Read to "read",
-                    ReadingStatus.CurrentlyReading to "currently reading",
-                    ReadingStatus.ToRead to "to read",
+                    ReadingStatus.Read to stringResource(R.string.filter_read),
+                    ReadingStatus.CurrentlyReading to stringResource(R.string.filter_currently_reading),
+                    ReadingStatus.ToRead to stringResource(R.string.filter_to_read),
                 )
             Row {
                 LazyRow(
@@ -233,7 +233,7 @@ private fun LibraryContent(
                         FilterChip(
                             selected = selectedStatus == null,
                             onClick = { onStatusSelected(null) },
-                            label = { Text("all") },
+                            label = { Text(stringResource(R.string.filter_all)) },
                         )
                     }
                     items(statuses) { (status, label) ->
@@ -252,7 +252,7 @@ private fun LibraryContent(
                 }) {
                     Icon(
                         imageVector = Icons.Default.ExpandLess,
-                        contentDescription = "Hide reading status filter",
+                        contentDescription = stringResource(R.string.action_hide_status_filter),
                     )
                 }
             }

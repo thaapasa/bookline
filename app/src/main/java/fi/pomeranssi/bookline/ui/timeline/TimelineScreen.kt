@@ -25,9 +25,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.common.SyncResult
 import fi.pomeranssi.bookline.ui.components.BookCard
@@ -36,6 +38,9 @@ import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
+import java.time.Month
+import java.time.format.TextStyle
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +71,7 @@ fun TimelineScreen(
             val sections = (state as? TimelineUiState.Success)?.sections.orEmpty()
             if (sections.isEmpty() && !isRefreshing) {
                 EmptyContent(
-                    message = "No books found in your feed.",
+                    message = stringResource(R.string.empty_no_books),
                     modifier = modifier,
                     icon = {
                         Icon(
@@ -191,7 +196,7 @@ private fun SectionHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = header.title,
+            text = sectionTitleText(header.title),
             style = style,
             modifier = Modifier.weight(1f),
         )
@@ -203,7 +208,12 @@ private fun SectionHeader(
         )
         Icon(
             imageVector = Icons.Default.ExpandMore,
-            contentDescription = if (header.isCollapsed) "Expand" else "Collapse",
+            contentDescription =
+                if (header.isCollapsed) {
+                    stringResource(R.string.action_expand)
+                } else {
+                    stringResource(R.string.action_collapse)
+                },
             modifier =
                 Modifier
                     .size(24.dp)
@@ -213,11 +223,35 @@ private fun SectionHeader(
     }
 }
 
+/** Resolves a [SectionTitle] to display text in the current locale. */
+@Composable
+private fun sectionTitleText(title: SectionTitle): String =
+    when (title) {
+        is SectionTitle.Text -> {
+            title.value
+        }
+
+        is SectionTitle.MonthName -> {
+            val locale = Locale.getDefault()
+            title.month
+                .getDisplayName(TextStyle.FULL_STANDALONE, locale)
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+        }
+
+        SectionTitle.CurrentlyReading -> {
+            stringResource(R.string.timeline_currently_reading)
+        }
+
+        SectionTitle.DateUnknown -> {
+            stringResource(R.string.timeline_date_unknown)
+        }
+    }
+
 private val previewSections =
     listOf(
         TimelineSection.Header(
             key = "currently-reading",
-            title = "Currently reading",
+            title = SectionTitle.CurrentlyReading,
             level = SectionLevel.Top,
             isCollapsed = false,
             bookCount = 1,
@@ -225,7 +259,7 @@ private val previewSections =
         TimelineSection.BookItem(PreviewData.bookCurrentlyReading),
         TimelineSection.Header(
             key = "2025",
-            title = "2025",
+            title = SectionTitle.Text("2025"),
             level = SectionLevel.Year,
             isCollapsed = false,
             bookCount = 3,
@@ -233,7 +267,7 @@ private val previewSections =
         ),
         TimelineSection.Header(
             key = "2025-12",
-            title = "December",
+            title = SectionTitle.MonthName(Month.DECEMBER),
             level = SectionLevel.Month,
             isCollapsed = false,
             bookCount = 1,
@@ -241,7 +275,7 @@ private val previewSections =
         TimelineSection.BookItem(PreviewData.bookRead),
         TimelineSection.Header(
             key = "2025-11",
-            title = "November",
+            title = SectionTitle.MonthName(Month.NOVEMBER),
             level = SectionLevel.Month,
             isCollapsed = true,
             bookCount = 2,

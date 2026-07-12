@@ -30,9 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.components.BookCard
@@ -71,7 +73,7 @@ fun SeriesDetailScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.action_back),
                         )
                     }
                 },
@@ -79,7 +81,7 @@ fun SeriesDetailScreen(
                     IconButton(onClick = { showRenameDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Rename series",
+                            contentDescription = stringResource(R.string.action_rename_series),
                         )
                     }
                 },
@@ -148,7 +150,7 @@ private fun SeriesDetailContent(
         if (aliases.isNotEmpty()) {
             item(key = "_aliases") {
                 Text(
-                    text = "Also known as: ${aliases.joinToString(", ")}",
+                    text = stringResource(R.string.series_also_known_as, aliases.joinToString(", ")),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 4.dp),
@@ -197,12 +199,12 @@ private fun RenameSeriesDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Rename Series") },
+        title = { Text(stringResource(R.string.rename_series_title)) },
         text = {
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
-                label = { Text("Series name") },
+                label = { Text(stringResource(R.string.series_name_label)) },
                 singleLine = true,
             )
         },
@@ -211,12 +213,12 @@ private fun RenameSeriesDialog(
                 onClick = { onConfirm(text.trim()) },
                 enabled = text.trim().isNotBlank() && text.trim() != currentName,
             ) {
-                Text("Rename")
+                Text(stringResource(R.string.action_rename))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.action_cancel))
             }
         },
     )

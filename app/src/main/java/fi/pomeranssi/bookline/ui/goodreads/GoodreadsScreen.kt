@@ -30,8 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import fi.pomeranssi.bookline.R
 
 private const val TAG = "GoodreadsScreen"
 private const val GOODREADS_URL = "https://www.goodreads.com"
@@ -237,7 +239,7 @@ fun GoodreadsScreen(
                         color = MaterialTheme.colorScheme.inversePrimary,
                     )
                     Text(
-                        text = "Searching for RSS feed…",
+                        text = stringResource(R.string.rss_searching),
                         color = MaterialTheme.colorScheme.inverseOnSurface,
                         style = MaterialTheme.typography.bodyLarge,
                     )
@@ -268,7 +270,7 @@ fun GoodreadsScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.RssFeed,
-                    contentDescription = "Find RSS feed",
+                    contentDescription = stringResource(R.string.action_find_rss_feed),
                 )
             }
         }
@@ -279,21 +281,21 @@ fun GoodreadsScreen(
         is RssDetectionState.Found -> {
             AlertDialog(
                 onDismissRequest = { rssState = RssDetectionState.Idle },
-                title = { Text("RSS Feed Found") },
+                title = { Text(stringResource(R.string.rss_found_title)) },
                 text = {
-                    Text("Found your Goodreads RSS feed URL. Save it to start syncing your books?")
+                    Text(stringResource(R.string.rss_found_text))
                 },
                 confirmButton = {
                     TextButton(onClick = {
                         onRssFeedDetected?.invoke(state.url)
                         rssState = RssDetectionState.Idle
                     }) {
-                        Text("Save")
+                        Text(stringResource(R.string.action_save))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { rssState = RssDetectionState.Idle }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.action_cancel))
                     }
                 },
             )
@@ -302,12 +304,9 @@ fun GoodreadsScreen(
         is RssDetectionState.NotFound -> {
             AlertDialog(
                 onDismissRequest = { rssState = RssDetectionState.Idle },
-                title = { Text("RSS Feed Not Found") },
+                title = { Text(stringResource(R.string.rss_not_found_title)) },
                 text = {
-                    Text(
-                        "Could not find an RSS feed link on this page. " +
-                            "Make sure you are logged in to Goodreads, then try again.",
-                    )
+                    Text(stringResource(R.string.rss_not_found_text))
                 },
                 confirmButton = {
                     TextButton(onClick = {
@@ -316,12 +315,12 @@ fun GoodreadsScreen(
                             wv.loadUrl(REVIEW_LIST_URL)
                         }
                     }) {
-                        Text("Try Again")
+                        Text(stringResource(R.string.action_try_again))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { rssState = RssDetectionState.Idle }) {
-                        Text("Dismiss")
+                        Text(stringResource(R.string.action_dismiss))
                     }
                 },
             )

@@ -33,6 +33,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -47,6 +49,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.booklineApp
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.ui.about.AboutScreen
@@ -202,11 +205,19 @@ fun BooklineApp() {
                     (timelineState as? TimelineUiState.Success)
                         ?.sections
                         ?.count { it is TimelineSection.BookItem }
-                if (count != null && count > 0) "$count books" else null
+                if (count != null && count > 0) {
+                    pluralStringResource(R.plurals.book_count, count, count)
+                } else {
+                    null
+                }
             }
 
             TopLevelRoute.ToRead.route -> {
-                if (toReadBooks.isNotEmpty()) "${toReadBooks.size} books" else null
+                if (toReadBooks.isNotEmpty()) {
+                    pluralStringResource(R.plurals.book_count, toReadBooks.size, toReadBooks.size)
+                } else {
+                    null
+                }
             }
 
             TopLevelRoute.Series.route -> {
@@ -214,8 +225,8 @@ fun BooklineApp() {
                 val filtered = filteredSeries.size
                 when {
                     total == 0 -> null
-                    filtered < total -> "$filtered / $total series"
-                    else -> "$total series"
+                    filtered < total -> pluralStringResource(R.plurals.filtered_series_count, total, filtered, total)
+                    else -> pluralStringResource(R.plurals.series_count, total, total)
                 }
             }
 
@@ -224,8 +235,8 @@ fun BooklineApp() {
                 val filtered = filteredBooks.size
                 when {
                     total == 0 -> null
-                    filtered < total -> "$filtered / $total books"
-                    else -> "$total books"
+                    filtered < total -> pluralStringResource(R.plurals.filtered_book_count, total, filtered, total)
+                    else -> pluralStringResource(R.plurals.book_count, total, total)
                 }
             }
 
@@ -316,10 +327,10 @@ private fun BooklineBottomBar(
                 icon = {
                     Icon(
                         imageVector = destination.icon,
-                        contentDescription = destination.label,
+                        contentDescription = stringResource(destination.labelRes),
                     )
                 },
-                label = { Text(text = destination.label) },
+                label = { Text(text = stringResource(destination.labelRes)) },
             )
         }
     }
@@ -480,7 +491,7 @@ private fun BooklineTopBar(
         title = {
             if (subtitle != null) {
                 Column {
-                    Text("Bookline")
+                    Text(stringResource(R.string.app_name))
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.labelSmall,
@@ -488,7 +499,7 @@ private fun BooklineTopBar(
                     )
                 }
             } else {
-                Text("Bookline")
+                Text(stringResource(R.string.app_name))
             }
         },
         actions = {
@@ -496,7 +507,12 @@ private fun BooklineTopBar(
                 IconButton(onClick = { if (allCollapsed) onExpandAll() else onCollapseAll() }) {
                     Icon(
                         imageVector = if (allCollapsed) Icons.Default.UnfoldMore else Icons.Default.UnfoldLess,
-                        contentDescription = if (allCollapsed) "Expand all" else "Collapse all",
+                        contentDescription =
+                            if (allCollapsed) {
+                                stringResource(R.string.action_expand_all)
+                            } else {
+                                stringResource(R.string.action_collapse_all)
+                            },
                     )
                 }
             }
@@ -504,7 +520,7 @@ private fun BooklineTopBar(
                 IconButton(onClick = onMobileToggle) {
                     Icon(
                         imageVector = Icons.Default.SwapHoriz,
-                        contentDescription = "Toggle mobile/desktop view",
+                        contentDescription = stringResource(R.string.action_toggle_mobile_desktop),
                     )
                 }
             }
@@ -512,7 +528,12 @@ private fun BooklineTopBar(
                 IconButton(onClick = onReorderToggle) {
                     Icon(
                         imageVector = Icons.Default.SwapVert,
-                        contentDescription = if (reorderMode) "Exit reorder mode" else "Reorder list",
+                        contentDescription =
+                            if (reorderMode) {
+                                stringResource(R.string.action_exit_reorder)
+                            } else {
+                                stringResource(R.string.action_reorder_list)
+                            },
                         tint =
                             if (reorderMode) {
                                 MaterialTheme.colorScheme.primary
@@ -525,14 +546,14 @@ private fun BooklineTopBar(
             IconButton(onClick = onGoodreadsClick) {
                 Icon(
                     imageVector = Icons.Default.AutoStories,
-                    contentDescription = "Goodreads",
+                    contentDescription = stringResource(R.string.goodreads),
                     modifier = Modifier.size(24.dp),
                 )
             }
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Menu",
+                    contentDescription = stringResource(R.string.action_menu),
                 )
             }
             DropdownMenu(
@@ -540,7 +561,7 @@ private fun BooklineTopBar(
                 onDismissRequest = { menuExpanded = false },
             ) {
                 DropdownMenuItem(
-                    text = { Text("Settings") },
+                    text = { Text(stringResource(R.string.menu_settings)) },
                     onClick = {
                         menuExpanded = false
                         onSettingsClick()
@@ -553,7 +574,7 @@ private fun BooklineTopBar(
                     },
                 )
                 DropdownMenuItem(
-                    text = { Text("About") },
+                    text = { Text(stringResource(R.string.menu_about)) },
                     onClick = {
                         menuExpanded = false
                         onAboutClick()

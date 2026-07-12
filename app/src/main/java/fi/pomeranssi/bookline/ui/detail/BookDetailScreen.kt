@@ -43,12 +43,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
+import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import fi.pomeranssi.bookline.ui.common.DateFormatters
@@ -73,12 +75,12 @@ fun BookDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Book Details") },
+                title = { Text(stringResource(R.string.book_details_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.action_back),
                         )
                     }
                 },
@@ -136,7 +138,7 @@ private fun BookDetailContent(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Description",
+                text = stringResource(R.string.description_title),
                 style = MaterialTheme.typography.titleSmall,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -164,7 +166,7 @@ private fun BookDetailContent(
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("In app")
+                    Text(stringResource(R.string.link_in_app))
                 }
                 TextButton(
                     onClick = {
@@ -178,7 +180,7 @@ private fun BookDetailContent(
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Goodreads")
+                    Text(stringResource(R.string.goodreads))
                 }
             }
         }
@@ -203,7 +205,7 @@ private fun BookDetailHeader(
     Row(modifier = Modifier.fillMaxWidth()) {
         BookCover(
             imageUrl = book.bestImageUrl,
-            contentDescription = "Cover of ${book.title}",
+            contentDescription = stringResource(R.string.cover_of_book, book.title),
             modifier =
                 Modifier
                     .size(width = 120.dp, height = 180.dp)
@@ -269,7 +271,7 @@ private fun BookDetailHeader(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Currently reading",
+                            text = stringResource(R.string.status_currently_reading),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.tertiary,
                         )
@@ -279,7 +281,11 @@ private fun BookDetailHeader(
                 ReadingStatus.Read -> {
                     book.userReadAt?.let { date ->
                         Text(
-                            text = "Read ${date.format(DateFormatters.displayDate)}",
+                            text =
+                                stringResource(
+                                    R.string.status_read_on,
+                                    date.format(DateFormatters.displayDate),
+                                ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -288,7 +294,7 @@ private fun BookDetailHeader(
 
                 ReadingStatus.ToRead -> {
                     Text(
-                        text = "To read",
+                        text = stringResource(R.string.status_to_read),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -302,14 +308,14 @@ private fun BookDetailHeader(
 private fun MetaSection(book: Book) {
     val items =
         buildList {
-            book.isbn?.let { add("ISBN" to it) }
-            book.numPages?.let { add("Pages" to it.toString()) }
-            book.bookPublishedYear?.let { add("Published" to it.toString()) }
-            book.userReadAt?.let { add("Last read" to it.format(DateFormatters.displayDate)) }
-            book.userDateAdded?.let { add("Date added" to it.format(DateFormatters.displayDate)) }
-            book.userDateCreated?.let { add("Date created" to it.format(DateFormatters.displayDate)) }
+            book.isbn?.let { add(stringResource(R.string.meta_isbn) to it) }
+            book.numPages?.let { add(stringResource(R.string.meta_pages) to it.toString()) }
+            book.bookPublishedYear?.let { add(stringResource(R.string.meta_published) to it.toString()) }
+            book.userReadAt?.let { add(stringResource(R.string.meta_last_read) to it.format(DateFormatters.displayDate)) }
+            book.userDateAdded?.let { add(stringResource(R.string.meta_date_added) to it.format(DateFormatters.displayDate)) }
+            book.userDateCreated?.let { add(stringResource(R.string.meta_date_created) to it.format(DateFormatters.displayDate)) }
             if (book.userShelves.isNotEmpty()) {
-                add("Shelves" to book.userShelves.joinToString(", "))
+                add(stringResource(R.string.meta_shelves) to book.userShelves.joinToString(", "))
             }
         }
 
@@ -324,7 +330,7 @@ private fun MetaSection(book: Book) {
                         .coerceIn(0, 5)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Average rating",
+                        text = stringResource(R.string.meta_average_rating),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(120.dp),
@@ -392,7 +398,7 @@ private fun FullScreenCoverDialog(
         ) {
             AsyncImage(
                 model = imageUrl,
-                contentDescription = "Cover of $title",
+                contentDescription = stringResource(R.string.cover_of_book, title),
                 contentScale = ContentScale.Fit,
                 modifier =
                     Modifier
@@ -408,7 +414,7 @@ private fun FullScreenCoverDialog(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(R.string.action_close),
                     tint = MaterialTheme.colorScheme.inverseOnSurface,
                 )
             }

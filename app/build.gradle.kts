@@ -61,6 +61,11 @@ android {
         buildConfig = true
         compose = true
     }
+    androidResources {
+        // Keep only the locales the app actually ships; also drives the
+        // Android 13+ per-app language picker together with locales_config.xml.
+        localeFilters += listOf("en", "fi")
+    }
     lint {
         warningsAsErrors = true
         // New-version-available checks would fail the build whenever a dependency

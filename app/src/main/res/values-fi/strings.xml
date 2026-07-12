@@ -1,0 +1,147 @@
+<resources>
+    <string name="app_name">Lukujana</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_timeline">Aikajana</string>
+    <string name="nav_to_read">Lukulista</string>
+    <string name="nav_series">Sarjat</string>
+    <string name="nav_library">Kirjasto</string>
+
+    <!-- Top bar -->
+    <string name="action_expand_all">Laajenna kaikki</string>
+    <string name="action_collapse_all">Supista kaikki</string>
+    <string name="action_toggle_mobile_desktop">Vaihda mobiili-/työpöytänäkymä</string>
+    <string name="action_reorder_list">Järjestele listaa</string>
+    <string name="action_exit_reorder">Poistu järjestelytilasta</string>
+    <string name="action_menu">Valikko</string>
+    <string name="menu_settings">Asetukset</string>
+    <string name="menu_about">Tietoja</string>
+    <plurals name="book_count">
+        <item quantity="one">%d kirja</item>
+        <item quantity="other">%d kirjaa</item>
+    </plurals>
+    <plurals name="series_count">
+        <item quantity="one">%d sarja</item>
+        <item quantity="other">%d sarjaa</item>
+    </plurals>
+    <plurals name="filtered_book_count">
+        <item quantity="one">%1$d / %2$d kirja</item>
+        <item quantity="other">%1$d / %2$d kirjaa</item>
+    </plurals>
+    <plurals name="filtered_series_count">
+        <item quantity="one">%1$d / %2$d sarja</item>
+        <item quantity="other">%1$d / %2$d sarjaa</item>
+    </plurals>
+
+    <!-- Common actions -->
+    <string name="action_back">Takaisin</string>
+    <string name="action_save">Tallenna</string>
+    <string name="action_cancel">Peruuta</string>
+    <string name="action_retry">Yritä uudelleen</string>
+    <string name="action_refresh">Päivitä</string>
+    <string name="action_dismiss">Sulje</string>
+    <string name="action_try_again">Yritä uudelleen</string>
+    <string name="action_close">Sulje</string>
+    <string name="action_expand">Laajenna</string>
+    <string name="action_collapse">Supista</string>
+    <string name="action_reorder">Järjestele</string>
+
+    <!-- Timeline sections -->
+    <string name="timeline_currently_reading">Luettavana</string>
+    <string name="timeline_date_unknown">Päivämäärä tuntematon</string>
+
+    <!-- Empty / error states -->
+    <string name="empty_no_books">Syötteestä ei löytynyt kirjoja.</string>
+    <string name="empty_reading_list">Lukulistasi ilmestyy tähän.</string>
+    <string name="empty_no_series">Syötteestä ei löytynyt sarjoja.</string>
+    <string name="no_feed_configured">Määritä Goodreads-RSS-syöte asetuksissa nähdäksesi kirjasi.</string>
+    <string name="error_something_went_wrong">Jokin meni pieleen</string>
+    <string name="sync_failed">Synkronointi epäonnistui: %1$s</string>
+
+    <!-- Search & filters -->
+    <string name="search_books_placeholder">Hae kirjoja…</string>
+    <string name="filter_series_placeholder">Suodata sarjoja…</string>
+    <string name="action_clear_search">Tyhjennä haku</string>
+    <string name="action_clear_all_filters">Poista kaikki suodattimet</string>
+    <string name="filter_all">kaikki</string>
+    <string name="filter_unshelved">hyllyttömät</string>
+    <string name="filter_read">luetut</string>
+    <string name="filter_currently_reading">luettavana</string>
+    <string name="filter_to_read">lukulistalla</string>
+    <string name="action_show_status_filter">Näytä lukutilan suodatin</string>
+    <string name="action_hide_status_filter">Piilota lukutilan suodatin</string>
+
+    <!-- Book card / status -->
+    <string name="cover_of_book">Kirjan %1$s kansi</string>
+    <string name="status_currently_reading">Luettavana</string>
+    <string name="status_to_read">Lukulistalla</string>
+    <string name="status_read_on">Luettu %1$s</string>
+    <plurals name="page_count">
+        <item quantity="one">%d sivu</item>
+        <item quantity="other">%d sivua</item>
+    </plurals>
+    <string name="published_in_year">Julkaistu %1$d</string>
+    <string name="badge_not_in_latest_sync">Ei mukana viimeisimmässä synkronoinnissa</string>
+
+    <!-- Series -->
+    <string name="cover_from_series">Sarjan %1$s kansi</string>
+    <string name="action_rename_series">Nimeä sarja uudelleen</string>
+    <string name="series_also_known_as">Tunnetaan myös nimellä: %1$s</string>
+    <string name="rename_series_title">Nimeä sarja uudelleen</string>
+    <string name="series_name_label">Sarjan nimi</string>
+    <string name="action_rename">Nimeä uudelleen</string>
+
+    <!-- Book detail -->
+    <string name="book_details_title">Kirjan tiedot</string>
+    <string name="description_title">Kuvaus</string>
+    <string name="link_in_app">Sovelluksessa</string>
+    <string name="meta_average_rating">Keskiarvosana</string>
+    <string name="meta_pages">Sivuja</string>
+    <string name="meta_published">Julkaistu</string>
+    <string name="meta_last_read">Viimeksi luettu</string>
+    <string name="meta_date_added">Lisätty</string>
+    <string name="meta_date_created">Luotu</string>
+    <string name="meta_shelves">Hyllyt</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Asetukset</string>
+    <string name="settings_language_section">Kieli</string>
+    <string name="settings_language_system">Järjestelmän oletus</string>
+    <string name="settings_feed_section">Goodreads-RSS-syöte</string>
+    <string name="settings_feed_description">Liitä Goodreads-RSS-syötteesi osoite tai etsi se automaattisesti kirjauduttuasi Goodreadsiin. Osoite sisältää yksityisen avaimen, ja se tallennetaan salattuna tälle laitteelle.</string>
+    <string name="settings_autodetect">Etsi automaattisesti Goodreadsista</string>
+    <string name="settings_feed_url_label">Syötteen osoite</string>
+    <string name="settings_saved">✓ Tallennettu</string>
+    <string name="settings_data_section">Tietojen hallinta</string>
+    <string name="settings_stale_description">Kirjat, jotka eivät olleet mukana viimeisimmässä synkronoinnissa, näytetään himmennettyinä varoitusmerkillä. Alla olevalla painikkeella voit poistaa ne heti odottamatta 30 päivän automaattista siivousta.</string>
+    <plurals name="settings_flush_missing_books">
+        <item quantity="one">Poista %d puuttuva kirja</item>
+        <item quantity="other">Poista %d puuttuvaa kirjaa</item>
+    </plurals>
+    <string name="settings_no_missing_books">Ei puuttuvia kirjoja</string>
+    <string name="settings_missing_books_removed">✓ Puuttuvat kirjat poistettu</string>
+    <string name="settings_clear_description">Tyhjennä kaikki välimuistiin tallennetut kirjatiedot paikallisesta tietokannasta. Syötteen osoite säilytetään. Kirjat ladataan Goodreadsista uudelleen seuraavalla päivityksellä.</string>
+    <string name="settings_clear_all_data">Tyhjennä kaikki tiedot</string>
+    <string name="settings_database_cleared">✓ Tietokanta tyhjennetty</string>
+    <string name="clear_dialog_title">Tyhjennetäänkö kaikki tiedot?</string>
+    <string name="clear_dialog_text">Tämä poistaa kaikki välimuistissa olevat kirjat, sarjat ja järjestysasetukset. Syötteen osoite säilytetään. Tiedot ladataan Goodreadsista uudelleen seuraavalla päivityksellä.</string>
+    <string name="action_clear">Tyhjennä</string>
+
+    <!-- Goodreads screen / RSS detection -->
+    <string name="rss_searching">Etsitään RSS-syötettä…</string>
+    <string name="action_find_rss_feed">Etsi RSS-syöte</string>
+    <string name="rss_found_title">RSS-syöte löytyi</string>
+    <string name="rss_found_text">Goodreads-RSS-syötteesi osoite löytyi. Tallennetaanko se kirjojen synkronointia varten?</string>
+    <string name="rss_not_found_title">RSS-syötettä ei löytynyt</string>
+    <string name="rss_not_found_text">Tältä sivulta ei löytynyt RSS-syötteen linkkiä. Varmista, että olet kirjautunut Goodreadsiin, ja yritä sitten uudelleen.</string>
+
+    <!-- About -->
+    <string name="about_title">Tietoja</string>
+    <string name="about_version">Versio %1$s (%2$d)</string>
+    <string name="about_tagline">Aikajana kirjoillesi.</string>
+    <string name="about_description">Lukujana lukee Goodreads-kirjastosi RSS-syötteen ja esittää luetut ja lukulistalla olevat kirjat visuaalisena aikajanana. Mukana ovat sarjojen selaus, haku ja kokoelman käyttö ilman verkkoyhteyttä.</string>
+    <string name="about_disclaimer">Lukujana on epävirallinen kolmannen osapuolen sovellus. Se ei ole Goodreadsin tai Amazonin tekemä, tukema tai sponsoroima.</string>
+    <string name="about_license">Avointa lähdekoodia MIT-lisenssillä.</string>
+    <string name="about_privacy_policy">Tietosuojakäytäntö</string>
+    <string name="about_source_code">Lähdekoodi GitHubissa</string>
+</resources>
