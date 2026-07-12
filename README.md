@@ -158,11 +158,6 @@ Goodreads. See the full
 linked from the in-app About screen (top bar menu), which shows the app version
 and a link to this repository.
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to open an
-issue or submit a pull request.
-
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
