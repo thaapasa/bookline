@@ -14,7 +14,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 /**
  * Reusable search/filter text field with search icon and clear button.
@@ -68,5 +70,31 @@ fun SearchField(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 88)
+@Composable
+private fun SearchFieldEmptyPreview() {
+    BooklineTheme(dynamicColor = false) {
+        SearchField(
+            value = "",
+            onValueChange = {},
+            placeholder = "Search books…",
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 88)
+@Composable
+private fun SearchFieldWithQueryAndFiltersPreview() {
+    BooklineTheme(dynamicColor = false) {
+        SearchField(
+            value = "rothfuss",
+            onValueChange = {},
+            placeholder = "Search books…",
+            hasActiveFilters = true,
+            onClearAll = {},
+        )
     }
 }

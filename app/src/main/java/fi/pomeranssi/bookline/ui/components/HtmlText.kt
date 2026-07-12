@@ -5,6 +5,8 @@ import android.text.Html
 import android.text.Spanned
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -16,6 +18,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 /**
  * Renders simple HTML (bold, italic, underline, line breaks) as styled Compose text.
@@ -51,6 +56,7 @@ private fun htmlToAnnotatedString(html: String): AnnotatedString {
                         end,
                     )
                 }
+
                 is UnderlineSpan -> addStyle(
                     SpanStyle(textDecoration = TextDecoration.Underline),
                     start,
@@ -58,5 +64,18 @@ private fun htmlToAnnotatedString(html: String): AnnotatedString {
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun HtmlTextPreview() {
+    BooklineTheme(dynamicColor = false) {
+        HtmlText(
+            html = "A review with <b>bold</b>, <i>italic</i>, <b><i>bold italic</i></b> " +
+                "and <u>underlined</u> text.<br>Second line after a break.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(16.dp),
+        )
     }
 }

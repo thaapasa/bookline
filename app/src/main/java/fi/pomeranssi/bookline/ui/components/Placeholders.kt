@@ -19,8 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import fi.pomeranssi.bookline.R
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 @Composable
 fun LoadingContent(modifier: Modifier = Modifier) {
@@ -114,5 +116,43 @@ fun ErrorContent(
         ) {
             Text("Retry")
         }
+    }
+}
+
+@Preview(showBackground = true, heightDp = 240)
+@Composable
+private fun LoadingContentPreview() {
+    BooklineTheme(dynamicColor = false) {
+        LoadingContent()
+    }
+}
+
+@Preview(showBackground = true, heightDp = 400)
+@Composable
+private fun EmptyContentPreview() {
+    BooklineTheme(dynamicColor = false) {
+        EmptyContent(
+            message = "No books found. Pull down to refresh your library.",
+            onRefresh = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, heightDp = 400)
+@Composable
+private fun NoFeedConfiguredContentPreview() {
+    BooklineTheme(dynamicColor = false) {
+        NoFeedConfiguredContent()
+    }
+}
+
+@Preview(showBackground = true, heightDp = 400)
+@Composable
+private fun ErrorContentPreview() {
+    BooklineTheme(dynamicColor = false) {
+        ErrorContent(
+            message = "Could not reach Goodreads: connection timed out",
+            onRetry = {},
+        )
     }
 }

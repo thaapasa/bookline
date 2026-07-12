@@ -14,21 +14,24 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import fi.pomeranssi.bookline.domain.model.Series
+import fi.pomeranssi.bookline.ui.common.PreviewData
+import fi.pomeranssi.bookline.ui.common.SyncResult
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SearchField
 import fi.pomeranssi.bookline.ui.components.SeriesCard
 import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
-import fi.pomeranssi.bookline.ui.common.SyncResult
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 @Composable
 fun SeriesListScreen(
@@ -86,42 +89,90 @@ fun SeriesListScreen(
                     onRefresh = { viewModel.refresh() },
                     modifier = modifier.fillMaxSize(),
                 ) {
-                    Column {
-                        SearchField(
-                            value = filterText,
-                            onValueChange = { viewModel.filterText.value = it },
-                            placeholder = "Filter series…",
-                        )
-                        LazyColumn(
-                            contentPadding = PaddingValues(
-                                start = 16.dp,
-                                end = 16.dp,
-                                bottom = 8.dp,
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            val syncError = lastSyncResult
-                            if (syncError is SyncResult.Error) {
-                                item(key = "__sync_error__") {
-                                    SyncErrorBanner(
-                                        message = syncError.message,
-                                        onRetry = { viewModel.refresh() },
-                                    )
-                                }
-                            }
-                            items(
-                                items = filteredSeries,
-                                key = { it.name },
-                            ) { series ->
-                                SeriesCard(
-                                    series = series,
-                                    onClick = { onSeriesClick(series.name) },
-                                )
-                            }
-                        }
-                    }
+                    SeriesListContent(
+                        series = filteredSeries,
+                        filterText = filterText,
+                        onFilterTextChange = { viewModel.filterText.value = it },
+                        syncErrorMessage = (lastSyncResult as? SyncResult.Error)?.message,
+                        onRetrySync = { viewModel.refresh() },
+                        onSeriesClick = onSeriesClick,
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SeriesListContent(
+    series: List<Series>,
+    filterText: String,
+    onFilterTextChange: (String) -> Unit,
+    syncErrorMessage: String?,
+    onRetrySync: () -> Unit,
+    onSeriesClick: (seriesName: String) -> Unit,
+) {
+    Column {
+        SearchField(
+            value = filterText,
+            onValueChange = onFilterTextChange,
+            placeholder = "Filter series…",
+        )
+        LazyColumn(
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                bottom = 8.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (syncErrorMessage != null) {
+                item(key = "__sync_error__") {
+                    SyncErrorBanner(
+                        message = syncErrorMessage,
+                        onRetry = onRetrySync,
+                    )
+                }
+            }
+            items(
+                items = series,
+                key = { it.name },
+            ) { item ->
+                SeriesCard(
+                    series = item,
+                    onClick = { onSeriesClick(item.name) },
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun SeriesListContentPreview() {
+    BooklineTheme(dynamicColor = false) {
+        SeriesListContent(
+            series = PreviewData.seriesList,
+            filterText = "",
+            onFilterTextChange = {},
+            syncErrorMessage = null,
+            onRetrySync = {},
+            onSeriesClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun SeriesListContentWithErrorPreview() {
+    BooklineTheme(dynamicColor = false) {
+        SeriesListContent(
+            series = PreviewData.seriesList.take(1),
+            filterText = "horizon",
+            onFilterTextChange = {},
+            syncErrorMessage = "Could not reach Goodreads: connection timed out",
+            onRetrySync = {},
+            onSeriesClick = {},
+        )
     }
 }

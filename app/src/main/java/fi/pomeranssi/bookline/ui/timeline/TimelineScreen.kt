@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import fi.pomeranssi.bookline.ui.components.BookCard
@@ -32,7 +33,9 @@ import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
+import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.common.SyncResult
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,57 +82,72 @@ fun TimelineScreen(
                     onRefresh = viewModel::refresh,
                     modifier = modifier,
                 ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        item { Spacer(modifier = Modifier.height(4.dp)) }
-                        val syncError = lastSyncResult
-                        if (syncError is SyncResult.Error) {
-                            item(key = "__sync_error__") {
-                                SyncErrorBanner(
-                                    message = syncError.message,
-                                    onRetry = viewModel::refresh,
-                                )
-                            }
-                        }
-                        items(
-                            items = sections,
-                            key = { section ->
-                                when (section) {
-                                    is TimelineSection.Header -> section.key
-                                    is TimelineSection.BookItem -> section.book.bookId
-                                }
-                            },
-                        ) { section ->
-                            when (section) {
-                                is TimelineSection.Header -> SectionHeader(
-                                    header = section,
-                                    onToggle = {
-                                        if (section.level == SectionLevel.Year) {
-                                            viewModel.toggleYear(
-                                                section.key,
-                                                section.childKeys,
-                                            )
-                                        } else {
-                                            viewModel.toggleSection(section.key)
-                                        }
-                                    },
-                                )
-
-                                is TimelineSection.BookItem -> BookCard(
-                                    book = section.book,
-                                    onClick = { onBookClick(section.book.bookId) },
-                                )
-                            }
-                        }
-                        item { Spacer(modifier = Modifier.height(4.dp)) }
-                    }
+                    TimelineContent(
+                        sections = sections,
+                        syncErrorMessage = (lastSyncResult as? SyncResult.Error)?.message,
+                        onRetrySync = viewModel::refresh,
+                        onToggleYear = viewModel::toggleYear,
+                        onToggleSection = viewModel::toggleSection,
+                        onBookClick = onBookClick,
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TimelineContent(
+    sections: List<TimelineSection>,
+    syncErrorMessage: String?,
+    onRetrySync: () -> Unit,
+    onToggleYear: (key: String, childKeys: List<String>) -> Unit,
+    onToggleSection: (key: String) -> Unit,
+    onBookClick: (String) -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item { Spacer(modifier = Modifier.height(4.dp)) }
+        if (syncErrorMessage != null) {
+            item(key = "__sync_error__") {
+                SyncErrorBanner(
+                    message = syncErrorMessage,
+                    onRetry = onRetrySync,
+                )
+            }
+        }
+        items(
+            items = sections,
+            key = { section ->
+                when (section) {
+                    is TimelineSection.Header -> section.key
+                    is TimelineSection.BookItem -> section.book.bookId
+                }
+            },
+        ) { section ->
+            when (section) {
+                is TimelineSection.Header -> SectionHeader(
+                    header = section,
+                    onToggle = {
+                        if (section.level == SectionLevel.Year) {
+                            onToggleYear(section.key, section.childKeys)
+                        } else {
+                            onToggleSection(section.key)
+                        }
+                    },
+                )
+
+                is TimelineSection.BookItem -> BookCard(
+                    book = section.book,
+                    onClick = { onBookClick(section.book.bookId) },
+                )
+            }
+        }
+        item { Spacer(modifier = Modifier.height(4.dp)) }
     }
 }
 
@@ -180,6 +198,70 @@ private fun SectionHeader(
                 .size(24.dp)
                 .rotate(rotation),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+private val previewSections = listOf(
+    TimelineSection.Header(
+        key = "currently-reading",
+        title = "Currently reading",
+        level = SectionLevel.Top,
+        isCollapsed = false,
+        bookCount = 1,
+    ),
+    TimelineSection.BookItem(PreviewData.bookCurrentlyReading),
+    TimelineSection.Header(
+        key = "2025",
+        title = "2025",
+        level = SectionLevel.Year,
+        isCollapsed = false,
+        bookCount = 3,
+        childKeys = listOf("2025-12", "2025-11"),
+    ),
+    TimelineSection.Header(
+        key = "2025-12",
+        title = "December",
+        level = SectionLevel.Month,
+        isCollapsed = false,
+        bookCount = 1,
+    ),
+    TimelineSection.BookItem(PreviewData.bookRead),
+    TimelineSection.Header(
+        key = "2025-11",
+        title = "November",
+        level = SectionLevel.Month,
+        isCollapsed = true,
+        bookCount = 2,
+    ),
+)
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun TimelineContentPreview() {
+    BooklineTheme(dynamicColor = false) {
+        TimelineContent(
+            sections = previewSections,
+            syncErrorMessage = null,
+            onRetrySync = {},
+            onToggleYear = { _, _ -> },
+            onToggleSection = {},
+            onBookClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun TimelineContentWithErrorPreview() {
+    BooklineTheme(dynamicColor = false) {
+        TimelineContent(
+            sections = previewSections,
+            syncErrorMessage = "Could not reach Goodreads: connection timed out",
+            onRetrySync = {},
+            onToggleYear = { _, _ -> },
+            onToggleSection = {},
+            onBookClick = {},
         )
     }
 }

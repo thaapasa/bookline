@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import fi.pomeranssi.bookline.ui.common.DateFormatters
+import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
-import java.time.LocalDate
 
 @Composable
 fun BookCard(
@@ -206,33 +206,11 @@ fun BookCard(
     }
 }
 
-private val previewBook = Book(
-    bookId = "preview-1",
-    title = "The Name of the Wind",
-    authorName = "Patrick Rothfuss",
-    isbn = "978-0756404741",
-    numPages = 662,
-    bookPublishedYear = 2007,
-    bookDescription = null,
-    imageUrl = "https://placeholder",
-    smallImageUrl = null,
-    mediumImageUrl = null,
-    largeImageUrl = null,
-    userRating = 4,
-    averageRating = 4.55,
-    userReadAt = LocalDate.of(2025, 12, 15),
-    userDateAdded = null,
-    userDateCreated = null,
-    userShelves = listOf("read"),
-    userReview = null,
-    goodreadsUrl = null,
-)
-
 @Preview(showBackground = true)
 @Composable
 private fun BookCardPreview() {
     BooklineTheme(dynamicColor = false) {
-        BookCard(book = previewBook, modifier = Modifier.padding(16.dp))
+        BookCard(book = PreviewData.bookRead, modifier = Modifier.padding(16.dp))
     }
 }
 
@@ -241,12 +219,7 @@ private fun BookCardPreview() {
 private fun BookCardCurrentlyReadingPreview() {
     BooklineTheme(dynamicColor = false) {
         BookCard(
-            book = previewBook.copy(
-                title = "A Wise Man's Fear",
-                userRating = 0,
-                userReadAt = null,
-                userShelves = listOf("currently-reading"),
-            ),
+            book = PreviewData.bookCurrentlyReading,
             modifier = Modifier.padding(16.dp),
         )
     }
@@ -257,7 +230,7 @@ private fun BookCardCurrentlyReadingPreview() {
 private fun BookCardStalePreview() {
     BooklineTheme(dynamicColor = false) {
         BookCard(
-            book = previewBook.copy(isStale = true),
+            book = PreviewData.bookRead.copy(isStale = true),
             modifier = Modifier.padding(16.dp),
         )
     }

@@ -21,9 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import fi.pomeranssi.bookline.domain.model.Series
+import fi.pomeranssi.bookline.ui.common.PreviewData
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 /**
  * Card displaying a book series with an overlapping fan of up to 3 covers.
@@ -124,5 +127,40 @@ private fun CoverFan(
                 modifier = coverModifier,
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SeriesCardPreview() {
+    BooklineTheme(dynamicColor = false) {
+        SeriesCard(
+            series = PreviewData.series,
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SeriesCardSingleBookPreview() {
+    BooklineTheme(dynamicColor = false) {
+        SeriesCard(
+            series = PreviewData.series.copy(books = listOf(PreviewData.bookRead)),
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SeriesCardNoCoversPreview() {
+    BooklineTheme(dynamicColor = false) {
+        SeriesCard(
+            series = PreviewData.series.copy(
+                books = PreviewData.books.map { it.copy(imageUrl = null) },
+            ),
+            modifier = Modifier.padding(16.dp),
+        )
     }
 }

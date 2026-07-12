@@ -30,16 +30,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
+import fi.pomeranssi.bookline.ui.common.PreviewData
+import fi.pomeranssi.bookline.ui.common.SyncResult
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SearchField
 import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
-import fi.pomeranssi.bookline.ui.common.SyncResult
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
+
+private const val UNSHELVED_FILTER_LABEL = "unshelved"
 
 @Composable
 fun LibraryScreen(
@@ -100,147 +106,218 @@ fun LibraryScreen(
                     onRefresh = { viewModel.refresh() },
                     modifier = modifier.fillMaxSize(),
                 ) {
-                    Column {
-                        val hasActiveFilters = searchQuery.isNotEmpty()
-                            || selectedShelf != null
-                            || selectedStatus != null
-                        SearchField(
-                            value = searchQuery,
-                            onValueChange = { viewModel.searchQuery.value = it },
-                            placeholder = "Search books…",
-                            hasActiveFilters = hasActiveFilters,
-                            onClearAll = {
-                                viewModel.searchQuery.value = ""
-                                viewModel.selectedShelf.value = null
-                                viewModel.selectedStatus.value = null
-                            },
+                    LibraryContent(
+                        books = filteredBooks,
+                        searchQuery = searchQuery,
+                        onSearchQueryChange = { viewModel.searchQuery.value = it },
+                        selectedStatus = selectedStatus,
+                        onStatusSelected = { viewModel.selectedStatus.value = it },
+                        selectedShelf = selectedShelf,
+                        onShelfSelected = { viewModel.selectedShelf.value = it },
+                        availableShelves = availableShelves,
+                        unshelvedFilter = viewModel.unshelvedFilter,
+                        syncErrorMessage = (lastSyncResult as? SyncResult.Error)?.message,
+                        onRetrySync = { viewModel.refresh() },
+                        onBookClick = onBookClick,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LibraryContent(
+    books: List<Book>,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    selectedStatus: ReadingStatus?,
+    onStatusSelected: (ReadingStatus?) -> Unit,
+    selectedShelf: String?,
+    onShelfSelected: (String?) -> Unit,
+    availableShelves: List<String>,
+    unshelvedFilter: String,
+    syncErrorMessage: String?,
+    onRetrySync: () -> Unit,
+    onBookClick: (bookId: String) -> Unit,
+) {
+    Column {
+        val hasActiveFilters = searchQuery.isNotEmpty()
+            || selectedShelf != null
+            || selectedStatus != null
+        SearchField(
+            value = searchQuery,
+            onValueChange = onSearchQueryChange,
+            placeholder = "Search books…",
+            hasActiveFilters = hasActiveFilters,
+            onClearAll = {
+                onSearchQueryChange("")
+                onShelfSelected(null)
+                onStatusSelected(null)
+            },
+        )
+
+        var statusExpanded by rememberSaveable { mutableStateOf(false) }
+
+        if (availableShelves.isNotEmpty()) {
+            Row {
+                LazyRow(
+                    contentPadding = PaddingValues(start = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(bottom = 4.dp),
+                ) {
+                    item {
+                        FilterChip(
+                            selected = selectedShelf == null,
+                            onClick = { onShelfSelected(null) },
+                            label = { Text("all") },
                         )
-
-                        var statusExpanded by rememberSaveable { mutableStateOf(false) }
-
-                        if (availableShelves.isNotEmpty()) {
-                            Row {
-                                LazyRow(
-                                    contentPadding = PaddingValues(start = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(bottom = 4.dp),
-                                ) {
-                                    item {
-                                        FilterChip(
-                                            selected = selectedShelf == null,
-                                            onClick = { viewModel.selectedShelf.value = null },
-                                            label = { Text("all") },
-                                        )
-                                    }
-                                    item {
-                                        FilterChip(
-                                            selected = selectedShelf == viewModel.unshelvedFilter,
-                                            onClick = {
-                                                viewModel.selectedShelf.value =
-                                                    if (selectedShelf == viewModel.unshelvedFilter) null
-                                                    else viewModel.unshelvedFilter
-                                            },
-                                            label = { Text("unshelved") },
-                                        )
-                                    }
-                                    items(availableShelves) { shelf ->
-                                        FilterChip(
-                                            selected = selectedShelf == shelf,
-                                            onClick = {
-                                                viewModel.selectedShelf.value =
-                                                    if (selectedShelf == shelf) null else shelf
-                                            },
-                                            label = { Text(shelf) },
-                                        )
-                                    }
-                                }
-                                if (!statusExpanded) {
-                                    IconButton(onClick = { statusExpanded = true }) {
-                                        Icon(
-                                            imageVector = Icons.Default.ExpandMore,
-                                            contentDescription = "Show reading status filter",
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        AnimatedVisibility(visible = statusExpanded) {
-                            val statuses = listOf(
-                                ReadingStatus.Read to "read",
-                                ReadingStatus.CurrentlyReading to "currently reading",
-                                ReadingStatus.ToRead to "to read",
-                            )
-                            Row {
-                                LazyRow(
-                                    contentPadding = PaddingValues(start = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(bottom = 4.dp),
-                                ) {
-                                    item {
-                                        FilterChip(
-                                            selected = selectedStatus == null,
-                                            onClick = { viewModel.selectedStatus.value = null },
-                                            label = { Text("all") },
-                                        )
-                                    }
-                                    items(statuses) { (status, label) ->
-                                        FilterChip(
-                                            selected = selectedStatus == status,
-                                            onClick = {
-                                                viewModel.selectedStatus.value =
-                                                    if (selectedStatus == status) null else status
-                                            },
-                                            label = { Text(label) },
-                                        )
-                                    }
-                                }
-                                IconButton(onClick = {
-                                    statusExpanded = false
-                                    viewModel.selectedStatus.value = null
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.ExpandLess,
-                                        contentDescription = "Hide reading status filter",
-                                    )
-                                }
-                            }
-                        }
-
-                        LazyColumn(
-                            contentPadding = PaddingValues(
-                                start = 16.dp,
-                                end = 16.dp,
-                                bottom = 8.dp,
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            val syncError = lastSyncResult
-                            if (syncError is SyncResult.Error) {
-                                item(key = "__sync_error__") {
-                                    SyncErrorBanner(
-                                        message = syncError.message,
-                                        onRetry = { viewModel.refresh() },
-                                    )
-                                }
-                            }
-                            items(
-                                items = filteredBooks,
-                                key = { it.bookId },
-                            ) { book ->
-                                BookCard(
-                                    book = book,
-                                    onClick = { onBookClick(book.bookId) },
+                    }
+                    item {
+                        FilterChip(
+                            selected = selectedShelf == unshelvedFilter,
+                            onClick = {
+                                onShelfSelected(
+                                    if (selectedShelf == unshelvedFilter) null
+                                    else unshelvedFilter,
                                 )
-                            }
-                        }
+                            },
+                            label = { Text(UNSHELVED_FILTER_LABEL) },
+                        )
+                    }
+                    items(availableShelves) { shelf ->
+                        FilterChip(
+                            selected = selectedShelf == shelf,
+                            onClick = {
+                                onShelfSelected(if (selectedShelf == shelf) null else shelf)
+                            },
+                            label = { Text(shelf) },
+                        )
+                    }
+                }
+                if (!statusExpanded) {
+                    IconButton(onClick = { statusExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.ExpandMore,
+                            contentDescription = "Show reading status filter",
+                        )
                     }
                 }
             }
         }
+
+        AnimatedVisibility(visible = statusExpanded) {
+            val statuses = listOf(
+                ReadingStatus.Read to "read",
+                ReadingStatus.CurrentlyReading to "currently reading",
+                ReadingStatus.ToRead to "to read",
+            )
+            Row {
+                LazyRow(
+                    contentPadding = PaddingValues(start = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(bottom = 4.dp),
+                ) {
+                    item {
+                        FilterChip(
+                            selected = selectedStatus == null,
+                            onClick = { onStatusSelected(null) },
+                            label = { Text("all") },
+                        )
+                    }
+                    items(statuses) { (status, label) ->
+                        FilterChip(
+                            selected = selectedStatus == status,
+                            onClick = {
+                                onStatusSelected(if (selectedStatus == status) null else status)
+                            },
+                            label = { Text(label) },
+                        )
+                    }
+                }
+                IconButton(onClick = {
+                    statusExpanded = false
+                    onStatusSelected(null)
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.ExpandLess,
+                        contentDescription = "Hide reading status filter",
+                    )
+                }
+            }
+        }
+
+        LazyColumn(
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                bottom = 8.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (syncErrorMessage != null) {
+                item(key = "__sync_error__") {
+                    SyncErrorBanner(
+                        message = syncErrorMessage,
+                        onRetry = onRetrySync,
+                    )
+                }
+            }
+            items(
+                items = books,
+                key = { it.bookId },
+            ) { book ->
+                BookCard(
+                    book = book,
+                    onClick = { onBookClick(book.bookId) },
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun LibraryContentPreview() {
+    BooklineTheme(dynamicColor = false) {
+        LibraryContent(
+            books = PreviewData.books,
+            searchQuery = "",
+            onSearchQueryChange = {},
+            selectedStatus = null,
+            onStatusSelected = {},
+            selectedShelf = null,
+            onShelfSelected = {},
+            availableShelves = listOf("fantasy", "sci-fi"),
+            unshelvedFilter = "__unshelved__",
+            syncErrorMessage = null,
+            onRetrySync = {},
+            onBookClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun LibraryContentFilteredWithErrorPreview() {
+    BooklineTheme(dynamicColor = false) {
+        LibraryContent(
+            books = listOf(PreviewData.bookRead),
+            searchQuery = "horizon",
+            onSearchQueryChange = {},
+            selectedStatus = null,
+            onStatusSelected = {},
+            selectedShelf = "fantasy",
+            onShelfSelected = {},
+            availableShelves = listOf("fantasy", "sci-fi"),
+            unshelvedFilter = "__unshelved__",
+            syncErrorMessage = "Could not reach Goodreads: connection timed out",
+            onRetrySync = {},
+            onBookClick = {},
+        )
     }
 }

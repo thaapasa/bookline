@@ -31,8 +31,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fi.pomeranssi.bookline.domain.model.Book
+import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.components.BookCard
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,49 +103,18 @@ fun SeriesDetailScreen(
             }
 
             is SeriesDetailUiState.Success -> {
-                LazyColumn(
+                SeriesDetailContent(
+                    seriesName = state.seriesName,
+                    aliases = state.aliases,
+                    books = state.books,
+                    onBookClick = onBookClick,
                     contentPadding = PaddingValues(
                         start = 16.dp,
                         end = 16.dp,
                         top = innerPadding.calculateTopPadding() + 8.dp,
                         bottom = innerPadding.calculateBottomPadding() + 8.dp,
                     ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (state.aliases.isNotEmpty()) {
-                        item(key = "_aliases") {
-                            Text(
-                                text = "Also known as: ${state.aliases.joinToString(", ")}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 4.dp),
-                            )
-                        }
-                    }
-                    items(
-                        items = state.books,
-                        key = { it.bookId },
-                    ) { book ->
-                        val position = book.seriesEntries
-                            .firstOrNull { it.seriesName == state.seriesName }
-                            ?.position
-
-                        val positionLabel = position?.let { pos ->
-                            if (pos == pos.toLong().toDouble()) "#${pos.toLong()}"
-                            else "#$pos"
-                        }
-
-                        BookCard(
-                            book = if (positionLabel != null) {
-                                book.copy(title = "$positionLabel — ${book.title}")
-                            } else {
-                                book
-                            },
-                            showSeriesInfo = false,
-                            onClick = { onBookClick(book.bookId) },
-                        )
-                    }
-                }
+                )
 
                 if (showRenameDialog) {
                     RenameSeriesDialog(
@@ -154,6 +127,54 @@ fun SeriesDetailScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SeriesDetailContent(
+    seriesName: String,
+    aliases: List<String>,
+    books: List<Book>,
+    onBookClick: (bookId: String) -> Unit,
+    contentPadding: PaddingValues,
+) {
+    LazyColumn(
+        contentPadding = contentPadding,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (aliases.isNotEmpty()) {
+            item(key = "_aliases") {
+                Text(
+                    text = "Also known as: ${aliases.joinToString(", ")}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+            }
+        }
+        items(
+            items = books,
+            key = { it.bookId },
+        ) { book ->
+            val position = book.seriesEntries
+                .firstOrNull { it.seriesName == seriesName }
+                ?.position
+
+            val positionLabel = position?.let { pos ->
+                if (pos == pos.toLong().toDouble()) "#${pos.toLong()}"
+                else "#$pos"
+            }
+
+            BookCard(
+                book = if (positionLabel != null) {
+                    book.copy(title = "$positionLabel — ${book.title}")
+                } else {
+                    book
+                },
+                showSeriesInfo = false,
+                onClick = { onBookClick(book.bookId) },
+            )
         }
     }
 }
@@ -191,4 +212,30 @@ private fun RenameSeriesDialog(
             }
         },
     )
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 560)
+@Composable
+private fun SeriesDetailContentPreview() {
+    BooklineTheme(dynamicColor = false) {
+        SeriesDetailContent(
+            seriesName = PreviewData.series.name,
+            aliases = listOf("The Horizon Saga"),
+            books = PreviewData.series.books,
+            onBookClick = {},
+            contentPadding = PaddingValues(16.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RenameSeriesDialogPreview() {
+    BooklineTheme(dynamicColor = false) {
+        RenameSeriesDialog(
+            currentName = PreviewData.series.name,
+            onDismiss = {},
+            onConfirm = {},
+        )
+    }
 }

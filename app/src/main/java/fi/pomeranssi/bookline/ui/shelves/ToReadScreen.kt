@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.shadow
 import fi.pomeranssi.bookline.domain.model.ToReadBookItem
@@ -36,7 +37,9 @@ import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
+import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.common.SyncResult
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -82,29 +85,43 @@ fun ToReadScreen(
                     onBookClick = onBookClick,
                 )
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    item { Spacer(modifier = Modifier.height(4.dp)) }
-                    val syncError = lastSyncResult
-                    if (syncError is SyncResult.Error) {
-                        item(key = "__sync_error__") {
-                            SyncErrorBanner(
-                                message = syncError.message,
-                                onRetry = { viewModel.refresh() },
-                            )
-                        }
-                    }
-                    items(items = items, key = { it.book.bookId }) { item ->
-                        BookCard(book = item.book, onClick = { onBookClick(item.book.bookId) })
-                    }
-                    item { Spacer(modifier = Modifier.height(4.dp)) }
-                }
+                ToReadList(
+                    items = items,
+                    syncErrorMessage = (lastSyncResult as? SyncResult.Error)?.message,
+                    onRetrySync = { viewModel.refresh() },
+                    onBookClick = onBookClick,
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun ToReadList(
+    items: List<ToReadBookItem>,
+    syncErrorMessage: String?,
+    onRetrySync: () -> Unit,
+    onBookClick: (String) -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item { Spacer(modifier = Modifier.height(4.dp)) }
+        if (syncErrorMessage != null) {
+            item(key = "__sync_error__") {
+                SyncErrorBanner(
+                    message = syncErrorMessage,
+                    onRetry = onRetrySync,
+                )
+            }
+        }
+        items(items = items, key = { it.book.bookId }) { item ->
+            BookCard(book = item.book, onClick = { onBookClick(item.book.bookId) })
+        }
+        item { Spacer(modifier = Modifier.height(4.dp)) }
     }
 }
 
@@ -196,5 +213,43 @@ private fun ReorderableToReadList(
             }
         }
         item { Spacer(modifier = Modifier.height(4.dp)) }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 560)
+@Composable
+private fun ToReadListPreview() {
+    BooklineTheme(dynamicColor = false) {
+        ToReadList(
+            items = PreviewData.toReadItems,
+            syncErrorMessage = null,
+            onRetrySync = {},
+            onBookClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 560)
+@Composable
+private fun ToReadListWithErrorPreview() {
+    BooklineTheme(dynamicColor = false) {
+        ToReadList(
+            items = PreviewData.toReadItems,
+            syncErrorMessage = "Could not reach Goodreads: connection timed out",
+            onRetrySync = {},
+            onBookClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 560)
+@Composable
+private fun ReorderableToReadListPreview() {
+    BooklineTheme(dynamicColor = false) {
+        ReorderableToReadList(
+            items = PreviewData.toReadItems,
+            onBookMoved = { _, _ -> },
+            onBookClick = {},
+        )
     }
 }

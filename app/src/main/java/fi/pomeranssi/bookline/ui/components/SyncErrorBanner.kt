@@ -19,7 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 /**
  * A persistent banner shown when the last RSS sync failed.
@@ -65,5 +67,17 @@ fun SyncErrorBanner(
                 Text("Retry")
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SyncErrorBannerPreview() {
+    BooklineTheme(dynamicColor = false) {
+        SyncErrorBanner(
+            message = "Could not reach Goodreads: connection timed out",
+            onRetry = {},
+            modifier = Modifier.padding(16.dp),
+        )
     }
 }

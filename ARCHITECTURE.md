@@ -65,7 +65,7 @@ fi.pomeranssi.bookline
 │   │   ├── BooklineApp           # Top-level scaffold with TopAppBar + BottomNavBar
 │   │   └── TopLevelRoute         # Enum of bottom-nav destinations
 │   ├── components                # Shared UI components (BookCard, SeriesCard, BookCover, SearchField, SyncErrorBanner, placeholders)
-│   ├── common                    # Cross-cutting utilities (SyncCoordinator, DateFormatters)
+│   ├── common                    # Cross-cutting utilities (SyncCoordinator, DateFormatters, PreviewData fixtures)
 │   ├── timeline                  # Timeline screen (main screen)
 │   │   ├── TimelineScreen        # LazyColumn of book cards with covers
 │   │   └── TimelineViewModel     # Loads feed, exposes TimelineUiState

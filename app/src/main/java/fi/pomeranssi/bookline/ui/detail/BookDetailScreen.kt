@@ -20,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Star
@@ -45,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -53,8 +53,11 @@ import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Book
 import fi.pomeranssi.bookline.domain.model.ReadingStatus
 import fi.pomeranssi.bookline.ui.common.DateFormatters
+import fi.pomeranssi.bookline.ui.common.PreviewData
+import fi.pomeranssi.bookline.ui.components.BookCover
 import fi.pomeranssi.bookline.ui.components.HtmlText
 import fi.pomeranssi.bookline.ui.components.LoadingContent
+import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -197,29 +200,13 @@ private fun BookDetailHeader(
     onSeriesClick: (String) -> Unit,
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
-        val imageUrl = book.bestImageUrl
-        if (imageUrl != null) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = "Cover of ${book.title}",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(width = 120.dp, height = 180.dp)
-                    .clickable(onClick = onCoverClick),
-            )
-        } else {
-            Box(
-                modifier = Modifier.size(width = 120.dp, height = 180.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Book,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+        BookCover(
+            imageUrl = book.bestImageUrl,
+            contentDescription = "Cover of ${book.title}",
+            modifier = Modifier
+                .size(width = 120.dp, height = 180.dp)
+                .clickable(onClick = onCoverClick),
+        )
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -415,6 +402,30 @@ private fun FullScreenCoverDialog(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 780)
+@Composable
+private fun BookDetailContentPreview() {
+    BooklineTheme(dynamicColor = false) {
+        BookDetailContent(
+            book = PreviewData.bookRead,
+            onOpenGoodreads = {},
+            onSeriesClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 480)
+@Composable
+private fun BookDetailContentToReadPreview() {
+    BooklineTheme(dynamicColor = false) {
+        BookDetailContent(
+            book = PreviewData.bookToRead,
+            onOpenGoodreads = {},
+            onSeriesClick = {},
+        )
     }
 }
 
