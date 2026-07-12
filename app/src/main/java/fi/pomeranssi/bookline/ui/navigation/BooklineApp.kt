@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -31,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -46,7 +46,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.booklineApp
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.ui.detail.BookDetailScreen
@@ -513,7 +512,7 @@ private fun BooklineTopBar(
             }
             IconButton(onClick = onGoodreadsClick) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_goodreads),
+                    imageVector = Icons.Default.AutoStories,
                     contentDescription = "Goodreads",
                     modifier = Modifier.size(24.dp),
                 )

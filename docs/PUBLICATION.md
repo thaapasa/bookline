@@ -15,25 +15,14 @@ with Goodreads or Amazon. Personal use only at present.
 
 ## Blockers (must fix before public release)
 
-### 1. Replace the Goodreads "G" logo
-
-- `app/src/main/res/drawable/ic_goodreads.xml` is the literal stylized
-  Goodreads brand mark. Owned by Amazon.
-- Used in `BooklineApp.kt:476` (top bar globe slot) and
-  `BookDetailScreen.kt:172` ("View on Goodreads" button).
-- **Action:** swap to a generic icon — `Icons.Filled.OpenInNew` or
-  `Icons.Filled.Public` — and delete `ic_goodreads.xml`. Keep the
-  *word* "Goodreads" as a plain text label where descriptive
-  (nominative fair use).
-
-### 2. Unaffiliated disclaimer
+### 1. Unaffiliated disclaimer
 
 - App About screen and Play Store listing must state, prominently:
   > Bookline is an unofficial, third-party app. Not affiliated with,
   > endorsed by, or sponsored by Goodreads or Amazon.
 - Settings screen is the natural home for an About section.
 
-### 3. Privacy policy
+### 2. Privacy policy
 
 - Required by Google Play for any app collecting/storing user data.
 - Bookline stores: encrypted Goodreads feed URL (Android Keystore),
@@ -49,7 +38,7 @@ with Goodreads or Amazon. Personal use only at present.
 - Host on a public URL (GitHub Pages off the project repo is fine).
 - Link from Play Store listing and from the About screen.
 
-### 4. Read Goodreads ToS
+### 3. Read Goodreads ToS
 
 - https://www.goodreads.com/about/terms
 - Look for clauses on:
@@ -97,8 +86,8 @@ with Goodreads or Amazon. Personal use only at present.
 
 ## Pre-release checklist
 
-- [ ] Replace `ic_goodreads.xml` with generic icon at both usage sites.
-- [ ] Delete `ic_goodreads.xml`.
+- [x] Replace `ic_goodreads.xml` with generic icon at both usage sites.
+- [x] Delete `ic_goodreads.xml`.
 - [ ] Add About screen (linked from Settings) with unaffiliated
       disclaimer + license + privacy policy link.
 - [ ] Write privacy policy (short markdown file, hosted publicly).
@@ -114,7 +103,7 @@ with Goodreads or Amazon. Personal use only at present.
 ## Bottom line
 
 Practical risk is low — many similar Goodreads-companion apps ship
-on Play Store without incident. The blockers above (logo swap,
-disclaimer, privacy policy) are real and easy to fix. Operating
+on Play Store without incident. The blockers above (disclaimer,
+privacy policy) are real and easy to fix. Operating
 without explicit Goodreads permission remains a residual risk; the
 worst realistic outcome is a takedown request and store removal.
