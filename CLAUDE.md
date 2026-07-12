@@ -41,6 +41,7 @@ Unit tests exist only for pure logic with mangling risk (e.g. `SeriesParser`) �
 - **Compose Navigation** — single-activity MVVM, one `MainActivity`, ViewModels exposing `StateFlow<UiState>`.
 - **Manual constructor injection** — no Hilt/Dagger/Koin. Lightweight `ServiceLocator` / factory acceptable.
 - **Gradle Kotlin DSL** with version catalog. Add new dependencies to `gradle/libs.versions.toml` first, then reference in `app/build.gradle.kts`.
+- **License attributions are static**: the About screen lists shipped open-source libraries in a hand-maintained `OPEN_SOURCE_LIBRARIES` list (`ui/about/AboutScreen.kt`). When adding or removing an `implementation` dependency, update that list (and verify the new library is Apache-2.0 — if not, the attribution text needs adjusting).
 
 ## Architecture essentials (full detail in ARCHITECTURE.md)
 

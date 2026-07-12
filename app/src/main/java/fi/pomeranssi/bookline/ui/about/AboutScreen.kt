@@ -43,6 +43,18 @@ import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 private const val PRIVACY_POLICY_URL = "https://pomeranssi.fi/bookline/privacy-policy.html"
 private const val GITHUB_URL = "https://github.com/thaapasa/bookline"
+private const val APACHE_LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0"
+
+// Shipped (implementation) dependencies, all Apache-2.0. Keep in sync with
+// app/build.gradle.kts when dependencies change.
+private val OPEN_SOURCE_LIBRARIES =
+    listOf(
+        "AndroidX Jetpack (Compose, Material 3, Navigation, Room, Lifecycle)",
+        "Kotlin & kotlinx.coroutines",
+        "Coil 3",
+        "OkHttp & Okio",
+        "Reorderable",
+    )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,6 +149,36 @@ private fun AboutContent(modifier: Modifier = Modifier) {
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider()
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = stringResource(R.string.about_open_source_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = stringResource(R.string.about_open_source_intro),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        OPEN_SOURCE_LIBRARIES.forEach { library ->
+            Text(
+                text = "• $library",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+
+        ExternalLinkButton(
+            label = stringResource(R.string.about_apache_license),
+            onClick = { uriHandler.openUri(APACHE_LICENSE_URL) },
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider()
         Spacer(modifier = Modifier.height(8.dp))
 

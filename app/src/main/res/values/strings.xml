@@ -149,6 +149,9 @@
     <string name="about_description">Bookline reads the RSS feed of your Goodreads library and presents your read and to-read books as a visually rich timeline, with series browsing, search, and offline access to your collection.</string>
     <string name="about_disclaimer">Bookline is an unofficial, third-party app. It is not affiliated with, endorsed by, or sponsored by Goodreads or Amazon.</string>
     <string name="about_license">Open source under the MIT License.</string>
+    <string name="about_open_source_title">Open source licenses</string>
+    <string name="about_open_source_intro">Bookline is built with the following open-source libraries, used under the Apache License 2.0:</string>
+    <string name="about_apache_license">Apache License 2.0</string>
     <string name="about_privacy_policy">Privacy policy</string>
     <string name="about_source_code">Source code on GitHub</string>
 </resources>

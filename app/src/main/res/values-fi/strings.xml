@@ -142,6 +142,9 @@
     <string name="about_description">Lukujana lukee Goodreads-kirjastosi RSS-syötteen ja esittää luetut ja lukulistalla olevat kirjat visuaalisena aikajanana. Mukana ovat sarjojen selaus, haku ja kokoelman käyttö ilman verkkoyhteyttä.</string>
     <string name="about_disclaimer">Lukujana on epävirallinen kolmannen osapuolen sovellus. Se ei ole Goodreadsin tai Amazonin tekemä, tukema tai sponsoroima.</string>
     <string name="about_license">Avointa lähdekoodia MIT-lisenssillä.</string>
+    <string name="about_open_source_title">Avoimen lähdekoodin lisenssit</string>
+    <string name="about_open_source_intro">Lukujana on rakennettu seuraavien avoimen lähdekoodin kirjastojen avulla, joita käytetään Apache License 2.0 -lisenssillä:</string>
+    <string name="about_apache_license">Apache License 2.0</string>
     <string name="about_privacy_policy">Tietosuojakäytäntö</string>
     <string name="about_source_code">Lähdekoodi GitHubissa</string>
 </resources>
