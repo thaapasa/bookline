@@ -17,16 +17,13 @@ data class SeriesInfoEntity(
     val parsedNames: String,
 ) {
     /** Returns the set of parsed names stored in this entity. */
-    fun parsedNameSet(): Set<String> =
-        parsedNames.split("|").filter { it.isNotBlank() }.toSet()
+    fun parsedNameSet(): Set<String> = parsedNames.split("|").filter { it.isNotBlank() }.toSet()
 
     companion object {
         /** Encodes a set of names into the pipe-delimited storage format. */
-        fun encodeParsedNames(names: Set<String>): String =
-            names.joinToString(separator = "|", prefix = "|", postfix = "|")
+        fun encodeParsedNames(names: Set<String>): String = names.joinToString(separator = "|", prefix = "|", postfix = "|")
 
         /** Creates a new entity for a freshly-discovered series. */
-        fun forNewSeries(name: String): SeriesInfoEntity =
-            SeriesInfoEntity(displayName = name, parsedNames = "|$name|")
+        fun forNewSeries(name: String): SeriesInfoEntity = SeriesInfoEntity(displayName = name, parsedNames = "|$name|")
     }
 }

@@ -20,9 +20,13 @@ Bookline — single-module Android app (Kotlin + Jetpack Compose) that fetches a
 ./gradlew assembleDebug      # build debug APK
 ./gradlew installDebug       # install on connected device/emulator
 ./gradlew assembleRelease    # signed release build (needs local.properties keystore vars)
-./gradlew lint               # Android lint
+./gradlew lint               # Android lint (warningsAsErrors — must be clean)
+./gradlew spotlessApply      # format code (Spotless + ktlint) — run after making edits
+./gradlew spotlessCheck      # verify formatting (CI enforces this)
 ./gradlew clean
 ```
+
+**Formatting is enforced**: CI (`.github/workflows/ci.yml`) runs `spotlessCheck`, `lint`, and `assembleDebug` on every push/PR. Always run `./gradlew spotlessApply` after editing Kotlin or Gradle files. Lint runs with `warningsAsErrors = true`; new-version-available checks are downgraded to informational. ktlint config lives in `.editorconfig`.
 
 No automated tests in this project — do not add test files unless explicitly asked. `example-feed.rss` at repo root is sample Goodreads data for manual parser testing. If missing, ask user to re-export from Goodreads.
 
@@ -86,4 +90,4 @@ Place new files in the appropriate package. If a new package is needed, update `
 - No multi-module splits unless explicitly discussed.
 - No deprecated Compose APIs (old `accompanist` libs folded into platform).
 - No hardcoded colors or text sizes — always via `MaterialTheme`.
-- No CI/CD pipelines — builds run locally in Android Studio.
+- CI (GitHub Actions) only checks format/lint/build — no release/deploy pipelines; release builds run locally in Android Studio.

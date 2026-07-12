@@ -13,6 +13,8 @@ coil = "3.3.0"
 ksp = "2.3.5"
 room = "2.8.4"
 reorderable = "3.0.0"
+spotless = "8.8.0"
+ktlint = "1.8.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,4 +45,5 @@ reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.r
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 

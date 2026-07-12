@@ -1,7 +1,6 @@
 package fi.pomeranssi.bookline.ui.detail
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import fi.pomeranssi.bookline.R
 import fi.pomeranssi.bookline.domain.model.Book
@@ -58,6 +58,7 @@ import fi.pomeranssi.bookline.ui.components.BookCover
 import fi.pomeranssi.bookline.ui.components.HtmlText
 import fi.pomeranssi.bookline.ui.components.LoadingContent
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,8 +66,8 @@ fun BookDetailScreen(
     viewModel: BookDetailViewModel,
     onNavigateBack: () -> Unit,
     onOpenGoodreads: (String) -> Unit,
-    onSeriesClick: (String) -> Unit = {},
     modifier: Modifier = Modifier,
+    onSeriesClick: (String) -> Unit = {},
 ) {
     val book by viewModel.book.collectAsState(initial = null)
 
@@ -110,10 +111,11 @@ private fun BookDetailContent(
     var showCoverDialog by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
     ) {
         // Cover + title header
         BookDetailHeader(
@@ -167,7 +169,7 @@ private fun BookDetailContent(
                 }
                 TextButton(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(book.goodreadsUrl))
+                        val intent = Intent(Intent.ACTION_VIEW, book.goodreadsUrl.toUri())
                         context.startActivity(intent)
                     },
                 ) {
@@ -203,9 +205,10 @@ private fun BookDetailHeader(
         BookCover(
             imageUrl = book.bestImageUrl,
             contentDescription = "Cover of ${book.title}",
-            modifier = Modifier
-                .size(width = 120.dp, height = 180.dp)
-                .clickable(onClick = onCoverClick),
+            modifier =
+                Modifier
+                    .size(width = 120.dp, height = 180.dp)
+                    .clickable(onClick = onCoverClick),
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -218,11 +221,12 @@ private fun BookDetailHeader(
 
             if (book.seriesEntries.isNotEmpty()) {
                 book.seriesEntries.forEach { entry ->
-                    val posLabel = if (entry.position == entry.position.toLong().toDouble()) {
-                        "#${entry.position.toLong()}"
-                    } else {
-                        "#${entry.position}"
-                    }
+                    val posLabel =
+                        if (entry.position == entry.position.toLong().toDouble()) {
+                            "#${entry.position.toLong()}"
+                        } else {
+                            "#${entry.position}"
+                        }
                     Text(
                         text = "${entry.seriesName} $posLabel",
                         style = MaterialTheme.typography.bodyMedium,
@@ -297,23 +301,28 @@ private fun BookDetailHeader(
 
 @Composable
 private fun MetaSection(book: Book) {
-    val items = buildList {
-        book.isbn?.let { add("ISBN" to it) }
-        book.numPages?.let { add("Pages" to it.toString()) }
-        book.bookPublishedYear?.let { add("Published" to it.toString()) }
-        book.userReadAt?.let { add("Last read" to it.format(DateFormatters.displayDate)) }
-        book.userDateAdded?.let { add("Date added" to it.format(DateFormatters.displayDate)) }
-        book.userDateCreated?.let { add("Date created" to it.format(DateFormatters.displayDate)) }
-        if (book.userShelves.isNotEmpty()) {
-            add("Shelves" to book.userShelves.joinToString(", "))
+    val items =
+        buildList {
+            book.isbn?.let { add("ISBN" to it) }
+            book.numPages?.let { add("Pages" to it.toString()) }
+            book.bookPublishedYear?.let { add("Published" to it.toString()) }
+            book.userReadAt?.let { add("Last read" to it.format(DateFormatters.displayDate)) }
+            book.userDateAdded?.let { add("Date added" to it.format(DateFormatters.displayDate)) }
+            book.userDateCreated?.let { add("Date created" to it.format(DateFormatters.displayDate)) }
+            if (book.userShelves.isNotEmpty()) {
+                add("Shelves" to book.userShelves.joinToString(", "))
+            }
         }
-    }
 
     if (items.isNotEmpty() || book.averageRating != null) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             // Average rating with stars
             book.averageRating?.let { rating ->
-                val fullStars = kotlin.math.round(rating).toInt().coerceIn(0, 5)
+                val fullStars =
+                    kotlin.math
+                        .round(rating)
+                        .toInt()
+                        .coerceIn(0, 5)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Average rating",
@@ -339,7 +348,7 @@ private fun MetaSection(book: Book) {
                     }
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = String.format("%.2f", rating),
+                        text = String.format(Locale.getDefault(), "%.2f", rating),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -375,25 +384,28 @@ private fun FullScreenCoverDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.9f))
-                .clickable { onDismiss() },
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.9f))
+                    .clickable { onDismiss() },
             contentAlignment = Alignment.Center,
         ) {
             AsyncImage(
                 model = imageUrl,
                 contentDescription = "Cover of $title",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
             )
             IconButton(
                 onClick = onDismiss,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp),
+                modifier =
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
@@ -428,4 +440,3 @@ private fun BookDetailContentToReadPreview() {
         )
     }
 }
-

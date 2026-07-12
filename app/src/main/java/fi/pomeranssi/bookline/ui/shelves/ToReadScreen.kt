@@ -26,19 +26,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.draw.shadow
 import fi.pomeranssi.bookline.domain.model.ToReadBookItem
+import fi.pomeranssi.bookline.ui.common.PreviewData
+import fi.pomeranssi.bookline.ui.common.SyncResult
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
-import fi.pomeranssi.bookline.ui.common.PreviewData
-import fi.pomeranssi.bookline.ui.common.SyncResult
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -104,9 +104,10 @@ private fun ToReadList(
     onBookClick: (String) -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Spacer(modifier = Modifier.height(4.dp)) }
@@ -148,25 +149,28 @@ private fun ReorderableToReadList(
     var draggedBookId by remember { mutableStateOf<String?>(null) }
 
     val lazyListState = rememberLazyListState()
-    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        // Use key-based lookup to avoid index offset issues with spacer items
-        val fromKey = from.key as? String ?: return@rememberReorderableLazyListState
-        val toKey = to.key as? String ?: return@rememberReorderableLazyListState
-        localItems = localItems.toMutableList().apply {
-            val fromIdx = indexOfFirst { it.book.bookId == fromKey }
-            val toIdx = indexOfFirst { it.book.bookId == toKey }
-            if (fromIdx >= 0 && toIdx >= 0) {
-                add(toIdx, removeAt(fromIdx))
-            }
+    val reorderableState =
+        rememberReorderableLazyListState(lazyListState) { from, to ->
+            // Use key-based lookup to avoid index offset issues with spacer items
+            val fromKey = from.key as? String ?: return@rememberReorderableLazyListState
+            val toKey = to.key as? String ?: return@rememberReorderableLazyListState
+            localItems =
+                localItems.toMutableList().apply {
+                    val fromIdx = indexOfFirst { it.book.bookId == fromKey }
+                    val toIdx = indexOfFirst { it.book.bookId == toKey }
+                    if (fromIdx >= 0 && toIdx >= 0) {
+                        add(toIdx, removeAt(fromIdx))
+                    }
+                }
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
         }
-        hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
-    }
 
     LazyColumn(
         state = lazyListState,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Spacer(modifier = Modifier.height(4.dp)) }
@@ -180,26 +184,28 @@ private fun ReorderableToReadList(
                     BookCard(
                         book = item.book,
                         onClick = { onBookClick(item.book.bookId) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .shadow(elevation, shape = MaterialTheme.shapes.medium),
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .shadow(elevation, shape = MaterialTheme.shapes.medium),
                     )
                     IconButton(
-                        modifier = Modifier.draggableHandle(
-                            onDragStarted = {
-                                isReordering = true
-                                draggedBookId = item.book.bookId
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                            },
-                            onDragStopped = {
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
-                                draggedBookId?.let { bookId ->
-                                    onBookMoved(bookId, localItems)
-                                }
-                                draggedBookId = null
-                                isReordering = false
-                            },
-                        ),
+                        modifier =
+                            Modifier.draggableHandle(
+                                onDragStarted = {
+                                    isReordering = true
+                                    draggedBookId = item.book.bookId
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                                },
+                                onDragStopped = {
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                    draggedBookId?.let { bookId ->
+                                        onBookMoved(bookId, localItems)
+                                    }
+                                    draggedBookId = null
+                                    isReordering = false
+                                },
+                            ),
                         onClick = {},
                     ) {
                         Icon(

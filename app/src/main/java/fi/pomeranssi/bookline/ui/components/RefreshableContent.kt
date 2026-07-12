@@ -40,8 +40,9 @@ fun RefreshableContent(
             PullToRefreshDefaults.Indicator(
                 state = pullToRefreshState,
                 isRefreshing = false,
-                modifier = Modifier
-                    .align(Alignment.TopCenter),
+                modifier =
+                    Modifier
+                        .align(Alignment.TopCenter),
             )
         },
         modifier = modifier,
@@ -50,9 +51,10 @@ fun RefreshableContent(
             content()
             if (isRefreshing) {
                 LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopCenter),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.TopCenter),
                 )
             }
         }

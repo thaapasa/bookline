@@ -14,9 +14,10 @@ rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use 
 android {
     namespace = "fi.pomeranssi.bookline"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version =
+            release(36) {
+                minorApiLevel = 1
+            }
     }
 
     defaultConfig {
@@ -45,7 +46,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             ndk {
                 debugSymbolLevel = "FULL"
@@ -58,6 +59,17 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    lint {
+        warningsAsErrors = true
+        // New-version-available checks would fail the build whenever a dependency
+        // publishes a release; keep them visible in reports but non-fatal.
+        informational +=
+            setOf(
+                "AndroidGradlePluginVersion",
+                "GradleDependency",
+                "NewerVersionAvailable",
+            )
     }
 }
 

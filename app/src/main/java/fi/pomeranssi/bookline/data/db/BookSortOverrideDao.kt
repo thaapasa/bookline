@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BookSortOverrideDao {
-
     @Query("SELECT * FROM book_sort_overrides")
     fun observeAll(): Flow<List<BookSortOverrideEntity>>
 

@@ -39,7 +39,8 @@ private const val TOGGLE_MODE_URL = "$GOODREADS_URL/toggle_mobile"
 private const val REVIEW_LIST_URL = "$GOODREADS_URL/review/list"
 
 /** JavaScript that searches the DOM for the Goodreads RSS feed link. */
-private val RSS_DETECTION_JS = """
+private val RSS_DETECTION_JS =
+    """
     (function() {
         var link = document.querySelector('a[href*="/review/list_rss/"]');
         if (link) return link.href;
@@ -47,7 +48,7 @@ private val RSS_DETECTION_JS = """
         if (metaLink) return metaLink.href;
         return '';
     })();
-""".trimIndent()
+    """.trimIndent()
 
 /**
  * RSS detection state machine.
@@ -60,11 +61,19 @@ private sealed interface RssDetectionState {
     data object Idle : RssDetectionState
 
     /** Loading /review/list; [attempt] is 1 (current mode) or 2 (after toggle). */
-    data class Searching(val attempt: Int) : RssDetectionState
+    data class Searching(
+        val attempt: Int,
+    ) : RssDetectionState
 
     /** Loading toggle URL; [next] decides what happens after. */
-    data class Toggling(val next: AfterToggle) : RssDetectionState
-    data class Found(val url: String) : RssDetectionState
+    data class Toggling(
+        val next: AfterToggle,
+    ) : RssDetectionState
+
+    data class Found(
+        val url: String,
+    ) : RssDetectionState
+
     data object NotFound : RssDetectionState
 }
 
@@ -73,7 +82,9 @@ private sealed interface AfterToggle {
     data object RetrySearch : AfterToggle
 
     /** Toggle done → show result dialog. */
-    data class RestoreMode(val foundUrl: String?) : AfterToggle
+    data class RestoreMode(
+        val foundUrl: String?,
+    ) : AfterToggle
 }
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -107,75 +118,88 @@ fun GoodreadsScreen(
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
 
-                    this.webViewClient = object : WebViewClient() {
-                        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                            isLoading = true
-                        }
+                    this.webViewClient =
+                        object : WebViewClient() {
+                            override fun onPageStarted(
+                                view: WebView?,
+                                url: String?,
+                                favicon: Bitmap?,
+                            ) {
+                                isLoading = true
+                            }
 
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            isLoading = false
-                            when (val state = rssState) {
-                                is RssDetectionState.Searching -> {
-                                    if (view == null) return
-                                    Log.d(TAG, "Attempt ${state.attempt}: injecting JS on $url")
-                                    view.evaluateJavascript(RSS_DETECTION_JS) { result ->
-                                        val foundUrl = result
-                                            ?.trim('"')
-                                            ?.takeIf { it.isNotEmpty() && it != "null" }
-                                        if (foundUrl != null) {
-                                            // Found — toggle back to restore original mode
-                                            Log.d(
-                                                TAG,
-                                                "RSS found: $foundUrl, toggling to restore mode"
-                                            )
-                                            rssState = RssDetectionState.Toggling(
-                                                AfterToggle.RestoreMode(foundUrl),
-                                            )
-                                            view.loadUrl(TOGGLE_MODE_URL)
-                                        } else if (state.attempt == 1) {
-                                            // First attempt missed — toggle and retry
-                                            Log.d(TAG, "Not found on attempt 1, toggling mode")
-                                            rssState = RssDetectionState.Toggling(
-                                                AfterToggle.RetrySearch,
-                                            )
-                                            view.loadUrl(TOGGLE_MODE_URL)
-                                        } else {
-                                            // Second attempt also missed — toggle to restore, show NotFound
-                                            Log.d(
-                                                TAG,
-                                                "Not found on attempt 2, toggling to restore mode"
-                                            )
-                                            rssState = RssDetectionState.Toggling(
-                                                AfterToggle.RestoreMode(null),
-                                            )
-                                            view.loadUrl(TOGGLE_MODE_URL)
-                                        }
-                                    }
-                                }
-
-                                is RssDetectionState.Toggling -> {
-                                    when (val next = state.next) {
-                                        is AfterToggle.RetrySearch -> {
-                                            Log.d(TAG, "Toggled, retrying search")
-                                            rssState = RssDetectionState.Searching(attempt = 2)
-                                            view?.loadUrl(REVIEW_LIST_URL)
-                                        }
-
-                                        is AfterToggle.RestoreMode -> {
-                                            Log.d(TAG, "Mode restored, showing result")
-                                            rssState = if (next.foundUrl != null) {
-                                                RssDetectionState.Found(next.foundUrl)
+                            override fun onPageFinished(
+                                view: WebView?,
+                                url: String?,
+                            ) {
+                                isLoading = false
+                                when (val state = rssState) {
+                                    is RssDetectionState.Searching -> {
+                                        if (view == null) return
+                                        Log.d(TAG, "Attempt ${state.attempt}: injecting JS on $url")
+                                        view.evaluateJavascript(RSS_DETECTION_JS) { result ->
+                                            val foundUrl =
+                                                result
+                                                    ?.trim('"')
+                                                    ?.takeIf { it.isNotEmpty() && it != "null" }
+                                            if (foundUrl != null) {
+                                                // Found — toggle back to restore original mode
+                                                Log.d(
+                                                    TAG,
+                                                    "RSS found: $foundUrl, toggling to restore mode",
+                                                )
+                                                rssState =
+                                                    RssDetectionState.Toggling(
+                                                        AfterToggle.RestoreMode(foundUrl),
+                                                    )
+                                                view.loadUrl(TOGGLE_MODE_URL)
+                                            } else if (state.attempt == 1) {
+                                                // First attempt missed — toggle and retry
+                                                Log.d(TAG, "Not found on attempt 1, toggling mode")
+                                                rssState =
+                                                    RssDetectionState.Toggling(
+                                                        AfterToggle.RetrySearch,
+                                                    )
+                                                view.loadUrl(TOGGLE_MODE_URL)
                                             } else {
-                                                RssDetectionState.NotFound
+                                                // Second attempt also missed — toggle to restore, show NotFound
+                                                Log.d(
+                                                    TAG,
+                                                    "Not found on attempt 2, toggling to restore mode",
+                                                )
+                                                rssState =
+                                                    RssDetectionState.Toggling(
+                                                        AfterToggle.RestoreMode(null),
+                                                    )
+                                                view.loadUrl(TOGGLE_MODE_URL)
                                             }
                                         }
                                     }
-                                }
 
-                                else -> {}
+                                    is RssDetectionState.Toggling -> {
+                                        when (val next = state.next) {
+                                            is AfterToggle.RetrySearch -> {
+                                                Log.d(TAG, "Toggled, retrying search")
+                                                rssState = RssDetectionState.Searching(attempt = 2)
+                                                view?.loadUrl(REVIEW_LIST_URL)
+                                            }
+
+                                            is AfterToggle.RestoreMode -> {
+                                                Log.d(TAG, "Mode restored, showing result")
+                                                rssState =
+                                                    if (next.foundUrl != null) {
+                                                        RssDetectionState.Found(next.foundUrl)
+                                                    } else {
+                                                        RssDetectionState.NotFound
+                                                    }
+                                            }
+                                        }
+                                    }
+
+                                    else -> {}
+                                }
                             }
                         }
-                    }
 
                     if (autoDetect) {
                         rssState = RssDetectionState.Searching(attempt = 1)
@@ -194,13 +218,15 @@ fun GoodreadsScreen(
         }
 
         // Search-in-progress overlay
-        val isDetecting = rssState is RssDetectionState.Searching
-            || rssState is RssDetectionState.Toggling
+        val isDetecting =
+            rssState is RssDetectionState.Searching ||
+                rssState is RssDetectionState.Toggling
         if (isDetecting) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f)),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(
@@ -228,15 +254,17 @@ fun GoodreadsScreen(
                         wv.loadUrl(REVIEW_LIST_URL)
                     }
                 },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 4.dp,
-                    pressedElevation = 2.dp,
-                    focusedElevation = 4.dp,
-                    hoveredElevation = 4.dp,
-                ),
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                elevation =
+                    FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 4.dp,
+                        pressedElevation = 2.dp,
+                        focusedElevation = 4.dp,
+                        hoveredElevation = 4.dp,
+                    ),
             ) {
                 Icon(
                     imageVector = Icons.Default.RssFeed,
@@ -278,7 +306,7 @@ fun GoodreadsScreen(
                 text = {
                     Text(
                         "Could not find an RSS feed link on this page. " +
-                                "Make sure you are logged in to Goodreads, then try again."
+                            "Make sure you are logged in to Goodreads, then try again.",
                     )
                 },
                 confirmButton = {
@@ -302,4 +330,3 @@ fun GoodreadsScreen(
         else -> {}
     }
 }
-

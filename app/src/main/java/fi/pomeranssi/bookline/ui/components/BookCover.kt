@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,21 +43,24 @@ fun BookCover(
 ) {
     if (imageUrl != null) {
         if (LocalInspectionMode.current) {
-            val context = LocalContext.current
-            val previewResId = if (imageUrl.startsWith(PREVIEW_IMAGE_SCHEME)) {
-                @Suppress("DiscouragedApi")
-                context.resources.getIdentifier(
-                    imageUrl.removePrefix(PREVIEW_IMAGE_SCHEME),
-                    "drawable",
-                    context.packageName,
-                )
-            } else {
-                0
-            }
+            val packageName = LocalContext.current.packageName
+            val resources = LocalResources.current
+            val previewResId =
+                if (imageUrl.startsWith(PREVIEW_IMAGE_SCHEME)) {
+                    @Suppress("DiscouragedApi")
+                    resources.getIdentifier(
+                        imageUrl.removePrefix(PREVIEW_IMAGE_SCHEME),
+                        "drawable",
+                        packageName,
+                    )
+                } else {
+                    0
+                }
             Image(
-                painter = painterResource(
-                    if (previewResId != 0) previewResId else R.drawable.book_cover_placeholder,
-                ),
+                painter =
+                    painterResource(
+                        if (previewResId != 0) previewResId else R.drawable.book_cover_placeholder,
+                    ),
                 contentDescription = contentDescription,
                 contentScale = ContentScale.Crop,
                 modifier = modifier,

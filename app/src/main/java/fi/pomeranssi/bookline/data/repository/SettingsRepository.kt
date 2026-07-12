@@ -20,8 +20,9 @@ import javax.crypto.spec.GCMParameterSpec
  * leaves the TEE/Strongbox, so the feed URL (which contains a private
  * Goodreads access key) is protected at rest.
  */
-class SettingsRepository(context: Context) {
-
+class SettingsRepository(
+    context: Context,
+) {
     private val prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
 
     private val _feedUrl = MutableStateFlow(getDecrypted(KEY_FEED_URL))
@@ -45,8 +46,7 @@ class SettingsRepository(context: Context) {
         set(value) = prefs.edit { putLong(KEY_LAST_SYNC, value) }
 
     /** Returns `true` when the cached data is older than [maxAgeMs]. */
-    fun isSyncStale(maxAgeMs: Long = SYNC_MAX_AGE_MS): Boolean =
-        System.currentTimeMillis() - lastSyncEpochMs > maxAgeMs
+    fun isSyncStale(maxAgeMs: Long = SYNC_MAX_AGE_MS): Boolean = System.currentTimeMillis() - lastSyncEpochMs > maxAgeMs
 
     // ---- encryption helpers ------------------------------------------------
 
@@ -55,16 +55,17 @@ class SettingsRepository(context: Context) {
         keyStore.getEntry(KEYSTORE_ALIAS, null)?.let { entry ->
             return (entry as KeyStore.SecretKeyEntry).secretKey
         }
-        val keyGen = KeyGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_AES,
-            ANDROID_KEYSTORE,
-        )
-        keyGen.init(
-            KeyGenParameterSpec.Builder(
-                KEYSTORE_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+        val keyGen =
+            KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES,
+                ANDROID_KEYSTORE,
             )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+        keyGen.init(
+            KeyGenParameterSpec
+                .Builder(
+                    KEYSTORE_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+                ).setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .setKeySize(AES_KEY_SIZE)
                 .build(),
@@ -72,7 +73,10 @@ class SettingsRepository(context: Context) {
         return keyGen.generateKey()
     }
 
-    private fun putEncrypted(key: String, plaintext: String) {
+    private fun putEncrypted(
+        key: String,
+        plaintext: String,
+    ) {
         if (plaintext.isEmpty()) {
             prefs.edit { remove(key) }
             return
@@ -82,7 +86,8 @@ class SettingsRepository(context: Context) {
         val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
         val iv = cipher.iv
         // Store as "base64(iv):base64(ciphertext)"
-        val encoded = Base64.encodeToString(iv, Base64.NO_WRAP) +
+        val encoded =
+            Base64.encodeToString(iv, Base64.NO_WRAP) +
                 ":" +
                 Base64.encodeToString(ciphertext, Base64.NO_WRAP)
         prefs.edit { putString(key, encoded) }
@@ -116,4 +121,3 @@ class SettingsRepository(context: Context) {
         private const val AES_GCM_TRANSFORMATION = "AES/GCM/NoPadding"
     }
 }
-

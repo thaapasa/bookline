@@ -7,7 +7,9 @@ import java.time.LocalDate
  */
 sealed interface ReadingStatus {
     data object Read : ReadingStatus
+
     data object CurrentlyReading : ReadingStatus
+
     data object ToRead : ReadingStatus
 }
 
@@ -43,14 +45,14 @@ data class Book(
 ) {
     /** Derived reading status based on shelf membership. */
     val readingStatus: ReadingStatus
-        get() = when {
-            "currently-reading" in userShelves -> ReadingStatus.CurrentlyReading
-            "to-read" in userShelves -> ReadingStatus.ToRead
-            else -> ReadingStatus.Read
-        }
+        get() =
+            when {
+                "currently-reading" in userShelves -> ReadingStatus.CurrentlyReading
+                "to-read" in userShelves -> ReadingStatus.ToRead
+                else -> ReadingStatus.Read
+            }
 
     /** The best available cover image URL (largest first). */
     val bestImageUrl: String?
         get() = largeImageUrl ?: mediumImageUrl ?: imageUrl ?: smallImageUrl
 }
-

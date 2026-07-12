@@ -18,7 +18,6 @@ class SettingsViewModel(
     private val database: BooklineDatabase,
     private val bookRepository: BookRepository,
 ) : ViewModel() {
-
     /** Current text in the URL field (may not yet be saved). */
     private val _urlField = MutableStateFlow(settingsRepository.feedUrl.value)
     val urlField: StateFlow<String> = _urlField.asStateFlow()
@@ -82,4 +81,3 @@ class SettingsViewModel(
         private const val TAG = "SettingsVM"
     }
 }
-

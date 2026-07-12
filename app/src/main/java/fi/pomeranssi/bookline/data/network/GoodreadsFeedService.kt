@@ -13,36 +13,39 @@ import java.net.URI
  * a single GET request. Can be swapped for Ktor/OkHttp later if needed.
  */
 class GoodreadsFeedService {
-
     /**
      * Download a single page of the RSS feed and return its [InputStream].
      * Caller is responsible for closing the stream.
      *
      * @throws java.io.IOException on network errors.
      */
-    suspend fun fetch(feedUrl: String, page: Int = 1): InputStream = withContext(Dispatchers.IO) {
-        val pagedUrl = appendPage(feedUrl, page)
-        val connection = URI(pagedUrl).toURL().openConnection() as HttpURLConnection
-        try {
-            connection.connectTimeout = TIMEOUT_MS
-            connection.readTimeout = TIMEOUT_MS
-            connection.requestMethod = "GET"
-            connection.connect()
+    suspend fun fetch(
+        feedUrl: String,
+        page: Int = 1,
+    ): InputStream =
+        withContext(Dispatchers.IO) {
+            val pagedUrl = appendPage(feedUrl, page)
+            val connection = URI(pagedUrl).toURL().openConnection() as HttpURLConnection
+            try {
+                connection.connectTimeout = TIMEOUT_MS
+                connection.readTimeout = TIMEOUT_MS
+                connection.requestMethod = "GET"
+                connection.connect()
 
-            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                throw GoodreadsFeedException(
-                    "Feed returned HTTP ${connection.responseCode}: ${connection.responseMessage}",
-                )
+                if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                    throw GoodreadsFeedException(
+                        "Feed returned HTTP ${connection.responseCode}: ${connection.responseMessage}",
+                    )
+                }
+
+                connection.inputStream
+            } catch (t: Throwable) {
+                // Release the socket on any error path; the success path hands the
+                // stream to the caller, who is responsible for closing it.
+                connection.disconnect()
+                throw t
             }
-
-            connection.inputStream
-        } catch (t: Throwable) {
-            // Release the socket on any error path; the success path hands the
-            // stream to the caller, who is responsible for closing it.
-            connection.disconnect()
-            throw t
         }
-    }
 
     companion object {
         private const val TIMEOUT_MS = 15_000
@@ -52,18 +55,27 @@ class GoodreadsFeedService {
          * Keeps only the `key` parameter from the original URL and adds
          * `order=isbn` for stable pagination ordering.
          */
-        internal fun appendPage(feedUrl: String, page: Int): String {
+        internal fun appendPage(
+            feedUrl: String,
+            page: Int,
+        ): String {
             val uri = URI(feedUrl)
-            val key = uri.rawQuery
-                ?.split("&")
-                ?.firstOrNull { it.startsWith("key=") }
+            val key =
+                uri.rawQuery
+                    ?.split("&")
+                    ?.firstOrNull { it.startsWith("key=") }
             val params = listOfNotNull(key, "order=isbn", "page=$page").joinToString("&")
             return URI(
-                uri.scheme, uri.authority, uri.path, params, uri.fragment,
+                uri.scheme,
+                uri.authority,
+                uri.path,
+                params,
+                uri.fragment,
             ).toString()
         }
     }
 }
 
-class GoodreadsFeedException(message: String) : Exception(message)
-
+class GoodreadsFeedException(
+    message: String,
+) : Exception(message)

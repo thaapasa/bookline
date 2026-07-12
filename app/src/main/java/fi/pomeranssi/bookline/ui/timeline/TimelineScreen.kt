@@ -28,13 +28,13 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import fi.pomeranssi.bookline.ui.common.PreviewData
+import fi.pomeranssi.bookline.ui.common.SyncResult
 import fi.pomeranssi.bookline.ui.components.BookCard
 import fi.pomeranssi.bookline.ui.components.EmptyContent
 import fi.pomeranssi.bookline.ui.components.NoFeedConfiguredContent
 import fi.pomeranssi.bookline.ui.components.RefreshableContent
 import fi.pomeranssi.bookline.ui.components.SyncErrorBanner
-import fi.pomeranssi.bookline.ui.common.PreviewData
-import fi.pomeranssi.bookline.ui.common.SyncResult
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,13 +54,15 @@ fun TimelineScreen(
     }
 
     when (val state = uiState) {
-        is TimelineUiState.NoFeedConfigured -> NoFeedConfiguredContent(
-            modifier = modifier,
-        )
+        is TimelineUiState.NoFeedConfigured -> {
+            NoFeedConfiguredContent(
+                modifier = modifier,
+            )
+        }
 
         is TimelineUiState.Loading,
         is TimelineUiState.Success,
-            -> {
+        -> {
             val sections = (state as? TimelineUiState.Success)?.sections.orEmpty()
             if (sections.isEmpty() && !isRefreshing) {
                 EmptyContent(
@@ -106,9 +108,10 @@ private fun TimelineContent(
     onBookClick: (String) -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item { Spacer(modifier = Modifier.height(4.dp)) }
@@ -130,21 +133,25 @@ private fun TimelineContent(
             },
         ) { section ->
             when (section) {
-                is TimelineSection.Header -> SectionHeader(
-                    header = section,
-                    onToggle = {
-                        if (section.level == SectionLevel.Year) {
-                            onToggleYear(section.key, section.childKeys)
-                        } else {
-                            onToggleSection(section.key)
-                        }
-                    },
-                )
+                is TimelineSection.Header -> {
+                    SectionHeader(
+                        header = section,
+                        onToggle = {
+                            if (section.level == SectionLevel.Year) {
+                                onToggleYear(section.key, section.childKeys)
+                            } else {
+                                onToggleSection(section.key)
+                            }
+                        },
+                    )
+                }
 
-                is TimelineSection.BookItem -> BookCard(
-                    book = section.book,
-                    onClick = { onBookClick(section.book.bookId) },
-                )
+                is TimelineSection.BookItem -> {
+                    BookCard(
+                        book = section.book,
+                        onClick = { onBookClick(section.book.bookId) },
+                    )
+                }
             }
         }
         item { Spacer(modifier = Modifier.height(4.dp)) }
@@ -162,22 +169,25 @@ private fun SectionHeader(
         label = "chevron",
     )
 
-    val style = when (header.level) {
-        SectionLevel.Top -> MaterialTheme.typography.titleLarge
-        SectionLevel.Year -> MaterialTheme.typography.titleLarge
-        SectionLevel.Month -> MaterialTheme.typography.titleMedium
-    }
+    val style =
+        when (header.level) {
+            SectionLevel.Top -> MaterialTheme.typography.titleLarge
+            SectionLevel.Year -> MaterialTheme.typography.titleLarge
+            SectionLevel.Month -> MaterialTheme.typography.titleMedium
+        }
 
-    val topPadding = when (header.level) {
-        SectionLevel.Top, SectionLevel.Year -> 12.dp
-        SectionLevel.Month -> 4.dp
-    }
+    val topPadding =
+        when (header.level) {
+            SectionLevel.Top, SectionLevel.Year -> 12.dp
+            SectionLevel.Month -> 4.dp
+        }
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onToggle() }
-            .padding(top = topPadding, bottom = 4.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clickable { onToggle() }
+                .padding(top = topPadding, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -194,47 +204,49 @@ private fun SectionHeader(
         Icon(
             imageVector = Icons.Default.ExpandMore,
             contentDescription = if (header.isCollapsed) "Expand" else "Collapse",
-            modifier = Modifier
-                .size(24.dp)
-                .rotate(rotation),
+            modifier =
+                Modifier
+                    .size(24.dp)
+                    .rotate(rotation),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
 
-private val previewSections = listOf(
-    TimelineSection.Header(
-        key = "currently-reading",
-        title = "Currently reading",
-        level = SectionLevel.Top,
-        isCollapsed = false,
-        bookCount = 1,
-    ),
-    TimelineSection.BookItem(PreviewData.bookCurrentlyReading),
-    TimelineSection.Header(
-        key = "2025",
-        title = "2025",
-        level = SectionLevel.Year,
-        isCollapsed = false,
-        bookCount = 3,
-        childKeys = listOf("2025-12", "2025-11"),
-    ),
-    TimelineSection.Header(
-        key = "2025-12",
-        title = "December",
-        level = SectionLevel.Month,
-        isCollapsed = false,
-        bookCount = 1,
-    ),
-    TimelineSection.BookItem(PreviewData.bookRead),
-    TimelineSection.Header(
-        key = "2025-11",
-        title = "November",
-        level = SectionLevel.Month,
-        isCollapsed = true,
-        bookCount = 2,
-    ),
-)
+private val previewSections =
+    listOf(
+        TimelineSection.Header(
+            key = "currently-reading",
+            title = "Currently reading",
+            level = SectionLevel.Top,
+            isCollapsed = false,
+            bookCount = 1,
+        ),
+        TimelineSection.BookItem(PreviewData.bookCurrentlyReading),
+        TimelineSection.Header(
+            key = "2025",
+            title = "2025",
+            level = SectionLevel.Year,
+            isCollapsed = false,
+            bookCount = 3,
+            childKeys = listOf("2025-12", "2025-11"),
+        ),
+        TimelineSection.Header(
+            key = "2025-12",
+            title = "December",
+            level = SectionLevel.Month,
+            isCollapsed = false,
+            bookCount = 1,
+        ),
+        TimelineSection.BookItem(PreviewData.bookRead),
+        TimelineSection.Header(
+            key = "2025-11",
+            title = "November",
+            level = SectionLevel.Month,
+            isCollapsed = true,
+            bookCount = 2,
+        ),
+    )
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
@@ -265,4 +277,3 @@ private fun TimelineContentWithErrorPreview() {
         )
     }
 }
-

@@ -19,7 +19,6 @@ class ToReadViewModel(
     private val bookRepository: BookRepository,
     private val syncCoordinator: SyncCoordinator,
 ) : ViewModel() {
-
     val books: Flow<List<ToReadBookItem>> = bookRepository.observeToReadBooks()
 
     val isFeedConfigured: Boolean get() = settingsRepository.isFeedConfigured
@@ -40,7 +39,10 @@ class ToReadViewModel(
      * Called when a book has been dragged to a new position.
      * [bookId] is the moved book, [reorderedItems] is the list after the move.
      */
-    fun onBookMoved(bookId: String, reorderedItems: List<ToReadBookItem>) {
+    fun onBookMoved(
+        bookId: String,
+        reorderedItems: List<ToReadBookItem>,
+    ) {
         val movedIndex = reorderedItems.indexOfFirst { it.book.bookId == bookId }
         if (movedIndex < 0) return
 
@@ -68,7 +70,10 @@ class ToReadViewModel(
      * whose stamp is stale) to find the full cluster, then spaces all items evenly
      * between the stamps of the adjacent non-group items.
      */
-    private fun spreadGroup(movedIndex: Int, items: List<ToReadBookItem>) {
+    private fun spreadGroup(
+        movedIndex: Int,
+        items: List<ToReadBookItem>,
+    ) {
         // Walk outward from the neighbors (which have valid stamps)
         var start = movedIndex - 1
         while (start > 0 &&
@@ -99,14 +104,17 @@ class ToReadViewModel(
                 interval = (upperBound - lowerBound) / (groupSize + 1)
                 topStamp = upperBound - interval
             }
+
             upperBound != null -> {
                 interval = SPREAD_INTERVAL
                 topStamp = upperBound - interval
             }
+
             lowerBound != null -> {
                 interval = SPREAD_INTERVAL
                 topStamp = lowerBound + groupSize * interval
             }
+
             else -> {
                 interval = SPREAD_INTERVAL
                 topStamp = System.currentTimeMillis()
@@ -124,8 +132,11 @@ class ToReadViewModel(
         }
     }
 
-    private fun calculateNewSortDate(above: Long?, below: Long?): Long {
-        return when {
+    private fun calculateNewSortDate(
+        above: Long?,
+        below: Long?,
+    ): Long =
+        when {
             // Moved to the top
             above == null && below != null -> {
                 val now = System.currentTimeMillis()
@@ -135,14 +146,22 @@ class ToReadViewModel(
                     below + MS_PER_DAY
                 }
             }
+
             // Moved to the bottom
-            above != null && below == null -> above - MS_PER_DAY
+            above != null && below == null -> {
+                above - MS_PER_DAY
+            }
+
             // Moved between two books
-            above != null && below != null -> (above + below) / 2
+            above != null && below != null -> {
+                (above + below) / 2
+            }
+
             // Only item in list
-            else -> System.currentTimeMillis()
+            else -> {
+                System.currentTimeMillis()
+            }
         }
-    }
 
     fun refresh() {
         syncCoordinator.requestSync(viewModelScope)

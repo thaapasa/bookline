@@ -14,14 +14,14 @@ data class Series(
 ) {
     /** Cover URLs from the first 3 books (by series position) for the fan image. */
     val coverUrls: List<String>
-        get() = books
-            .sortedBy { book ->
-                book.seriesEntries
-                    .firstOrNull { it.seriesName == name }
-                    ?.position ?: Double.MAX_VALUE
-            }
-            .mapNotNull { it.bestImageUrl }
-            .take(3)
+        get() =
+            books
+                .sortedBy { book ->
+                    book.seriesEntries
+                        .firstOrNull { it.seriesName == name }
+                        ?.position ?: Double.MAX_VALUE
+                }.mapNotNull { it.bestImageUrl }
+                .take(3)
 
     /** Distinct author names across all books in the series. */
     val authors: List<String>

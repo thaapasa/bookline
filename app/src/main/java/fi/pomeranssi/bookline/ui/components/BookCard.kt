@@ -48,9 +48,10 @@ fun BookCard(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(if (book.isStale) Modifier.alpha(0.5f) else Modifier),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .then(if (book.isStale) Modifier.alpha(0.5f) else Modifier),
             ) {
                 // Cover image — flush with the card edge
                 BookCover(
@@ -61,32 +62,34 @@ fun BookCard(
 
                 // Book info
                 Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(120.dp)
-                        .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .height(120.dp)
+                            .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
                 ) {
                     // Title with optional series suffix
                     val firstSeries = book.seriesEntries.firstOrNull()
-                    val titleText = if (showSeriesInfo && firstSeries != null) {
-                        val posLabel =
-                            if (firstSeries.position == firstSeries.position.toLong().toDouble()) {
-                                "#${firstSeries.position.toLong()}"
-                            } else {
-                                "#${firstSeries.position}"
+                    val titleText =
+                        if (showSeriesInfo && firstSeries != null) {
+                            val posLabel =
+                                if (firstSeries.position == firstSeries.position.toLong().toDouble()) {
+                                    "#${firstSeries.position.toLong()}"
+                                } else {
+                                    "#${firstSeries.position}"
+                                }
+                            val seriesColor = MaterialTheme.colorScheme.primary
+                            val titleStyle = MaterialTheme.typography.titleSmall
+                            buildAnnotatedString {
+                                append(book.title)
+                                append(" ")
+                                withStyle(titleStyle.toSpanStyle().copy(color = seriesColor)) {
+                                    append("(${firstSeries.seriesName} $posLabel)")
+                                }
                             }
-                        val seriesColor = MaterialTheme.colorScheme.primary
-                        val titleStyle = MaterialTheme.typography.titleSmall
-                        buildAnnotatedString {
-                            append(book.title)
-                            append(" ")
-                            withStyle(titleStyle.toSpanStyle().copy(color = seriesColor)) {
-                                append("(${firstSeries.seriesName} $posLabel)")
-                            }
+                        } else {
+                            buildAnnotatedString { append(book.title) }
                         }
-                    } else {
-                        buildAnnotatedString { append(book.title) }
-                    }
                     Text(
                         text = titleText,
                         style = MaterialTheme.typography.titleSmall,
@@ -167,10 +170,11 @@ fun BookCard(
                     }
 
                     // Page count + published year
-                    val meta = buildList {
-                        book.numPages?.let { add("$it pages") }
-                        book.bookPublishedYear?.let { add("Published $it") }
-                    }.joinToString(" · ")
+                    val meta =
+                        buildList {
+                            book.numPages?.let { add("$it pages") }
+                            book.bookPublishedYear?.let { add("Published $it") }
+                        }.joinToString(" · ")
                     if (meta.isNotEmpty()) {
                         Text(
                             text = meta,
@@ -186,14 +190,14 @@ fun BookCard(
         // Stale badge — overlaid on top-right of the card at full opacity
         if (book.isStale) {
             Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = 8.dp, top = 8.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        shape = CircleShape,
-                    )
-                    .padding(4.dp),
+                modifier =
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 8.dp, top = 8.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = CircleShape,
+                        ).padding(4.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,

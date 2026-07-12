@@ -37,7 +37,6 @@ class BookRepository(
     private val feedService: GoodreadsFeedService = GoodreadsFeedService(),
     private val rssParser: GoodreadsRssParser = GoodreadsRssParser(),
 ) {
-
     /** Observe all locally stored books as a reactive Flow. */
     fun observeBooks(): Flow<List<Book>> =
         bookDao.observeAll().map { entities ->
@@ -52,9 +51,10 @@ class BookRepository(
             bookSeriesDao.observeAll(),
         ) { entity, allSeriesRows ->
             if (entity == null) return@combine null
-            val entries = allSeriesRows
-                .filter { it.bookId == bookId }
-                .map { SeriesEntry(it.seriesName, it.position) }
+            val entries =
+                allSeriesRows
+                    .filter { it.bookId == bookId }
+                    .map { SeriesEntry(it.seriesName, it.position) }
             val lastSync = settingsRepository.lastSyncEpochMs
             entity.toDomain(seriesEntries = entries, isStale = isEntityStale(entity, lastSync))
         }
@@ -68,9 +68,10 @@ class BookRepository(
             val lastSync = settingsRepository.lastSyncEpochMs
             val seriesByBookId = allSeriesRows.groupBy { it.bookId }
             entities.map { entity ->
-                val entries = seriesByBookId[entity.bookId]
-                    ?.map { SeriesEntry(it.seriesName, it.position) }
-                    .orEmpty()
+                val entries =
+                    seriesByBookId[entity.bookId]
+                        ?.map { SeriesEntry(it.seriesName, it.position) }
+                        .orEmpty()
                 entity.toDomain(seriesEntries = entries, isStale = isEntityStale(entity, lastSync))
             }
         }
@@ -78,6 +79,7 @@ class BookRepository(
     private companion object {
         const val TAG = "BookRepository"
         const val MS_PER_DAY = 86_400_000L
+
         /** Books not seen in a sync for this long are eligible for deletion. */
         const val RETENTION_PERIOD_MS = 30 * MS_PER_DAY
 
@@ -86,8 +88,10 @@ class BookRepository(
          * We detect this by comparing the entity's lastSyncedMs with the global
          * last-successful-sync timestamp.
          */
-        fun isEntityStale(entity: BookEntity, lastSuccessfulSyncMs: Long): Boolean =
-            lastSuccessfulSyncMs > 0 && entity.lastSyncedMs < lastSuccessfulSyncMs
+        fun isEntityStale(
+            entity: BookEntity,
+            lastSuccessfulSyncMs: Long,
+        ): Boolean = lastSuccessfulSyncMs > 0 && entity.lastSyncedMs < lastSuccessfulSyncMs
     }
 
     /** Observe books on the to-read shelf, sorted by effective sort date descending. */
@@ -100,25 +104,32 @@ class BookRepository(
             val lastSync = settingsRepository.lastSyncEpochMs
             val overrideMap = overrides.associate { it.bookId to it.sortDateMs }
             val seriesByBookId = allSeriesRows.groupBy { it.bookId }
-            entities.map { entity ->
-                val entries = seriesByBookId[entity.bookId]
-                    ?.map { SeriesEntry(it.seriesName, it.position) }
-                    .orEmpty()
-                val book = entity.toDomain(
-                    seriesEntries = entries,
-                    isStale = isEntityStale(entity, lastSync),
+            entities
+                .map { entity ->
+                    val entries =
+                        seriesByBookId[entity.bookId]
+                            ?.map { SeriesEntry(it.seriesName, it.position) }
+                            .orEmpty()
+                    val book =
+                        entity.toDomain(
+                            seriesEntries = entries,
+                            isStale = isEntityStale(entity, lastSync),
+                        )
+                    val effectiveSortDateMs =
+                        overrideMap[book.bookId]
+                            ?: (book.userDateAdded?.toEpochDay()?.times(MS_PER_DAY) ?: 0L)
+                    ToReadBookItem(book = book, effectiveSortDateMs = effectiveSortDateMs)
+                }.sortedWith(
+                    compareByDescending<ToReadBookItem> { it.effectiveSortDateMs }
+                        .thenBy { it.book.bookId },
                 )
-                val effectiveSortDateMs = overrideMap[book.bookId]
-                    ?: (book.userDateAdded?.toEpochDay()?.times(MS_PER_DAY) ?: 0L)
-                ToReadBookItem(book = book, effectiveSortDateMs = effectiveSortDateMs)
-            }.sortedWith(
-                compareByDescending<ToReadBookItem> { it.effectiveSortDateMs }
-                    .thenBy { it.book.bookId }
-            )
         }
 
     /** Update the sort date override for a to-read book. */
-    suspend fun updateToReadSortDate(bookId: String, sortDateMs: Long) {
+    suspend fun updateToReadSortDate(
+        bookId: String,
+        sortDateMs: Long,
+    ) {
         bookSortOverrideDao.upsert(BookSortOverrideEntity(bookId, sortDateMs))
     }
 
@@ -131,24 +142,28 @@ class BookRepository(
      * Immediately delete all stale books (those not present in the latest
      * successful sync). Also cleans up orphaned series entries and sort overrides.
      */
-    suspend fun flushStaleBooks() = withContext(Dispatchers.IO) {
-        val lastSync = settingsRepository.lastSyncEpochMs
-        if (lastSync <= 0) {
-            Log.d(TAG, "flushStaleBooks: no successful sync recorded, nothing to flush")
-            return@withContext
+    suspend fun flushStaleBooks() =
+        withContext(Dispatchers.IO) {
+            val lastSync = settingsRepository.lastSyncEpochMs
+            if (lastSync <= 0) {
+                Log.d(TAG, "flushStaleBooks: no successful sync recorded, nothing to flush")
+                return@withContext
+            }
+            bookDao.deleteStaleBooks(lastSync)
+            bookSeriesDao.deleteStaleEntries(lastSync)
+            bookSeriesDao.deleteOrphans()
+            bookSortOverrideDao.deleteOrphans()
+            Log.i(TAG, "Flushed stale books (lastSyncedMs < $lastSync)")
         }
-        bookDao.deleteStaleBooks(lastSync)
-        bookSeriesDao.deleteStaleEntries(lastSync)
-        bookSeriesDao.deleteOrphans()
-        bookSortOverrideDao.deleteOrphans()
-        Log.i(TAG, "Flushed stale books (lastSyncedMs < $lastSync)")
-    }
 
     /** Observe the count of stale books (not present in the latest successful sync). */
     fun observeStaleBookCount(): Flow<Int> {
         val lastSync = settingsRepository.lastSyncEpochMs
-        return if (lastSync > 0) bookDao.observeStaleCount(lastSync)
-        else kotlinx.coroutines.flow.flowOf(0)
+        return if (lastSync > 0) {
+            bookDao.observeStaleCount(lastSync)
+        } else {
+            kotlinx.coroutines.flow.flowOf(0)
+        }
     }
 
     /**
@@ -165,21 +180,24 @@ class BookRepository(
             val seriesByBookId = seriesRows.groupBy { it.bookId }
             val grouped = seriesRows.groupBy { it.seriesName }
 
-            grouped.map { (seriesName, rows) ->
-                val books = rows.mapNotNull { row ->
-                    val entity = booksById[row.bookId] ?: return@mapNotNull null
-                    val entries = seriesByBookId[row.bookId]
-                        ?.map { SeriesEntry(it.seriesName, it.position) }
-                        .orEmpty()
-                    entity.toDomain(seriesEntries = entries, isStale = isEntityStale(entity, lastSync))
-                }
-                val lastRead = books.mapNotNull { it.userReadAt }.maxOrNull()
-                Series(name = seriesName, books = books, lastReadAt = lastRead)
-            }.filter { it.books.isNotEmpty() }
-            .sortedWith(
-                compareByDescending<Series> { it.lastReadAt }
-                    .thenBy { it.name }
-            )
+            grouped
+                .map { (seriesName, rows) ->
+                    val books =
+                        rows.mapNotNull { row ->
+                            val entity = booksById[row.bookId] ?: return@mapNotNull null
+                            val entries =
+                                seriesByBookId[row.bookId]
+                                    ?.map { SeriesEntry(it.seriesName, it.position) }
+                                    .orEmpty()
+                            entity.toDomain(seriesEntries = entries, isStale = isEntityStale(entity, lastSync))
+                        }
+                    val lastRead = books.mapNotNull { it.userReadAt }.maxOrNull()
+                    Series(name = seriesName, books = books, lastReadAt = lastRead)
+                }.filter { it.books.isNotEmpty() }
+                .sortedWith(
+                    compareByDescending<Series> { it.lastReadAt }
+                        .thenBy { it.name },
+                )
         }
 
     /**
@@ -193,16 +211,17 @@ class BookRepository(
             val lastSync = settingsRepository.lastSyncEpochMs
             val booksById = bookEntities.associateBy { it.bookId }
 
-            seriesRows.mapNotNull { row ->
-                val entity = booksById[row.bookId] ?: return@mapNotNull null
-                entity.toDomain(
-                    seriesEntries = listOf(SeriesEntry(row.seriesName, row.position)),
-                    isStale = isEntityStale(entity, lastSync),
-                )
-            }.sortedBy { book ->
-                book.seriesEntries.firstOrNull { it.seriesName == seriesName }?.position
-                    ?: Double.MAX_VALUE
-            }
+            seriesRows
+                .mapNotNull { row ->
+                    val entity = booksById[row.bookId] ?: return@mapNotNull null
+                    entity.toDomain(
+                        seriesEntries = listOf(SeriesEntry(row.seriesName, row.position)),
+                        isStale = isEntityStale(entity, lastSync),
+                    )
+                }.sortedBy { book ->
+                    book.seriesEntries.firstOrNull { it.seriesName == seriesName }?.position
+                        ?: Double.MAX_VALUE
+                }
         }
 
     /**
@@ -210,7 +229,8 @@ class BookRepository(
      */
     fun observeSeriesAliases(displayName: String): Flow<List<String>> =
         seriesInfoDao.observeByDisplayName(displayName).map { entity ->
-            entity?.parsedNameSet()
+            entity
+                ?.parsedNameSet()
                 ?.filter { it != displayName }
                 ?.sorted()
                 .orEmpty()
@@ -235,75 +255,82 @@ class BookRepository(
      *
      * Returns the total number of books synced.
      */
-    suspend fun sync(feedUrl: String): Int = withContext(Dispatchers.IO) {
-        Log.i(TAG, "Sync starting from feed: ${feedUrl.take(60)}…")
-        val syncTimestamp = System.currentTimeMillis()
-        var totalBooks = 0
-        var page = 1
+    suspend fun sync(feedUrl: String): Int =
+        withContext(Dispatchers.IO) {
+            Log.i(TAG, "Sync starting from feed: ${feedUrl.take(60)}…")
+            val syncTimestamp = System.currentTimeMillis()
+            var totalBooks = 0
+            var page = 1
 
-        val lastSuccessfulSync = settingsRepository.lastSyncEpochMs
-        val isDormant = lastSuccessfulSync > 0 &&
-            syncTimestamp - lastSuccessfulSync > RETENTION_PERIOD_MS
-        var dormancyHandled = false
+            val lastSuccessfulSync = settingsRepository.lastSyncEpochMs
+            val isDormant =
+                lastSuccessfulSync > 0 &&
+                    syncTimestamp - lastSuccessfulSync > RETENTION_PERIOD_MS
+            var dormancyHandled = false
 
-        // Build parsedName → displayName map from existing series_info
-        val seriesInfoMap = buildSeriesInfoMap()
+            // Build parsedName → displayName map from existing series_info
+            val seriesInfoMap = buildSeriesInfoMap()
 
-        while (true) {
-            val books = feedService.fetch(feedUrl, page).use { stream ->
-                rssParser.parse(stream)
-            }
-            if (books.isEmpty()) break
+            while (true) {
+                val books =
+                    feedService.fetch(feedUrl, page).use { stream ->
+                        rssParser.parse(stream)
+                    }
+                if (books.isEmpty()) break
 
-            // Dormancy protection: defer until we've seen a valid page-1 response,
-            // so a transient empty/failed fetch doesn't trigger a needless DB rewrite.
-            if (isDormant && !dormancyHandled) {
-                Log.i(TAG, "Dormancy detected (last sync ${(syncTimestamp - lastSuccessfulSync) / MS_PER_DAY} days ago) — refreshing retention timestamps")
-                bookDao.refreshLastSyncedMs(syncTimestamp)
-                bookSeriesDao.refreshLastSyncedMs(syncTimestamp)
-                dormancyHandled = true
-            }
-
-            val entities = books.map { BookEntity.fromDomain(it, lastSyncedMs = syncTimestamp) }
-            bookDao.upsertAll(entities)
-
-            // Persist series entries for each book, mapping parsed names to display names
-            val seriesEntities = books.flatMap { book ->
-                book.seriesEntries.map { entry ->
-                    val displayName = resolveSeriesDisplayName(entry.seriesName, seriesInfoMap)
-                    BookSeriesEntity(
-                        bookId = book.bookId,
-                        seriesName = displayName,
-                        position = entry.position,
-                        lastSyncedMs = syncTimestamp,
+                // Dormancy protection: defer until we've seen a valid page-1 response,
+                // so a transient empty/failed fetch doesn't trigger a needless DB rewrite.
+                if (isDormant && !dormancyHandled) {
+                    Log.i(
+                        TAG,
+                        "Dormancy detected (last sync ${(syncTimestamp - lastSuccessfulSync) / MS_PER_DAY} days ago) — refreshing retention timestamps",
                     )
+                    bookDao.refreshLastSyncedMs(syncTimestamp)
+                    bookSeriesDao.refreshLastSyncedMs(syncTimestamp)
+                    dormancyHandled = true
                 }
-            }
-            if (seriesEntities.isNotEmpty()) {
-                bookSeriesDao.upsertAll(seriesEntities)
+
+                val entities = books.map { BookEntity.fromDomain(it, lastSyncedMs = syncTimestamp) }
+                bookDao.upsertAll(entities)
+
+                // Persist series entries for each book, mapping parsed names to display names
+                val seriesEntities =
+                    books.flatMap { book ->
+                        book.seriesEntries.map { entry ->
+                            val displayName = resolveSeriesDisplayName(entry.seriesName, seriesInfoMap)
+                            BookSeriesEntity(
+                                bookId = book.bookId,
+                                seriesName = displayName,
+                                position = entry.position,
+                                lastSyncedMs = syncTimestamp,
+                            )
+                        }
+                    }
+                if (seriesEntities.isNotEmpty()) {
+                    bookSeriesDao.upsertAll(seriesEntities)
+                }
+
+                totalBooks += books.size
+                Log.d(TAG, "Sync page $page: ${books.size} books (total so far: $totalBooks)")
+                page++
             }
 
-            totalBooks += books.size
-            Log.d(TAG, "Sync page $page: ${books.size} books (total so far: $totalBooks)")
-            page++
+            if (totalBooks == 0) {
+                // Empty page-1 almost always means transient failure (network, auth,
+                // rate-limit), not a legitimately empty Goodreads shelf. Throw so the
+                // caller treats it as an error rather than a fresh success that would
+                // suppress further retries for the next 24h.
+                throw EmptyFeedException()
+            }
+            val retentionThreshold = syncTimestamp - RETENTION_PERIOD_MS
+            bookDao.deleteStaleBooks(retentionThreshold)
+            bookSeriesDao.deleteStaleEntries(retentionThreshold)
+            bookSeriesDao.deleteOrphans()
+            bookSortOverrideDao.deleteOrphans()
+            settingsRepository.lastSyncEpochMs = syncTimestamp
+            Log.i(TAG, "Sync complete: $totalBooks books in ${page - 1} pages")
+            totalBooks
         }
-
-        if (totalBooks == 0) {
-            // Empty page-1 almost always means transient failure (network, auth,
-            // rate-limit), not a legitimately empty Goodreads shelf. Throw so the
-            // caller treats it as an error rather than a fresh success that would
-            // suppress further retries for the next 24h.
-            throw EmptyFeedException()
-        }
-        val retentionThreshold = syncTimestamp - RETENTION_PERIOD_MS
-        bookDao.deleteStaleBooks(retentionThreshold)
-        bookSeriesDao.deleteStaleEntries(retentionThreshold)
-        bookSeriesDao.deleteOrphans()
-        bookSortOverrideDao.deleteOrphans()
-        settingsRepository.lastSyncEpochMs = syncTimestamp
-        Log.i(TAG, "Sync complete: $totalBooks books in ${page - 1} pages")
-        totalBooks
-    }
 
     class EmptyFeedException : RuntimeException("Feed returned no books")
 
@@ -311,7 +338,10 @@ class BookRepository(
      * Rename a series. If the new name matches an existing series (by
      * displayName or parsedNames), the two are merged automatically.
      */
-    suspend fun renameSeries(oldName: String, newName: String) = withContext(Dispatchers.IO) {
+    suspend fun renameSeries(
+        oldName: String,
+        newName: String,
+    ) = withContext(Dispatchers.IO) {
         if (oldName == newName) return@withContext
 
         val oldInfo = seriesInfoDao.getByDisplayName(oldName) ?: return@withContext
@@ -319,9 +349,12 @@ class BookRepository(
 
         // Check if newName matches an existing series (by displayName or parsedNames)
         val existingByDisplay = seriesInfoDao.getByDisplayName(newName)
-        val existingByParsed = if (existingByDisplay == null) {
-            seriesInfoDao.findByParsedName(newName)
-        } else null
+        val existingByParsed =
+            if (existingByDisplay == null) {
+                seriesInfoDao.findByParsedName(newName)
+            } else {
+                null
+            }
         val mergeTarget = existingByDisplay ?: existingByParsed
 
         if (mergeTarget != null && mergeTarget.displayName != oldName) {
@@ -381,4 +414,3 @@ class BookRepository(
         return parsedName
     }
 }
-

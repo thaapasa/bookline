@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BookSeriesDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(entries: List<BookSeriesEntity>)
 
@@ -33,13 +32,16 @@ interface BookSeriesDao {
         FROM book_series bs
         INNER JOIN books b ON bs.bookId = b.bookId
         ORDER BY bs.seriesName, bs.position
-        """
+        """,
     )
     fun observeAll(): Flow<List<SeriesBookRow>>
 
     /** Rename all book_series rows from one series name to another. */
     @Query("UPDATE book_series SET seriesName = :newName WHERE seriesName = :oldName")
-    suspend fun updateSeriesName(oldName: String, newName: String)
+    suspend fun updateSeriesName(
+        oldName: String,
+        newName: String,
+    )
 
     /** Observe series entries for a single series name. */
     @Query(
@@ -49,7 +51,7 @@ interface BookSeriesDao {
         INNER JOIN books b ON bs.bookId = b.bookId
         WHERE bs.seriesName = :seriesName
         ORDER BY bs.position
-        """
+        """,
     )
     fun observeBySeriesName(seriesName: String): Flow<List<SeriesBookRow>>
 }

@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BookDao {
-
     @Query("SELECT * FROM books")
     fun observeAll(): Flow<List<BookEntity>>
 
@@ -23,7 +22,7 @@ interface BookDao {
             CASE WHEN userShelves LIKE '%|currently-reading|%' THEN 0 ELSE 1 END,
             CASE WHEN userReadAt IS NULL THEN 1 ELSE 0 END,
             COALESCE(userReadAt, userDateAdded) DESC
-        """
+        """,
     )
     fun observeTimeline(): Flow<List<BookEntity>>
 
@@ -32,7 +31,7 @@ interface BookDao {
         SELECT * FROM books
         WHERE userShelves LIKE '%|to-read|%'
         ORDER BY userDateAdded DESC
-        """
+        """,
     )
     fun observeToRead(): Flow<List<BookEntity>>
 

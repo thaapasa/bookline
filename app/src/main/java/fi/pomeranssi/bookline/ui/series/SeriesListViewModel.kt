@@ -20,7 +20,6 @@ class SeriesListViewModel(
     private val bookRepository: BookRepository,
     private val syncCoordinator: SyncCoordinator,
 ) : ViewModel() {
-
     private companion object {
         const val TAG = "SeriesListVM"
     }
@@ -32,24 +31,28 @@ class SeriesListViewModel(
 
     val filterText = MutableStateFlow("")
 
-    val uiState: StateFlow<SeriesListUiState> = bookRepository.observeAllSeries()
-        .map { seriesList ->
-            if (settingsRepository.feedUrl.value.isBlank()) {
-                Log.d(TAG, "Series: no feed configured")
-                SeriesListUiState.NoFeedConfigured
-            } else {
-                Log.d(TAG, "Series loaded: ${seriesList.size} series")
-                SeriesListUiState.Success(series = seriesList)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SeriesListUiState.Loading)
+    val uiState: StateFlow<SeriesListUiState> =
+        bookRepository
+            .observeAllSeries()
+            .map { seriesList ->
+                if (settingsRepository.feedUrl.value.isBlank()) {
+                    Log.d(TAG, "Series: no feed configured")
+                    SeriesListUiState.NoFeedConfigured
+                } else {
+                    Log.d(TAG, "Series loaded: ${seriesList.size} series")
+                    SeriesListUiState.Success(series = seriesList)
+                }
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SeriesListUiState.Loading)
 
     /** Series list filtered by the current search text. */
     val filteredSeries: StateFlow<List<Series>> =
         combine(uiState, filterText) { state, filter ->
             val allSeries = (state as? SeriesListUiState.Success)?.series.orEmpty()
-            if (filter.isBlank()) allSeries
-            else allSeries.filter { it.name.contains(filter, ignoreCase = true) }
+            if (filter.isBlank()) {
+                allSeries
+            } else {
+                allSeries.filter { it.name.contains(filter, ignoreCase = true) }
+            }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
@@ -67,6 +70,10 @@ class SeriesListViewModel(
 
 sealed interface SeriesListUiState {
     data object Loading : SeriesListUiState
+
     data object NoFeedConfigured : SeriesListUiState
-    data class Success(val series: List<Series>) : SeriesListUiState
+
+    data class Success(
+        val series: List<Series>,
+    ) : SeriesListUiState
 }

@@ -9,6 +9,5 @@ class BookDetailViewModel(
     private val bookRepository: BookRepository,
     bookId: String,
 ) : ViewModel() {
-
     val book: Flow<Book?> = bookRepository.observeBook(bookId)
 }

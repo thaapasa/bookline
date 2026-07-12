@@ -20,10 +20,14 @@ sealed interface SyncResult {
     data object None : SyncResult
 
     /** Last sync completed successfully. */
-    data class Success(val bookCount: Int) : SyncResult
+    data class Success(
+        val bookCount: Int,
+    ) : SyncResult
 
     /** Last sync failed with an error. */
-    data class Error(val message: String) : SyncResult
+    data class Error(
+        val message: String,
+    ) : SyncResult
 }
 
 /**
@@ -92,26 +96,27 @@ class SyncCoordinator(
             Log.d(TAG, "launchSync: sync already in progress, skipping")
             return
         }
-        activeSyncJob = scope.launch {
-            mutex.withLock {
-                val feedUrl = settingsRepository.feedUrl.value
-                if (feedUrl.isBlank()) {
-                    _isRefreshing.value = false
-                    return@withLock
-                }
-                try {
-                    val count = bookRepository.sync(feedUrl)
-                    _lastSyncResult.value = SyncResult.Success(count)
-                    Log.i(TAG, "Sync completed: $count books")
-                } catch (e: Exception) {
-                    val message = e.message ?: "Unknown error"
-                    _lastSyncResult.value = SyncResult.Error(message)
-                    Log.e(TAG, "Sync failed", e)
-                } finally {
-                    _isRefreshing.value = false
-                    activeSyncJob = null
+        activeSyncJob =
+            scope.launch {
+                mutex.withLock {
+                    val feedUrl = settingsRepository.feedUrl.value
+                    if (feedUrl.isBlank()) {
+                        _isRefreshing.value = false
+                        return@withLock
+                    }
+                    try {
+                        val count = bookRepository.sync(feedUrl)
+                        _lastSyncResult.value = SyncResult.Success(count)
+                        Log.i(TAG, "Sync completed: $count books")
+                    } catch (e: Exception) {
+                        val message = e.message ?: "Unknown error"
+                        _lastSyncResult.value = SyncResult.Error(message)
+                        Log.e(TAG, "Sync failed", e)
+                    } finally {
+                        _isRefreshing.value = false
+                        activeSyncJob = null
+                    }
                 }
             }
-        }
     }
 }

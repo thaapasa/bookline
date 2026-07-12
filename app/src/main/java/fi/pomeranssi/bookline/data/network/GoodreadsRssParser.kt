@@ -16,7 +16,6 @@ import java.util.Locale
  * low-overhead, streaming XML parsing.
  */
 class GoodreadsRssParser {
-
     /**
      * Parse the given [inputStream] as a Goodreads RSS feed.
      * Returns the list of books found in `<item>` elements.
@@ -80,7 +79,10 @@ class GoodreadsRssParser {
                             numPages = parseBookElement(parser)
                         }
 
-                        "item" -> depth++
+                        "item" -> {
+                            depth++
+                        }
+
                         else -> {
                             val text = readText(parser)
                             when (tag) {
@@ -200,10 +202,11 @@ class GoodreadsRssParser {
          * `"Sun, 26 Jan 2025 00:00:00 +0000"` or
          * `"Sat, 21 Feb 2026 12:32:05 -0800"`
          */
-        private val RSS_DATE_FORMAT = DateTimeFormatter.ofPattern(
-            "EEE, d MMM yyyy HH:mm:ss Z",
-            Locale.ENGLISH,
-        )
+        private val RSS_DATE_FORMAT =
+            DateTimeFormatter.ofPattern(
+                "EEE, d MMM yyyy HH:mm:ss Z",
+                Locale.ENGLISH,
+            )
 
         /**
          * Parse an RFC-2822 date string into a [LocalDate], or null if
@@ -223,16 +226,15 @@ class GoodreadsRssParser {
          * into individual shelf names.
          */
         internal fun parseShelves(text: String): List<String> =
-            text.split(",")
+            text
+                .split(",")
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
 
-        private fun String.takeIfNotBlank(): String? =
-            ifBlank { null }
+        private fun String.takeIfNotBlank(): String? = ifBlank { null }
 
         /** Collapse any runs of whitespace into a single space and trim. */
-        private fun String.normalizeWhitespace(): String =
-            replace(Regex("""\s+"""), " ").trim()
+        private fun String.normalizeWhitespace(): String = replace(Regex("""\s+"""), " ").trim()
 
         /** Regex to extract the first `<a href="...">` URL from the description HTML. */
         private val BOOK_URL_REGEX = Regex("""<a\s+href="([^"]+goodreads\.com/book/show/[^"]+)"""")
@@ -243,9 +245,11 @@ class GoodreadsRssParser {
          */
         internal fun parseBookUrl(description: String?): String? {
             if (description.isNullOrBlank()) return null
-            return BOOK_URL_REGEX.find(description)?.groupValues?.get(1)
+            return BOOK_URL_REGEX
+                .find(description)
+                ?.groupValues
+                ?.get(1)
                 ?.replace("&amp;", "&")
         }
     }
 }
-

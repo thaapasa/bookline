@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    Preview cover drawables are resolved dynamically by name in BookCover
+    (preview:// scheme), so lint cannot see the references.
+-->
+<resources
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/preview_cover_beyond_horizon,@drawable/preview_cover_silent_valleys" />

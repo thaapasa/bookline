@@ -119,11 +119,12 @@ private fun SeriesListContent(
             placeholder = "Filter series…",
         )
         LazyColumn(
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                bottom = 8.dp,
-            ),
+            contentPadding =
+                PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 8.dp,
+                ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (syncErrorMessage != null) {

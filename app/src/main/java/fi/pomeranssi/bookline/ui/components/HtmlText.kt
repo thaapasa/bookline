@@ -47,21 +47,33 @@ private fun htmlToAnnotatedString(html: String): AnnotatedString {
             val start = spanned.getSpanStart(span)
             val end = spanned.getSpanEnd(span)
             when (span) {
-                is StyleSpan -> when (span.style) {
-                    Typeface.BOLD -> addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, end)
-                    Typeface.ITALIC -> addStyle(SpanStyle(fontStyle = FontStyle.Italic), start, end)
-                    Typeface.BOLD_ITALIC -> addStyle(
-                        SpanStyle(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic),
+                is StyleSpan -> {
+                    when (span.style) {
+                        Typeface.BOLD -> {
+                            addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, end)
+                        }
+
+                        Typeface.ITALIC -> {
+                            addStyle(SpanStyle(fontStyle = FontStyle.Italic), start, end)
+                        }
+
+                        Typeface.BOLD_ITALIC -> {
+                            addStyle(
+                                SpanStyle(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic),
+                                start,
+                                end,
+                            )
+                        }
+                    }
+                }
+
+                is UnderlineSpan -> {
+                    addStyle(
+                        SpanStyle(textDecoration = TextDecoration.Underline),
                         start,
                         end,
                     )
                 }
-
-                is UnderlineSpan -> addStyle(
-                    SpanStyle(textDecoration = TextDecoration.Underline),
-                    start,
-                    end,
-                )
             }
         }
     }
@@ -72,8 +84,9 @@ private fun htmlToAnnotatedString(html: String): AnnotatedString {
 private fun HtmlTextPreview() {
     BooklineTheme(dynamicColor = false) {
         HtmlText(
-            html = "A review with <b>bold</b>, <i>italic</i>, <b><i>bold italic</i></b> " +
-                "and <u>underlined</u> text.<br>Second line after a break.",
+            html =
+                "A review with <b>bold</b>, <i>italic</i>, <b><i>bold italic</i></b> " +
+                    "and <u>underlined</u> text.<br>Second line after a break.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(16.dp),
         )

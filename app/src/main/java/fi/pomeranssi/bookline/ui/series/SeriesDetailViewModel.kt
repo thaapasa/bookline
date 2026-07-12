@@ -19,7 +19,6 @@ class SeriesDetailViewModel(
     private val bookRepository: BookRepository,
     initialSeriesName: String,
 ) : ViewModel() {
-
     /** Current series name — updated after a rename. */
     private val currentName = MutableStateFlow(initialSeriesName)
 
@@ -27,20 +26,20 @@ class SeriesDetailViewModel(
     private val _renamed = MutableSharedFlow<String>(extraBufferCapacity = 1)
     val renamed: MutableSharedFlow<String> = _renamed
 
-    val uiState: StateFlow<SeriesDetailUiState> = currentName
-        .flatMapLatest { name ->
-            combine(
-                bookRepository.observeSeriesBooks(name),
-                bookRepository.observeSeriesAliases(name),
-            ) { books, aliases ->
-                SeriesDetailUiState.Success(
-                    seriesName = name,
-                    books = books,
-                    aliases = aliases,
-                )
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SeriesDetailUiState.Loading)
+    val uiState: StateFlow<SeriesDetailUiState> =
+        currentName
+            .flatMapLatest { name ->
+                combine(
+                    bookRepository.observeSeriesBooks(name),
+                    bookRepository.observeSeriesAliases(name),
+                ) { books, aliases ->
+                    SeriesDetailUiState.Success(
+                        seriesName = name,
+                        books = books,
+                        aliases = aliases,
+                    )
+                }
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SeriesDetailUiState.Loading)
 
     fun renameSeries(newName: String) {
         val oldName = currentName.value
@@ -55,6 +54,7 @@ class SeriesDetailViewModel(
 
 sealed interface SeriesDetailUiState {
     data object Loading : SeriesDetailUiState
+
     data class Success(
         val seriesName: String,
         val books: List<Book>,

@@ -30,9 +30,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -79,57 +79,80 @@ private const val SERIES_DETAIL_ROUTE = "series_detail/{seriesName}"
 @Composable
 private fun timelineViewModel(): TimelineViewModel {
     val app = LocalContext.current.booklineApp
-    return viewModel(factory = viewModelFactory {
-        initializer { TimelineViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
-    })
+    return viewModel(
+        factory =
+            viewModelFactory {
+                initializer { TimelineViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
+            },
+    )
 }
 
 @Composable
 private fun toReadViewModel(): ToReadViewModel {
     val app = LocalContext.current.booklineApp
-    return viewModel(factory = viewModelFactory {
-        initializer { ToReadViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
-    })
+    return viewModel(
+        factory =
+            viewModelFactory {
+                initializer { ToReadViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
+            },
+    )
 }
 
 @Composable
 private fun seriesListViewModel(): SeriesListViewModel {
     val app = LocalContext.current.booklineApp
-    return viewModel(factory = viewModelFactory {
-        initializer { SeriesListViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
-    })
+    return viewModel(
+        factory =
+            viewModelFactory {
+                initializer { SeriesListViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
+            },
+    )
 }
 
 @Composable
 private fun libraryViewModel(): LibraryViewModel {
     val app = LocalContext.current.booklineApp
-    return viewModel(factory = viewModelFactory {
-        initializer { LibraryViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
-    })
+    return viewModel(
+        factory =
+            viewModelFactory {
+                initializer { LibraryViewModel(app.settingsRepository, app.bookRepository, app.syncCoordinator) }
+            },
+    )
 }
 
 @Composable
 private fun settingsViewModel(): SettingsViewModel {
     val app = LocalContext.current.booklineApp
-    return viewModel(factory = viewModelFactory {
-        initializer { SettingsViewModel(app.settingsRepository, app.database, app.bookRepository) }
-    })
+    return viewModel(
+        factory =
+            viewModelFactory {
+                initializer { SettingsViewModel(app.settingsRepository, app.database, app.bookRepository) }
+            },
+    )
 }
 
 @Composable
 private fun bookDetailViewModel(bookId: String): BookDetailViewModel {
     val app = LocalContext.current.booklineApp
-    return viewModel(key = "book_$bookId", factory = viewModelFactory {
-        initializer { BookDetailViewModel(app.bookRepository, bookId) }
-    })
+    return viewModel(
+        key = "book_$bookId",
+        factory =
+            viewModelFactory {
+                initializer { BookDetailViewModel(app.bookRepository, bookId) }
+            },
+    )
 }
 
 @Composable
 private fun seriesDetailViewModel(seriesName: String): SeriesDetailViewModel {
     val app = LocalContext.current.booklineApp
-    return viewModel(key = "series_$seriesName", factory = viewModelFactory {
-        initializer { SeriesDetailViewModel(app.bookRepository, seriesName) }
-    })
+    return viewModel(
+        key = "series_$seriesName",
+        factory =
+            viewModelFactory {
+                initializer { SeriesDetailViewModel(app.bookRepository, seriesName) }
+            },
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -153,8 +176,9 @@ fun BooklineApp() {
     var goodreadsAutoDetect by remember { mutableStateOf(false) }
     var onToggleMobileDesktop by remember { mutableStateOf<(() -> Unit)?>(null) }
 
-    val isTopLevel = TopLevelRoute.entries.any { it.route == currentDestination?.route }
-        || currentDestination?.route == GOODREADS_ROUTE
+    val isTopLevel =
+        TopLevelRoute.entries.any { it.route == currentDestination?.route } ||
+            currentDestination?.route == GOODREADS_ROUTE
     val isToReadRoute = currentDestination?.route == TopLevelRoute.ToRead.route
     val isTimelineRoute = currentDestination?.route == TopLevelRoute.Timeline.route
     val isGoodreadsRoute = currentDestination?.route == GOODREADS_ROUTE
@@ -169,35 +193,44 @@ fun BooklineApp() {
     val libraryState by libraryVm.uiState.collectAsState()
     val filteredBooks by libraryVm.filteredBooks.collectAsState()
 
-    val subtitle = when (currentDestination?.route) {
-        TopLevelRoute.Timeline.route -> {
-            val count = (timelineState as? TimelineUiState.Success)?.sections
-                ?.count { it is TimelineSection.BookItem }
-            if (count != null && count > 0) "$count books" else null
-        }
-        TopLevelRoute.ToRead.route -> {
-            if (toReadBooks.isNotEmpty()) "${toReadBooks.size} books" else null
-        }
-        TopLevelRoute.Series.route -> {
-            val total = (seriesState as? SeriesListUiState.Success)?.series?.size ?: 0
-            val filtered = filteredSeries.size
-            when {
-                total == 0 -> null
-                filtered < total -> "$filtered / $total series"
-                else -> "$total series"
+    val subtitle =
+        when (currentDestination?.route) {
+            TopLevelRoute.Timeline.route -> {
+                val count =
+                    (timelineState as? TimelineUiState.Success)
+                        ?.sections
+                        ?.count { it is TimelineSection.BookItem }
+                if (count != null && count > 0) "$count books" else null
+            }
+
+            TopLevelRoute.ToRead.route -> {
+                if (toReadBooks.isNotEmpty()) "${toReadBooks.size} books" else null
+            }
+
+            TopLevelRoute.Series.route -> {
+                val total = (seriesState as? SeriesListUiState.Success)?.series?.size ?: 0
+                val filtered = filteredSeries.size
+                when {
+                    total == 0 -> null
+                    filtered < total -> "$filtered / $total series"
+                    else -> "$total series"
+                }
+            }
+
+            TopLevelRoute.Library.route -> {
+                val total = (libraryState as? LibraryUiState.Success)?.books?.size ?: 0
+                val filtered = filteredBooks.size
+                when {
+                    total == 0 -> null
+                    filtered < total -> "$filtered / $total books"
+                    else -> "$total books"
+                }
+            }
+
+            else -> {
+                null
             }
         }
-        TopLevelRoute.Library.route -> {
-            val total = (libraryState as? LibraryUiState.Success)?.books?.size ?: 0
-            val filtered = filteredBooks.size
-            when {
-                total == 0 -> null
-                filtered < total -> "$filtered / $total books"
-                else -> "$total books"
-            }
-        }
-        else -> null
-    }
 
     Scaffold(
         topBar = {
@@ -267,9 +300,10 @@ private fun BooklineBottomBar(
 ) {
     NavigationBar {
         TopLevelRoute.entries.forEach { destination ->
-            val selected = currentDestination?.hierarchy?.any {
-                it.route == destination.route
-            } == true
+            val selected =
+                currentDestination?.hierarchy?.any {
+                    it.route == destination.route
+                } == true
 
             NavigationBarItem(
                 selected = selected,
@@ -356,9 +390,14 @@ private fun BooklineNavHost(
             GoodreadsScreen(
                 initialUrl = urlOverride ?: "https://www.goodreads.com",
                 modifier = Modifier.padding(innerPadding),
-                onRssFeedDetected = if (!isFeedConfigured || autoDetect) { url ->
-                    settingsRepository.saveFeedUrl(url)
-                } else null,
+                onRssFeedDetected =
+                    if (!isFeedConfigured || autoDetect) {
+                        { url ->
+                            settingsRepository.saveFeedUrl(url)
+                        }
+                    } else {
+                        null
+                    },
                 autoDetect = autoDetect,
                 onRegisterMobileToggle = onRegisterMobileToggle,
             )
@@ -463,11 +502,12 @@ private fun BooklineTopBar(
                     Icon(
                         imageVector = Icons.Default.SwapVert,
                         contentDescription = if (reorderMode) "Exit reorder mode" else "Reorder list",
-                        tint = if (reorderMode) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            LocalContentColor.current
-                        },
+                        tint =
+                            if (reorderMode) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                LocalContentColor.current
+                            },
                     )
                 }
             }
@@ -505,4 +545,3 @@ private fun BooklineTopBar(
         },
     )
 }
-

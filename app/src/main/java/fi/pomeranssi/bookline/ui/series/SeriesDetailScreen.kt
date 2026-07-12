@@ -90,9 +90,10 @@ fun SeriesDetailScreen(
         when (val state = uiState) {
             SeriesDetailUiState.Loading -> {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding),
                     contentAlignment = Alignment.TopCenter,
                 ) {
                     LinearProgressIndicator(
@@ -108,12 +109,13 @@ fun SeriesDetailScreen(
                     aliases = state.aliases,
                     books = state.books,
                     onBookClick = onBookClick,
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = innerPadding.calculateTopPadding() + 8.dp,
-                        bottom = innerPadding.calculateBottomPadding() + 8.dp,
-                    ),
+                    contentPadding =
+                        PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = innerPadding.calculateTopPadding() + 8.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 8.dp,
+                        ),
                 )
 
                 if (showRenameDialog) {
@@ -157,21 +159,27 @@ private fun SeriesDetailContent(
             items = books,
             key = { it.bookId },
         ) { book ->
-            val position = book.seriesEntries
-                .firstOrNull { it.seriesName == seriesName }
-                ?.position
+            val position =
+                book.seriesEntries
+                    .firstOrNull { it.seriesName == seriesName }
+                    ?.position
 
-            val positionLabel = position?.let { pos ->
-                if (pos == pos.toLong().toDouble()) "#${pos.toLong()}"
-                else "#$pos"
-            }
+            val positionLabel =
+                position?.let { pos ->
+                    if (pos == pos.toLong().toDouble()) {
+                        "#${pos.toLong()}"
+                    } else {
+                        "#$pos"
+                    }
+                }
 
             BookCard(
-                book = if (positionLabel != null) {
-                    book.copy(title = "$positionLabel — ${book.title}")
-                } else {
-                    book
-                },
+                book =
+                    if (positionLabel != null) {
+                        book.copy(title = "$positionLabel — ${book.title}")
+                    } else {
+                        book
+                    },
                 showSeriesInfo = false,
                 onClick = { onBookClick(book.bookId) },
             )

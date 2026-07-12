@@ -45,8 +45,8 @@ import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onNavigateBack: () -> Unit,
-    onFindRssFeed: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onFindRssFeed: () -> Unit = {},
 ) {
     val urlField by viewModel.urlField.collectAsState()
     val saved by viewModel.saved.collectAsState()
@@ -108,10 +108,11 @@ private fun SettingsContent(
     var showClearConfirmation by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState()),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -123,7 +124,8 @@ private fun SettingsContent(
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Paste the URL of your Goodreads RSS feed, or use auto-detect " +
+            text =
+                "Paste the URL of your Goodreads RSS feed, or use auto-detect " +
                     "to find it after logging in to Goodreads. " +
                     "The URL contains a private access key and is stored encrypted on this device.",
             style = MaterialTheme.typography.bodyMedium,
@@ -189,7 +191,8 @@ private fun SettingsContent(
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Books not present in the latest sync are shown faded with a " +
+            text =
+                "Books not present in the latest sync are shown faded with a " +
                     "warning badge. Use the button below to remove them immediately " +
                     "instead of waiting for the 30-day auto-cleanup.",
             style = MaterialTheme.typography.bodyMedium,
@@ -204,8 +207,11 @@ private fun SettingsContent(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                if (staleCount > 0) "Flush $staleCount Missing Book${if (staleCount != 1) "s" else ""}"
-                else "No Missing Books",
+                if (staleCount > 0) {
+                    "Flush $staleCount Missing Book${if (staleCount != 1) "s" else ""}"
+                } else {
+                    "No Missing Books"
+                },
             )
         }
 
@@ -227,7 +233,8 @@ private fun SettingsContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Clear all cached book data from the local database. " +
+            text =
+                "Clear all cached book data from the local database. " +
                     "Your feed URL will be kept. Books will be reloaded from " +
                     "Goodreads on next refresh.",
             style = MaterialTheme.typography.bodyMedium,
@@ -238,9 +245,10 @@ private fun SettingsContent(
 
         OutlinedButton(
             onClick = { showClearConfirmation = true },
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.error,
-            ),
+            colors =
+                ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error,
+                ),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Clear All Data")
@@ -282,16 +290,17 @@ private fun ClearDataConfirmationDialog(
         text = {
             Text(
                 "This will delete all cached books, series, and sorting " +
-                        "preferences. Your feed URL will be kept. Data will be " +
-                        "reloaded from Goodreads on next refresh.",
+                    "preferences. Your feed URL will be kept. Data will be " +
+                    "reloaded from Goodreads on next refresh.",
             )
         },
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error,
-                ),
+                colors =
+                    ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
             ) {
                 Text("Clear")
             }

@@ -12,7 +12,6 @@ import fi.pomeranssi.bookline.domain.model.SeriesEntry
  * - `"The Last Wish (The Witcher, #0.5)"`
  */
 object SeriesParser {
-
     private val SERIES_SUFFIX_REGEX = Regex("""\s*\(([^)]*#[^)]*)\)\s*$""")
 
     /**
@@ -35,16 +34,24 @@ object SeriesParser {
         val cleanTitle = title.substring(0, match.range.first).trim()
         val seriesPart = match.groupValues[1]
 
-        val entries = ENTRY_REGEX.findAll(seriesPart).map { entryMatch ->
-            val seriesName = entryMatch.groupValues[1].trim().trimStart(',').trim()
-                .replace(WHITESPACE_REGEX, " ")
-            val position = entryMatch.groupValues[2].toDoubleOrNull()
-            if (seriesName.isNotEmpty() && position != null) {
-                SeriesEntry(seriesName = seriesName, position = position)
-            } else {
-                null
-            }
-        }.filterNotNull().toList()
+        val entries =
+            ENTRY_REGEX
+                .findAll(seriesPart)
+                .map { entryMatch ->
+                    val seriesName =
+                        entryMatch.groupValues[1]
+                            .trim()
+                            .trimStart(',')
+                            .trim()
+                            .replace(WHITESPACE_REGEX, " ")
+                    val position = entryMatch.groupValues[2].toDoubleOrNull()
+                    if (seriesName.isNotEmpty() && position != null) {
+                        SeriesEntry(seriesName = seriesName, position = position)
+                    } else {
+                        null
+                    }
+                }.filterNotNull()
+                .toList()
 
         return cleanTitle to entries
     }

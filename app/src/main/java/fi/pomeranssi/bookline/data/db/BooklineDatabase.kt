@@ -13,39 +13,43 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     exportSchema = false,
 )
 abstract class BooklineDatabase : RoomDatabase() {
-
     abstract fun bookDao(): BookDao
+
     abstract fun bookSeriesDao(): BookSeriesDao
+
     abstract fun seriesInfoDao(): SeriesInfoDao
+
     abstract fun bookSortOverrideDao(): BookSortOverrideDao
 
     companion object {
         @Volatile
         private var instance: BooklineDatabase? = null
 
-        private val MIGRATION_3_4 = object : Migration(3, 4) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL(
-                    """
-                    CREATE TABLE IF NOT EXISTS book_sort_overrides (
-                        bookId TEXT NOT NULL PRIMARY KEY,
-                        sortDateMs INTEGER NOT NULL
+        private val MIGRATION_3_4 =
+            object : Migration(3, 4) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        """
+                        CREATE TABLE IF NOT EXISTS book_sort_overrides (
+                            bookId TEXT NOT NULL PRIMARY KEY,
+                            sortDateMs INTEGER NOT NULL
+                        )
+                        """.trimIndent(),
                     )
-                    """.trimIndent()
-                )
+                }
             }
-        }
 
         fun getInstance(context: Context): BooklineDatabase =
             instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    BooklineDatabase::class.java,
-                    "bookline.db",
-                )
-                    .addMigrations(MIGRATION_3_4)
+                instance ?: Room
+                    .databaseBuilder(
+                        context.applicationContext,
+                        BooklineDatabase::class.java,
+                        "bookline.db",
+                    ).addMigrations(MIGRATION_3_4)
                     .fallbackToDestructiveMigration(dropAllTables = true)
-                    .build().also { instance = it }
+                    .build()
+                    .also { instance = it }
             }
     }
 }

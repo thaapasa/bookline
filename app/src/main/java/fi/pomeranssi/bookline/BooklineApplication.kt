@@ -8,7 +8,6 @@ import fi.pomeranssi.bookline.data.repository.SettingsRepository
 import fi.pomeranssi.bookline.ui.common.SyncCoordinator
 
 class BooklineApplication : Application() {
-
     val settingsRepository: SettingsRepository by lazy {
         SettingsRepository(applicationContext)
     }

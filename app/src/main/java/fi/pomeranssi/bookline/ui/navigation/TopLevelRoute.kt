@@ -20,4 +20,3 @@ enum class TopLevelRoute(
     Series(route = "series", label = "Series", icon = Icons.Default.CollectionsBookmark),
     Library(route = "library", label = "Library", icon = Icons.AutoMirrored.Filled.LibraryBooks),
 }
-

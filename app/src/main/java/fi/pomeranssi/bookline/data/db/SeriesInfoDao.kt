@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SeriesInfoDao {
-
     @Query("SELECT * FROM series_info")
     suspend fun getAll(): List<SeriesInfoEntity>
 

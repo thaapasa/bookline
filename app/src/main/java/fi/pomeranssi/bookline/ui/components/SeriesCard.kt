@@ -53,10 +53,11 @@ fun SeriesCard(
 
             // Series info
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(120.dp)
-                    .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .height(120.dp)
+                        .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
             ) {
                 Text(
                     text = series.name,
@@ -115,11 +116,12 @@ private fun CoverFan(
         contentAlignment = Alignment.CenterStart,
     ) {
         coverUrls.take(3).forEachIndexed { index, url ->
-            val coverModifier = Modifier
-                .offset(x = (overlap * index) + 4.dp)
-                .zIndex((totalCovers - index).toFloat())
-                .size(width = coverWidth, height = 90.dp)
-                .clip(MaterialTheme.shapes.extraSmall)
+            val coverModifier =
+                Modifier
+                    .offset(x = (overlap * index) + 4.dp)
+                    .zIndex((totalCovers - index).toFloat())
+                    .size(width = coverWidth, height = 90.dp)
+                    .clip(MaterialTheme.shapes.extraSmall)
 
             BookCover(
                 imageUrl = url,
@@ -157,9 +159,10 @@ private fun SeriesCardSingleBookPreview() {
 private fun SeriesCardNoCoversPreview() {
     BooklineTheme(dynamicColor = false) {
         SeriesCard(
-            series = PreviewData.series.copy(
-                books = PreviewData.books.map { it.copy(imageUrl = null) },
-            ),
+            series =
+                PreviewData.series.copy(
+                    books = PreviewData.books.map { it.copy(imageUrl = null) },
+                ),
             modifier = Modifier.padding(16.dp),
         )
     }

@@ -142,9 +142,10 @@ private fun LibraryContent(
     onBookClick: (bookId: String) -> Unit,
 ) {
     Column {
-        val hasActiveFilters = searchQuery.isNotEmpty()
-            || selectedShelf != null
-            || selectedStatus != null
+        val hasActiveFilters =
+            searchQuery.isNotEmpty() ||
+                selectedShelf != null ||
+                selectedStatus != null
         SearchField(
             value = searchQuery,
             onValueChange = onSearchQueryChange,
@@ -164,9 +165,10 @@ private fun LibraryContent(
                 LazyRow(
                     contentPadding = PaddingValues(start = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(bottom = 4.dp),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .padding(bottom = 4.dp),
                 ) {
                     item {
                         FilterChip(
@@ -180,8 +182,11 @@ private fun LibraryContent(
                             selected = selectedShelf == unshelvedFilter,
                             onClick = {
                                 onShelfSelected(
-                                    if (selectedShelf == unshelvedFilter) null
-                                    else unshelvedFilter,
+                                    if (selectedShelf == unshelvedFilter) {
+                                        null
+                                    } else {
+                                        unshelvedFilter
+                                    },
                                 )
                             },
                             label = { Text(UNSHELVED_FILTER_LABEL) },
@@ -209,18 +214,20 @@ private fun LibraryContent(
         }
 
         AnimatedVisibility(visible = statusExpanded) {
-            val statuses = listOf(
-                ReadingStatus.Read to "read",
-                ReadingStatus.CurrentlyReading to "currently reading",
-                ReadingStatus.ToRead to "to read",
-            )
+            val statuses =
+                listOf(
+                    ReadingStatus.Read to "read",
+                    ReadingStatus.CurrentlyReading to "currently reading",
+                    ReadingStatus.ToRead to "to read",
+                )
             Row {
                 LazyRow(
                     contentPadding = PaddingValues(start = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(bottom = 4.dp),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .padding(bottom = 4.dp),
                 ) {
                     item {
                         FilterChip(
@@ -252,11 +259,12 @@ private fun LibraryContent(
         }
 
         LazyColumn(
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                bottom = 8.dp,
-            ),
+            contentPadding =
+                PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 8.dp,
+                ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (syncErrorMessage != null) {
