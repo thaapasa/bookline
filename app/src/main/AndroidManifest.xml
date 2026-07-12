@@ -7,7 +7,7 @@
     <!-- localeConfig drives the Android 13+ per-app language picker; ignored below API 33. -->
     <application
         android:name=".BooklineApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
