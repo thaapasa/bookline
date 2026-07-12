@@ -156,7 +156,9 @@ bookline/
 Bookline collects no user data and includes no analytics or telemetry. All data
 (feed URL, cached books) stays on your device, and network requests go only to
 Goodreads. See the full
-[privacy policy](https://pomeranssi.fi/bookline/privacy-policy.html).
+[privacy policy](https://pomeranssi.fi/bookline/privacy-policy.html) — also
+linked from the in-app About screen (top bar menu), which shows the app version
+and a link to this repository.
 
 ## 🤝 Contributing
 

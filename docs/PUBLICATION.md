@@ -20,7 +20,9 @@ with Goodreads or Amazon. Personal use only at present.
 - App About screen and Play Store listing must state, prominently:
   > Bookline is an unofficial, third-party app. Not affiliated with,
   > endorsed by, or sponsored by Goodreads or Amazon.
-- Settings screen is the natural home for an About section.
+- **In-app part done** — About screen (top bar dropdown menu) shows the
+  disclaimer, license, app version, and privacy policy + GitHub links.
+- Remaining: same disclaimer in the Play Store listing description.
 
 ### 2. Privacy policy
 
@@ -82,8 +84,8 @@ with Goodreads or Amazon. Personal use only at present.
 
 - [x] Replace `ic_goodreads.xml` with generic icon at both usage sites.
 - [x] Delete `ic_goodreads.xml`.
-- [ ] Add About screen (linked from Settings) with unaffiliated
-      disclaimer + license + privacy policy link.
+- [x] Add About screen (in top bar dropdown menu) with unaffiliated
+      disclaimer + license + privacy policy link + app version.
 - [x] Write privacy policy: https://pomeranssi.fi/bookline/privacy-policy.html
 - [ ] Read Goodreads ToS end-to-end, note any clauses to comply with.
 - [ ] Verify launcher icon has no Goodreads visual resemblance.

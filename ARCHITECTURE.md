@@ -80,9 +80,11 @@ fi.pomeranssi.bookline
 │   │   └── SeriesDetailViewModel # Loads single series by name
 │   ├── goodreads                 # Embedded Goodreads WebView (accessible from top bar icon)
 │   ├── detail                    # Book detail screen (series names link to series detail)
-│   └── settings                  # Settings screen (RSS URL config)
-│       ├── SettingsScreen        # Compose UI for settings
-│       └── SettingsViewModel     # ViewModel for settings state
+│   ├── settings                  # Settings screen (RSS URL config)
+│   │   ├── SettingsScreen        # Compose UI for settings
+│   │   └── SettingsViewModel     # ViewModel for settings state
+│   └── about                     # About screen (version, disclaimer, external links)
+│       └── AboutScreen           # Static content, no ViewModel needed
 └── MainActivity.kt               # Single Activity entry point
 ```
 

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoStories
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -48,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import fi.pomeranssi.bookline.booklineApp
 import fi.pomeranssi.bookline.data.repository.SettingsRepository
+import fi.pomeranssi.bookline.ui.about.AboutScreen
 import fi.pomeranssi.bookline.ui.detail.BookDetailScreen
 import fi.pomeranssi.bookline.ui.detail.BookDetailViewModel
 import fi.pomeranssi.bookline.ui.goodreads.GoodreadsScreen
@@ -71,6 +73,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 
 private const val SETTINGS_ROUTE = "settings"
+private const val ABOUT_ROUTE = "about"
 private const val GOODREADS_ROUTE = "goodreads"
 private const val BOOK_DETAIL_ROUTE = "book/{bookId}"
 private const val SERIES_DETAIL_ROUTE = "series_detail/{seriesName}"
@@ -243,6 +246,9 @@ fun BooklineApp() {
                     onSettingsClick = {
                         navController.navigate(SETTINGS_ROUTE) { launchSingleTop = true }
                     },
+                    onAboutClick = {
+                        navController.navigate(ABOUT_ROUTE) { launchSingleTop = true }
+                    },
                     showReorderToggle = isToReadRoute,
                     reorderMode = reorderMode,
                     onReorderToggle = { toReadVm.toggleReorderMode() },
@@ -411,6 +417,11 @@ private fun BooklineNavHost(
                 },
             )
         }
+        composable(ABOUT_ROUTE) {
+            AboutScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
         composable(
             route = BOOK_DETAIL_ROUTE,
             arguments = listOf(navArgument("bookId") { type = NavType.StringType }),
@@ -452,6 +463,7 @@ private fun BooklineTopBar(
     subtitle: String? = null,
     onGoodreadsClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onAboutClick: () -> Unit,
     showReorderToggle: Boolean = false,
     reorderMode: Boolean = false,
     onReorderToggle: () -> Unit = {},
@@ -536,6 +548,19 @@ private fun BooklineTopBar(
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Settings,
+                            contentDescription = null,
+                        )
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text("About") },
+                    onClick = {
+                        menuExpanded = false
+                        onAboutClick()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Info,
                             contentDescription = null,
                         )
                     },
