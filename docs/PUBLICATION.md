@@ -25,18 +25,12 @@ with Goodreads or Amazon. Personal use only at present.
 ### 2. Privacy policy
 
 - Required by Google Play for any app collecting/storing user data.
-- Bookline stores: encrypted Goodreads feed URL (Android Keystore),
-  cached book data (local Room DB), last sync timestamp. No network
-  calls except to goodreads.com.
-- Draft a short policy:
-  - What is stored, where, and how (on-device only, Keystore-encrypted
-    feed URL).
-  - No analytics, no telemetry, no third-party SDKs.
-  - Data leaves the device only when explicitly fetched from
-    goodreads.com or shown in the embedded WebView.
-  - Uninstalling the app deletes all data.
-- Host on a public URL (GitHub Pages off the project repo is fine).
-- Link from Play Store listing and from the About screen.
+- **Done** — live at https://pomeranssi.fi/bookline/privacy-policy.html
+  (source in the pomeranssi.fi site repo). Covers: on-device-only
+  storage (Keystore-encrypted feed URL, Room cache, sync timestamp),
+  no analytics/telemetry/third-party SDKs, network only to
+  Goodreads/Amazon, uninstall deletes all data.
+- Remaining: link from Play Store listing and from the About screen.
 
 ### 3. Read Goodreads ToS
 
@@ -90,7 +84,7 @@ with Goodreads or Amazon. Personal use only at present.
 - [x] Delete `ic_goodreads.xml`.
 - [ ] Add About screen (linked from Settings) with unaffiliated
       disclaimer + license + privacy policy link.
-- [ ] Write privacy policy (short markdown file, hosted publicly).
+- [x] Write privacy policy: https://pomeranssi.fi/bookline/privacy-policy.html
 - [ ] Read Goodreads ToS end-to-end, note any clauses to comply with.
 - [ ] Verify launcher icon has no Goodreads visual resemblance.
 - [ ] Bump `versionName` and `versionCode` in `app/build.gradle.kts`.

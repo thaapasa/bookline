@@ -151,6 +151,13 @@ bookline/
 └── README.md
 ```
 
+## 🔒 Privacy
+
+Bookline collects no user data and includes no analytics or telemetry. All data
+(feed URL, cached books) stays on your device, and network requests go only to
+Goodreads. See the full
+[privacy policy](https://pomeranssi.fi/bookline/privacy-policy.html).
+
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to open an
