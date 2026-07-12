@@ -19,9 +19,10 @@ with Goodreads or Amazon. Personal use only at present.
 - App About screen and Play Store listing must state, prominently:
   > Bookline is an unofficial, third-party app. Not affiliated with,
   > endorsed by, or sponsored by Goodreads or Amazon.
-- **In-app part done** — About screen (top bar dropdown menu) shows the
-  disclaimer, license, app version, and privacy policy + GitHub links.
-- Remaining: same disclaimer in the Play Store listing description.
+- **Done** — About screen (top bar dropdown menu) shows the
+  disclaimer, license, app version, and privacy policy + GitHub links;
+  the same disclaimer closes the Play Store listing description
+  (EN + FI).
 
 ### 2. Privacy policy
 
@@ -31,8 +32,8 @@ with Goodreads or Amazon. Personal use only at present.
   storage (Keystore-encrypted feed URL, Room cache, sync timestamp),
   no analytics/telemetry/third-party SDKs, network only to
   Goodreads/Amazon, uninstall deletes all data. Linked from the
-  About screen.
-- Remaining: link from the Play Store listing.
+  About screen, the Play Store listing description, and the Play
+  Console privacy policy field.
 
 ### 3. Goodreads ToS review
 
@@ -133,14 +134,17 @@ sits against them:
 - [ ] Build an App Bundle (`./gradlew bundleRelease`) — Play requires
       `.aab`, not APK — and enroll in Play App Signing (mandatory);
       keep a backup of the upload keystore.
-- [ ] Fill in Play Console data safety form (declare: no data
-      collected or shared) and content rating questionnaire.
-- [ ] Prepare Play Store listing copy with unaffiliated disclaimer
-      in the description + privacy policy link.
-- [ ] Store listing assets: 512 px hi-res icon, 1024×500 feature
+- [x] Fill in Play Console data safety form (declared: no data
+      collected or shared) and content rating questionnaire
+      (Everyone; all content questions No, online content Yes).
+- [x] Target audience declaration: 13+, no child age groups.
+- [x] Prepare Play Store listing copy (EN + FI) with unaffiliated
+      disclaimer in the description + privacy policy link.
+- [x] Store listing assets: 512 px hi-res icon, 1024×500 feature
       graphic, public support email.
 - [ ] (Optional) Add a `--no-network` debug toggle for screenshots.
-- [ ] Screenshot set: no Goodreads logo visible in any image.
+- [x] Screenshot set: no Goodreads logo visible in any image
+      (verified all six; Goodreads WebView screenshot removed).
 
 ## Bottom line
 
