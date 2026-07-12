@@ -23,12 +23,13 @@ Bookline — single-module Android app (Kotlin + Jetpack Compose) that fetches a
 ./gradlew lint               # Android lint (warningsAsErrors — must be clean)
 ./gradlew spotlessApply      # format code (Spotless + ktlint) — run after making edits
 ./gradlew spotlessCheck      # verify formatting (CI enforces this)
+./gradlew testDebugUnitTest  # run local unit tests (CI enforces this)
 ./gradlew clean
 ```
 
-**Formatting is enforced**: CI (`.github/workflows/ci.yml`) runs `spotlessCheck`, `lint`, and `assembleDebug` on every push/PR. Always run `./gradlew spotlessApply` after editing Kotlin or Gradle files. Lint runs with `warningsAsErrors = true`; new-version-available checks are downgraded to informational. ktlint config lives in `.editorconfig`.
+**Formatting is enforced**: CI (`.github/workflows/ci.yml`) runs `spotlessCheck`, `lint`, `testDebugUnitTest`, and `assembleDebug` on every push/PR. Always run `./gradlew spotlessApply` after editing Kotlin or Gradle files. Lint runs with `warningsAsErrors = true`; new-version-available checks are downgraded to informational. ktlint config lives in `.editorconfig`.
 
-No automated tests in this project — do not add test files unless explicitly asked. `example-feed.rss` at repo root is sample Goodreads data for manual parser testing. If missing, ask user to re-export from Goodreads.
+Unit tests exist only for pure logic with mangling risk (e.g. `SeriesParser`) — do not add test files elsewhere unless explicitly asked. `example-feed.rss` at repo root is sample Goodreads data for manual parser testing. If missing, ask user to re-export from Goodreads.
 
 ## Tech stack
 

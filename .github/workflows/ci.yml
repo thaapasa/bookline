@@ -26,5 +26,8 @@ jobs:
       - name: Android Lint (warnings are errors)
         run: ./gradlew lint
 
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest
+
       - name: Build debug APK
         run: ./gradlew assembleDebug
