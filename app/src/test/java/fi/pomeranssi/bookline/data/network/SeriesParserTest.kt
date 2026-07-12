@@ -159,8 +159,7 @@ class SeriesParserTest {
     // Parentheses that are not series info
 
     @Test
-    fun `paren edition note without hash unchanged`() =
-        assertUnchanged("To Kill a Mockingbird (Harper Perennial Modern Classics)")
+    fun `paren edition note without hash unchanged`() = assertUnchanged("To Kill a Mockingbird (Harper Perennial Modern Classics)")
 
     @Test
     fun `paren movie tie-in unchanged`() = assertUnchanged("Room (Movie Tie-In Edition)")
@@ -184,15 +183,13 @@ class SeriesParserTest {
     fun `book number without series name unchanged`() = assertUnchanged("My Struggle: Book 1")
 
     @Test
-    fun `spelled-out book number unchanged`() =
-        assertUnchanged("Cinder: Book One of the Lunar Chronicles")
+    fun `spelled-out book number unchanged`() = assertUnchanged("Cinder: Book One of the Lunar Chronicles")
 
     @Test
     fun `plural books unchanged`() = assertUnchanged("1Q84: Books 1-3")
 
     @Test
-    fun `subtitle containing word book unchanged`() =
-        assertUnchanged("The Name of the Wind: The Kingkiller Chronicle: Day One")
+    fun `subtitle containing word book unchanged`() = assertUnchanged("The Name of the Wind: The Kingkiller Chronicle: Day One")
 
     @Test
     fun `descriptive subtitle unchanged`() = assertUnchanged("Salt: A World History")
@@ -204,33 +201,27 @@ class SeriesParserTest {
     // ", Book N" without a colon
 
     @Test
-    fun `classic text with book number but no colon unchanged`() =
-        assertUnchanged("Paradise Lost, Book 1")
+    fun `classic text with book number but no colon unchanged`() = assertUnchanged("Paradise Lost, Book 1")
 
     // Near-misses of the colon format
 
     @Test
-    fun `lowercase book keyword unchanged`() =
-        assertUnchanged("Storm Over Camelot: Morgan le Fay, book 3")
+    fun `lowercase book keyword unchanged`() = assertUnchanged("Storm Over Camelot: Morgan le Fay, book 3")
 
     @Test
-    fun `text after book number unchanged`() =
-        assertUnchanged("Storm Over Camelot: Morgan le Fay, Book 3 Extras")
+    fun `text after book number unchanged`() = assertUnchanged("Storm Over Camelot: Morgan le Fay, Book 3 Extras")
 
     @Test
-    fun `book number without digits unchanged`() =
-        assertUnchanged("Storm Over Camelot: Morgan le Fay, Book")
+    fun `book number without digits unchanged`() = assertUnchanged("Storm Over Camelot: Morgan le Fay, Book")
 
     @Test
-    fun `missing series name before comma unchanged`() =
-        assertUnchanged("Storm Over Camelot: , Book 3")
+    fun `missing series name before comma unchanged`() = assertUnchanged("Storm Over Camelot: , Book 3")
 
     @Test
     fun `bookend word containing book unchanged`() = assertUnchanged("The Jungle Book")
 
     @Test
-    fun `title ending in word book with number unchanged`() =
-        assertUnchanged("How to Cook Everything: The Basics, Cookbook 2")
+    fun `title ending in word book with number unchanged`() = assertUnchanged("How to Cook Everything: The Basics, Cookbook 2")
 
     // Malformed / edge inputs
 
