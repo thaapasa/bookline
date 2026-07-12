@@ -14,16 +14,13 @@ rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use 
 android {
     namespace = "fi.pomeranssi.bookline"
     compileSdk {
-        version =
-            release(36) {
-                minorApiLevel = 1
-            }
+        version = release(37)
     }
 
     defaultConfig {
         applicationId = "fi.pomeranssi.bookline"
         minSdk = 28
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 10
         versionName = "1.0"
 
