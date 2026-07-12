@@ -64,13 +64,9 @@ your reading journey.
 |---------------------------------------|-------------------------------------|---------------------------------------|
 | ![Timeline](screenshots/timeline.png) | ![To Read](screenshots/to_read.png) | ![Series](screenshots/series_all.png) |
 
-| Series Detail                                   | Library                             |
-|-------------------------------------------------|-------------------------------------|
-| ![Series Detail](screenshots/series_within.png) | ![Library](screenshots/library.png) |
-
-| Book Detail                                  | Goodreads                                            |
-|----------------------------------------------|------------------------------------------------------|
-| ![Book Detail](screenshots/book_details.png) | ![Goodreads](screenshots/goodreads_book_details.png) |
+| Series Detail                                   | Library                             | Book Detail                                  |
+|-------------------------------------------------|-------------------------------------|----------------------------------------------|
+| ![Series Detail](screenshots/series_within.png) | ![Library](screenshots/library.png) | ![Book Detail](screenshots/book_details.png) |
 
 ## 🏗️ Tech Stack
 
