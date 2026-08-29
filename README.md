@@ -21,6 +21,10 @@ your reading journey.
   Filter series by name. Tap a series to see all books in reading order.
 - **Library** — search all your books by title or author, and filter by Goodreads
   shelf using horizontal filter chips. Results update in real time.
+- **Did Not Finish** — books on Goodreads' Did Not Finish shelf are toned down
+  (flat card, greyscale cover, muted accents) with a "Did not finish" status and
+  the date they were set aside, so they stand out from finished reads at a glance.
+  Filter them via the `did-not-finish` shelf chip in Library.
 
 ### Book Detail
 

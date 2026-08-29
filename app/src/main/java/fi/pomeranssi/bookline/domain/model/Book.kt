@@ -11,6 +11,9 @@ sealed interface ReadingStatus {
     data object CurrentlyReading : ReadingStatus
 
     data object ToRead : ReadingStatus
+
+    /** Goodreads default "Did Not Finish" shelf (added March 2026). */
+    data object DidNotFinish : ReadingStatus
 }
 
 /**
@@ -49,6 +52,7 @@ data class Book(
             when {
                 "currently-reading" in userShelves -> ReadingStatus.CurrentlyReading
                 "to-read" in userShelves -> ReadingStatus.ToRead
+                "did-not-finish" in userShelves -> ReadingStatus.DidNotFinish
                 else -> ReadingStatus.Read
             }
 

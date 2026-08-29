@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AutoStories
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Star
@@ -58,6 +59,7 @@ import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.components.BookCover
 import fi.pomeranssi.bookline.ui.components.HtmlText
 import fi.pomeranssi.bookline.ui.components.LoadingContent
+import fi.pomeranssi.bookline.ui.components.didNotFinishLabel
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 import java.util.Locale
 
@@ -298,6 +300,23 @@ private fun BookDetailHeader(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+
+                ReadingStatus.DidNotFinish -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Block,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = didNotFinishLabel(book),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }

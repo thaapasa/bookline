@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,6 +26,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
@@ -38,6 +42,8 @@ import fi.pomeranssi.bookline.ui.common.DateFormatters
 import fi.pomeranssi.bookline.ui.common.PreviewData
 import fi.pomeranssi.bookline.ui.theme.BooklineTheme
 
+private val DESATURATED = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+
 @Composable
 fun BookCard(
     book: Book,
@@ -45,9 +51,19 @@ fun BookCard(
     showSeriesInfo: Boolean = true,
     onClick: () -> Unit = {},
 ) {
+    // Did-not-finish books are toned down: flatter card, grey cover, muted accents
+    val didNotFinish = book.readingStatus == ReadingStatus.DidNotFinish
+    val accentColor =
+        if (didNotFinish) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary
     Box(modifier = modifier.fillMaxWidth()) {
         Card(
             onClick = onClick,
+            colors =
+                if (didNotFinish) {
+                    CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                } else {
+                    CardDefaults.cardColors()
+                },
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
@@ -60,6 +76,7 @@ fun BookCard(
                 BookCover(
                     imageUrl = book.bestImageUrl,
                     contentDescription = stringResource(R.string.cover_of_book, book.title),
+                    colorFilter = if (didNotFinish) DESATURATED else null,
                     modifier = Modifier.size(width = 85.dp, height = 120.dp),
                 )
 
@@ -81,7 +98,7 @@ fun BookCard(
                                 } else {
                                     "#${firstSeries.position}"
                                 }
-                            val seriesColor = MaterialTheme.colorScheme.primary
+                            val seriesColor = accentColor
                             val titleStyle = MaterialTheme.typography.titleSmall
                             buildAnnotatedString {
                                 append(book.title)
@@ -117,7 +134,7 @@ fun BookCard(
                                     imageVector = Icons.Default.Star,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = accentColor,
                                 )
                             }
                         }
@@ -173,6 +190,21 @@ fun BookCard(
                                     color = MaterialTheme.colorScheme.secondary,
                                 )
                             }
+
+                            ReadingStatus.DidNotFinish -> {
+                                Icon(
+                                    imageVector = Icons.Default.Block,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = didNotFinishLabel(book),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
 
@@ -217,6 +249,13 @@ fun BookCard(
     }
 }
 
+/** "Did not finish" label, with the date the book was set aside when Goodreads has one. */
+@Composable
+internal fun didNotFinishLabel(book: Book): String =
+    book.userReadAt?.let { date ->
+        stringResource(R.string.status_did_not_finish_on, date.format(DateFormatters.displayDate))
+    } ?: stringResource(R.string.status_did_not_finish)
+
 @Preview(showBackground = true)
 @Composable
 private fun BookCardPreview() {
@@ -231,6 +270,28 @@ private fun BookCardCurrentlyReadingPreview() {
     BooklineTheme(dynamicColor = false) {
         BookCard(
             book = PreviewData.bookCurrentlyReading,
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BookCardDidNotFinishPreview() {
+    BooklineTheme(dynamicColor = false) {
+        BookCard(
+            book = PreviewData.bookDidNotFinish,
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BookCardDidNotFinishNoDatePreview() {
+    BooklineTheme(dynamicColor = false) {
+        BookCard(
+            book = PreviewData.bookDidNotFinish.copy(userReadAt = null),
             modifier = Modifier.padding(16.dp),
         )
     }

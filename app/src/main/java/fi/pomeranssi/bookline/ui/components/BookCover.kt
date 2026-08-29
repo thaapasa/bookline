@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -34,12 +35,14 @@ internal const val PREVIEW_IMAGE_SCHEME = "preview://"
  *
  * When [imageUrl] is non-null, renders an AsyncImage (or static placeholder
  * in preview/inspection mode). When null, shows a centered Book icon.
+ * [colorFilter] is applied to the loaded image only (e.g. desaturation).
  */
 @Composable
 fun BookCover(
     imageUrl: String?,
     contentDescription: String,
     modifier: Modifier = Modifier,
+    colorFilter: ColorFilter? = null,
 ) {
     if (imageUrl != null) {
         if (LocalInspectionMode.current) {
@@ -63,6 +66,7 @@ fun BookCover(
                     ),
                 contentDescription = contentDescription,
                 contentScale = ContentScale.Crop,
+                colorFilter = colorFilter,
                 modifier = modifier,
             )
         } else {
@@ -71,6 +75,7 @@ fun BookCover(
                 contentDescription = contentDescription,
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(R.drawable.book_cover_placeholder),
+                colorFilter = colorFilter,
                 modifier = modifier,
             )
         }

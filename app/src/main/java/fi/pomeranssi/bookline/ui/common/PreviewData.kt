@@ -92,6 +92,29 @@ internal object PreviewData {
                 ),
         )
 
+    /** Set aside part-way; Goodreads records the date it was shelved as DNF. */
+    val bookDidNotFinish =
+        bookRead.copy(
+            bookId = "preview-7",
+            title = "The Salt Marches",
+            authorName = "R. Okonkwo",
+            numPages = 612,
+            bookPublishedYear = 2017,
+            bookDescription = null,
+            imageUrl = "preview://preview_cover_salt_marches",
+            userRating = 2,
+            averageRating = 3.71,
+            userReadAt = LocalDate.of(2026, 3, 20),
+            userDateAdded = LocalDate.of(2026, 2, 2),
+            userDateCreated = LocalDate.of(2026, 2, 2),
+            userShelves = listOf("did-not-finish"),
+            goodreadsUrl = null,
+            seriesEntries =
+                listOf(
+                    SeriesEntry(seriesName = "The Salt Marches", position = 1.0),
+                ),
+        )
+
     val books = listOf(bookRead, bookCurrentlyReading, bookToRead)
 
     val series =

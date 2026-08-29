@@ -79,6 +79,8 @@
     <string name="status_currently_reading">Currently reading</string>
     <string name="status_to_read">To read</string>
     <string name="status_read_on">Read %1$s</string>
+    <string name="status_did_not_finish">Did not finish</string>
+    <string name="status_did_not_finish_on">Did not finish · %1$s</string>
     <plurals name="page_count">
         <item quantity="one">%d page</item>
         <item quantity="other">%d pages</item>

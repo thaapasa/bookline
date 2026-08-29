@@ -76,6 +76,8 @@
     <string name="status_currently_reading">Luettavana</string>
     <string name="status_to_read">Lukulistalla</string>
     <string name="status_read_on">Luettu %1$s</string>
+    <string name="status_did_not_finish">Jäi kesken</string>
+    <string name="status_did_not_finish_on">Jäi kesken · %1$s</string>
     <plurals name="page_count">
         <item quantity="one">%d sivu</item>
         <item quantity="other">%d sivua</item>
